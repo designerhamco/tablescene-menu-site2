@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import type { ManualOrderActions } from "@/lib/manual-order";
 import OrderTableWorkspace from "./OrderTableWorkspace";
 import { Button } from "@/app/components/ui/button";
 import OrderHistoryFilters from "@/components/mypage/OrderHistoryFilters";
@@ -53,8 +54,9 @@ export default function OrderDashboard({
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
-  recordSources, arrivalGroups, historyPath, receptionControl, mutationAction = mutateOrderAction,
+  recordSources, arrivalGroups, historyPath, receptionControl, manualOrderActions, mutationAction = mutateOrderAction,
 }: {
+  manualOrderActions?: ManualOrderActions;
   mutationAction?: typeof mutateOrderAction;
   receptionControl?: ReactNode;
   recordSources?: OperationRecordSources;
@@ -328,7 +330,7 @@ export default function OrderDashboard({
         {!view?.error && (tableWorkspace ? (
           <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
             permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
-            transitionAction={action} pending={pending} onPrint={setPrintOrders}
+            transitionAction={action} pending={pending} onPrint={setPrintOrders} manualOrderActions={manualOrderActions}
             refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
               aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
         ) : list)}

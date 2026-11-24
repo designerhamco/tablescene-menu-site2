@@ -60,7 +60,7 @@ function ColumnFilter({ label, options, selected, change }: {
   );
 }
 
-export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation }: {
+export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, openManualOrder }: {
   orders: Order[];
   roomNames: ReadonlyMap<string, string>;
   menuSiteId: string;
@@ -71,6 +71,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   transitionAction: (form: FormData) => void;
   onPrint: (orders: Order[]) => void;
   openDetail: (order: Order, trigger: HTMLButtonElement) => void;
+  openManualOrder?: (trigger: HTMLButtonElement, pointId?: string) => void;
   openOperation: (kind: PointOrderOperation["kind"], order: Order, trigger: HTMLButtonElement) => void;
 }) {
   const [searchField, setSearchField] = useState<OrderListSearchField>("number");
@@ -83,6 +84,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   const groups = getOrderListGroups(orders, { query, searchField, status, oldestFirst, menus, payments });
   const visibleOrders = groups.flatMap(group => group.orders.map(row => row.order));
   const selectedOrders = visibleOrders.filter(order => selection.has(order.id));
+  const selectedPointIds = new Set(selectedOrders.map(order => order.tableId));
   const all = visibleOrders.length > 0 && visibleOrders.length === selectedOrders.length;
   const cancel = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const print = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
@@ -267,7 +269,10 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
         <div className="site-action-row" data-distribution="center">
           <div className="site-action-row" role="group" aria-label="일반 주문 처리">
             <span className="type-label">일반</span>
-            <Button variant="outline" size="compact" disabled title="수동 주문 추가 준비 중">수동 주문 추가</Button>
+            <Button variant="outline" size="compact" disabled={!openManualOrder || pending}
+              onClick={event => openManualOrder?.(event.currentTarget, selectedPointIds.size === 1 ? [...selectedPointIds][0] : undefined)}>
+              수동 주문 추가
+            </Button>
             <Button variant="outline" size="compact" disabled={!print || pending} onClick={() => onPrint(selectedOrders)}><PrinterFill aria-hidden="true" /> 청구서 인쇄</Button>
             <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
             <Button variant="destructive" size="compact" data-order-table-cancel disabled={!cancel || pending}

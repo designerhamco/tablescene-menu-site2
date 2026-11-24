@@ -17,6 +17,8 @@ import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO, floorMemberships, readableFloorDocumen
 import { isCurrentOrder } from "@/lib/order-history-query";
 import { getHistoryPlacements, groupOperationHistory, representativeOperationOrder, type OperationHistoryRecord, type OperationsFloorPlan } from "@/lib/operations-history";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
+import type { ManualOrderActions } from "@/lib/manual-order";
+import ManualOrderDialog from "./ManualOrderDialog";
 import OrderManagementList from "./OrderManagementList";
 import OrderPointDetail from "./OrderPointDetail";
 import type { OrderManagementActionState } from "./action-state";
@@ -26,7 +28,7 @@ type Point = { id: string; label: string };
 type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
-export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint }: {
+export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions }: {
   menuSiteId: string;
   floorPlan: OperationsFloorPlan;
   records: OperationHistoryRecord[];
@@ -35,6 +37,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   receptionControl?: ReactNode;
   refreshControl: ReactNode;
   mutateAction: PointOrderMutation;
+  manualOrderActions?: ManualOrderActions;
   onPrint: (orders: Order[]) => void;
   transitionAction: (form: FormData) => void;
   pending: boolean;
@@ -47,6 +50,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const [now, setNow] = useState<number | null>(null);
   const [detail, setDetail] = useState<Point & { orderId?: string }>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
+  const [manualOrder, setManualOrder] = useState<{ pointId?: string }>();
   const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
   const trigger = useRef<HTMLButtonElement>(null);
   const mapTab = useRef<HTMLButtonElement>(null);
@@ -76,6 +80,11 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const listOrders = activeListRoom === "all" ? orders : orders.filter(order => roomByPoint.get(order.tableId) === activeListRoom);
   const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const pointsById = new Map(floorPlan.points.map(point => [point.id, point]));
+  const manualPoints = floorPlan.points.filter(point => point.status === "active").map(point => ({
+    id: point.id,
+    label: listRoomNames.has(point.id) ? `${listRoomNames.get(point.id)} · ${point.label}` : point.label,
+  }));
+  const canAddOrder = Boolean(manualOrderActions && permissions.canManage && manualPoints.length);
   const roomPoints = placements.flatMap(placement => {
     const point = pointsById.get(placement.pointId);
     return placement.roomId === room?.id && point ? [{ placement, point }] : [];
@@ -120,6 +129,11 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   function openOperation(kind: PointOrderOperation["kind"], order: Order, point: Point, button: HTMLButtonElement) {
     trigger.current = button;
     setOperation({ kind, orderId: order.id, point });
+  }
+
+  function openManualOrder(button: HTMLButtonElement, pointId?: string) {
+    trigger.current = button;
+    setManualOrder({ pointId: manualPoints.some(point => point.id === pointId) ? pointId : undefined });
   }
 
   const shell = (
@@ -174,7 +188,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
         {view === "list" ? (
           <OrderManagementList key={activeListRoom} orders={listOrders} roomNames={listRoomNames} menuSiteId={menuSiteId}
             permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
-            onPrint={onPrint}
+            onPrint={onPrint} openManualOrder={canAddOrder ? openManualOrder : undefined}
             openDetail={(order, button) => openDetail({ id: order.tableId, label: order.tableLabel }, button, order.id)}
             openOperation={(kind, order, button) => openOperation(kind, order, { id: order.tableId, label: order.tableLabel }, button)} />
         ) : !floorPlan.available || !room ? (
@@ -248,7 +262,10 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       {view === "map" && (
         <div className="site-floor-workspace-footer">
           <div className="site-action-row" data-distribution="center">
-            <Button variant="outline" size="compact" disabled title="수동 주문 추가 준비 중">수동 주문 추가</Button>
+            <Button variant="outline" size="compact" disabled={!canAddOrder || pending}
+              onClick={event => openManualOrder(event.currentTarget, selectedPointIds.size === 1 ? [...selectedPointIds][0] : undefined)}>
+              수동 주문 추가
+            </Button>
             <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
             <Button variant="destructive" size="compact" disabled={!cancelOrder} data-order-table-cancel
               title={!cancelOrder ? "조리전 상태의 미결제 주문 한 건을 선택해 주세요." : undefined}
@@ -303,6 +320,14 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             orders={detail.orderId ? orders.filter(order => order.id === detail.orderId) : activeOrders.filter(order => order.tableId === detail.id)} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
         </DialogContent>
       </Dialog>
+      {manualOrder && manualOrderActions && (
+        <ManualOrderDialog actions={manualOrderActions} points={manualPoints} initialPointId={manualOrder.pointId}
+          close={() => setManualOrder(undefined)} onCloseAutoFocus={restoreFocus}
+          onSuccess={orderId => {
+            setManualOrder(undefined);
+            setFeedback({ status: "success", orderId, message: "후불 주문을 추가했습니다." });
+          }} />
+      )}
       {operation && <OrderPointOperationDialog key={operation.orderId} operation={operation} order={ordersById.get(operation.orderId)}
         pointLabel={operation.point.label} menuSiteId={menuSiteId} permissions={permissions} mutateAction={mutateAction}
         close={() => setOperation(undefined)} onSuccess={setFeedback} onCloseAutoFocus={restoreFocus} />}

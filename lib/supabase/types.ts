@@ -1017,7 +1017,8 @@ export type Database = {
           status: string
           status_updated_by: string | null
           subtotal_amount: number
-          table_visit_session_id: string
+          staff_created_by: string | null
+          table_visit_session_id: string | null
           total_amount: number
           updated_at: string
         }
@@ -1045,7 +1046,8 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount: number
-          table_visit_session_id: string
+          staff_created_by?: string | null
+          table_visit_session_id?: string | null
           total_amount: number
           updated_at?: string
         }
@@ -1073,7 +1075,8 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount?: number
-          table_visit_session_id?: string
+          staff_created_by?: string | null
+          table_visit_session_id?: string | null
           total_amount?: number
           updated_at?: string
         }
@@ -3949,6 +3952,18 @@ export type Database = {
           payment_status: string
           total_amount: number
         }[]
+      }
+      submit_manual_staff_order: {
+        Args: {
+          p_actor_user_id: string
+          p_client_request_id: string
+          p_expected_total: number
+          p_lines: Json
+          p_menu_site_id: string
+          p_notification_phone: string | null
+          p_table_id: string
+        }
+        Returns: Database["public"]["Functions"]["submit_postpay_order_v2"]["Returns"]
       }
       submit_postpay_order_v2: {
         Args: {

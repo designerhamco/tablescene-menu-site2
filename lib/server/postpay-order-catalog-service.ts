@@ -24,6 +24,7 @@ export async function getPostpayOrderCatalog(
     PublicMenuTemplateProps,
     "categories" | "timeSales" | "menuSite" | "initialNowMs"
   > & Partial<Pick<PublicMenuTemplateProps, "items">>,
+  staffCategoryIds?: Map<string, string | null>,
 ): Promise<PostpayOrderCatalogItem[]> {
   if (!isPostpayOrderRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) return [];
 
@@ -107,23 +108,24 @@ export async function getPostpayOrderCatalog(
     .flatMap((item) => {
       const customization = readMenuOrderCustomization(item.order_customization);
       const groups = groupsByItem.get(item.id) ?? [];
-      if (customization.priceColumnIds) {
-        const publicItem = publicItems.get(item.id);
-        const scoped = publicItem && getOrderPriceColumnOptions(
-          publicItem,
-          publicData?.categories.find(category => category.id === item.category_id),
-          publicData?.timeSales ?? [],
-          publicData?.initialNowMs ?? Date.now(),
-        );
-        return scoped ? [{
+      const publicItem = publicItems.get(item.id);
+      const columnPricing = (customization.priceColumnIds || staffCategoryIds) && publicItem && getOrderPriceColumnOptions(
+        publicItem,
+        publicData?.categories.find(category => category.id === item.category_id),
+        publicData?.timeSales ?? [],
+        publicData?.initialNowMs ?? Date.now(),
+      );
+      if (columnPricing) {
+        return [{
           id: item.id,
           name: item.name,
-          price: scoped.price,
+          price: columnPricing.price,
           imageUrl: item.image_url ?? undefined,
-          optionGroups: [scoped.group, ...groups],
+          optionGroups: [columnPricing.group, ...groups],
           customization,
-        }] : [];
+        }];
       }
+      if (customization.priceColumnIds) return [];
       return [{
         id: item.id,
         name: item.name,
@@ -163,6 +165,10 @@ export async function getPostpayOrderCatalog(
         optionGroups: [],
         customization: { ...EMPTY_MENU_ORDER_CUSTOMIZATION, allowRequest: coursesAllowingRequests.has(course.id) },
       });
+  }
+  if (staffCategoryIds) {
+    for (const item of itemsResult.data ?? []) staffCategoryIds.set(item.id, item.category_id);
+    for (const course of publicData?.categories ?? []) staffCategoryIds.set("course:" + course.id, course.id);
   }
   return catalog;
 }

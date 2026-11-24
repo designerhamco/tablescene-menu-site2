@@ -17,6 +17,7 @@ import {
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 
 import OrderDashboard from "./OrderDashboard";
+import { loadManualOrderCatalog, submitManualOrderAction } from "./manual-order-actions";
 
 export const metadata: Metadata = {
   title: "주문관리 | 아티메뉴",
@@ -73,6 +74,10 @@ export default async function OrderDashboardPage({
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} orderHistory={data.view?.kind === "history"} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
         <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} view={data.view} permissions={data.permissions}
+          manualOrderActions={data.permissions.canManage && data.view?.kind !== "history" ? {
+            load: loadManualOrderCatalog.bind(null, menuId),
+            submit: submitManualOrderAction.bind(null, menuId),
+          } : undefined}
           receptionControl={data.view?.kind !== "history" ? <OrderReceptionControl menuId={menuId} canConfigure={selectedSite.canConfigure}
             published={selectedSite.status === "published"} activeTablesReady={selectedSite.activeTablesReady} /> : undefined} />
       </OperationsViewLayout>
