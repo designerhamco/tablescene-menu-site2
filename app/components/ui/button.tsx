@@ -12,6 +12,8 @@ const buttonVariants = cva(
         default: "site-button-primary",
         destructive:
           "site-button-danger",
+        warning: "site-button-warning",
+        success: "site-button-success",
         outline: "site-button-outline",
         secondary: "site-button-secondary",
         ghost: "site-button-ghost",

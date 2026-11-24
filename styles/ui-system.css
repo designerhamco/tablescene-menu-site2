@@ -390,6 +390,38 @@
   background: var(--ui-danger-hover);
 }
 
+.site-button-warning:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-chip-pending);
+  background: var(--ui-chip-pending);
+  color: #ffffff;
+}
+
+.site-button-warning:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--ui-chip-pending) 65%, var(--ui-warning-text));
+  background: color-mix(in srgb, var(--ui-chip-pending) 65%, var(--ui-warning-text));
+}
+
+.site-button-warning:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-warning-text);
+  background: var(--ui-warning-text);
+}
+
+.site-button-success:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-chip-active);
+  background: var(--ui-chip-active);
+  color: #ffffff;
+}
+
+.site-button-success:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
+  border-color: color-mix(in srgb, var(--ui-chip-active) 65%, var(--ui-success-text));
+  background: color-mix(in srgb, var(--ui-chip-active) 65%, var(--ui-success-text));
+}
+
+.site-button-success:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-success-text);
+  background: var(--ui-success-text);
+}
+
 .site-button-danger-ghost { border-color: transparent; background: transparent; color: var(--ui-danger); }
 .site-button-danger-ghost:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-error-surface); }
 

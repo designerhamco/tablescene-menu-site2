@@ -35,6 +35,8 @@
 | 강조가 필요한 작업 전제·주의 메시지 | `ContentPanel surface="notice" density="compact"` | 공통 밝은 노랑, 경계 없음, 6px, 그림자 없음 | 모든 기기16px |
 | 일반·상세·목록·알림 본문의 기본 구성 | `site-stack-*` | 배경·외곽선 추가 없음 | 부모의 콘텐츠 경계 사용 |
 
+주방 칸반은 흰 작업면 안에서 선으로 상태 열을 구분한다. 주문 카드의 `ContentPanel layout="card" density="compact"`는 공통 사각 카드 모서리와 compact 안쪽 여백을 사용한다. 조리 진척도는 조리중 열에 연결된 회색 영역으로 기본 표시한다.
+
 안쪽 여백은 `--site-panel-inset`, `--site-panel-inset-wide`, `--site-panel-inset-compact`로 관리한다. 작업 박스 모서리는 기존 `--ui-radius-surface`를 사용하며 히어로·이미지·상품 카드의 별도 역할 모서리를 바꾸지 않는다. 회색·유색 박스에 장식 경계를 추가하지 않는다. 카드 안에 필드마다 새 카드를 겹치지 않는다. `ContentPanel`은 className/style로 외형이나 간격을 바꾸는 API를 제공하지 않는다.
 
 ## 간격의 소유자
