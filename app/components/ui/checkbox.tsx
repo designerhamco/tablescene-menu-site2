@@ -9,12 +9,14 @@ import { cn } from "./utils";
 function Checkbox({
   className,
   shape,
+  showUncheckedMark = false,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root> & { shape?: "circle" }) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & { shape?: "circle"; showUncheckedMark?: boolean }) {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       data-shape={shape}
+      data-show-unchecked-mark={showUncheckedMark || undefined}
       className={cn(
         "peer site-checkbox",
         className,
@@ -22,6 +24,7 @@ function Checkbox({
       {...props}
     >
       <CheckboxPrimitive.Indicator
+        forceMount={showUncheckedMark || undefined}
         data-slot="checkbox-indicator"
         className="site-checkbox-indicator"
       >

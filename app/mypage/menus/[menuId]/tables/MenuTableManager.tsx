@@ -37,6 +37,7 @@ import type { OrderPointKind } from "@/lib/order-point-policy";
 import OrderPointRestoreForm from "@/components/mypage/OrderPointRestoreForm";
 import FloorPlanDesktopNotice from "@/components/mypage/floor-plan/FloorPlanDesktopNotice";
 import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
+import SelectedPointNameForm from "@/components/mypage/floor-plan/SelectedPointNameForm";
 import { emptyFloorDocument, FLOOR_RECEPTION_LOCK, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
 
 type ManagedPoint = ManagedOrderPoint;
@@ -136,7 +137,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
     if (await confirmUnsavedChanges()) setDisplayMode(value);
   }
 
-  const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm embedded menuSiteId={menuSiteId} kind={registrationKind} suggestedName={nextPointName(registrationKind)} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={false} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
+  const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm embedded floorToolbar={floorPlan.available && displayMode === "map"} menuSiteId={menuSiteId} kind={registrationKind} suggestedName={nextPointName(registrationKind)} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={false} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
 
   return <div className="site-stack-content">
     <OrderPointConnectionDialog menuSiteId={menuSiteId} mutateAction={mutatePointAction} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} enableRequest={enableRequest} onClose={() => { setConnectionPointId(null); setEnableRequest(undefined); }} />
@@ -167,7 +168,10 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
                 <TableBody>{roomTables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending||pending} layoutLocked={orderEnabled} rooms={rooms} roomId={group.unassigned?undefined:roomId} onMove={floorPlan.available?onMovePoint:undefined} archiveAction={archiveAction} onRename={renameDraft} readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />)}</TableBody>
               </Table>}
             </div>;})}</div>}
-            renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} connectionState={connectionState} disabled={pending || mutationPending} layoutLocked={orderEnabled} onRename={renameDraft} readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />}
+            renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} connectionState={connectionState} disabled={pending || mutationPending} hideName readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />}
+            renderSelectedEditor={(point, disabled, actions) => <SelectedPointNameForm key={point.id}
+              label={point.label} kind={point.kind ?? "table"} disabled={disabled || mutationPending} actions={actions}
+              onSave={name => renameDraft(point.id, name)} />}
             renderSelectedActions={(point, pending) => <OrderPointArchiveControl menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} action={archiveAction} disabled={pending || mutationPending || orderEnabled} />}
             onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
       </div>

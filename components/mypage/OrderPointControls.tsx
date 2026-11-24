@@ -6,7 +6,6 @@ import InfoTooltip from "@/components/ui/InfoTooltip";
 import { orderPointTerminalConnectionReason, orderPointConnectionLabel, type OrderPointConnectHandler, type OrderPointConnectionState } from "@/lib/order-point-connection";
 import { DEFAULT_ORDER_POINT_POLICY, ORDER_POINT_CONNECTION_REQUIRED, orderPointPolicyKey, type OrderPointFeature, type OrderPointFeatureUpdate } from "@/lib/order-point-policy";
 import OrderPointFeatureControl from "./OrderPointFeatureControl";
-import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { ControlCategory, ControlCategoryRow } from "@/app/components/ui/control-category-row";
 
 export type ManagedOrderPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind" | "policy" | "policyAvailable"> & { draft?: boolean };
@@ -45,11 +44,11 @@ export function OrderPointArchiveControl({ menuSiteId, point, action, disabled =
   return <form data-unsaved-commit={point.draft || undefined} action={action} aria-busy={disabled}><input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} /><button name="intent" value="archive" disabled={disabled} aria-label={`${point.label} ${point.draft ? "추가 취소" : "보관"}`} className="site-button site-button-outline site-button-compact">{point.draft ? "추가 취소" : "보관"}</button></form>;
 }
 
-export function OrderPointSelectionDetails({ menuSiteId, point, connectionState, disabled, readOnly, onUpdate, onConnect, onRename, layoutLocked }: {
-  menuSiteId: string; point: ManagedOrderPoint; connectionState?: OrderPointConnectionState; disabled: boolean; readOnly?: boolean; layoutLocked?: boolean; onRename?: (id: string, name: string) => Promise<InlineNameResult>; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
+export function OrderPointSelectionDetails({ menuSiteId, point, connectionState, disabled, readOnly, onUpdate, onConnect, hideName = false }: {
+  menuSiteId: string; point: ManagedOrderPoint; connectionState?: OrderPointConnectionState; disabled: boolean; readOnly?: boolean; hideName?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
 }) {
   return <ControlCategoryRow label={`${point.label} 운영 정보`}>
-    {onRename ? <InlineNameEditor protectNavigation value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={disabled || layoutLocked} onSave={name => onRename(point.id, name)} /> : <h3 className="type-content-title">{point.label}</h3>}
+    {!hideName && <h3 className="type-content-title">{point.label}</h3>}
     <ControlCategory title="주문"><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></ControlCategory>
     <ControlCategory title="호출"><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></ControlCategory>
     <ControlCategory title="매장 기기 연결"><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></ControlCategory>

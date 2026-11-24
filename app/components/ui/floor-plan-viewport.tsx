@@ -6,11 +6,11 @@ import {Tooltip,TooltipContent,TooltipTrigger} from "./tooltip";
 import {useIsMobile} from "./use-mobile";
 import {FLOOR_GEOMETRY} from "@/lib/menu-floor-plan";
 /** The viewing window is bounded; the world never grows as points are dragged. */
-export function FloorPlanViewport({name,children}:{name:string;children:ReactNode}){
+export function FloorPlanViewport({name,children,inlineTools=false}:{name:string;children:ReactNode;inlineTools?:boolean}){
   const [pan,setPan]=useState(false),drag=useRef<{id:number;x:number;y:number;left:number;top:number}|null>(null);
   const viewport=useRef<HTMLDivElement>(null),mobile=useIsMobile(),panEnabled=pan&&!mobile;
   function end(event:PointerEvent<HTMLDivElement>){if(drag.current?.id!==event.pointerId)return;drag.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);}
-  return <div className="site-floor-viewport-frame" style={{"--floor-world-width":`${FLOOR_GEOMETRY.width}px`,"--floor-world-height":`${FLOOR_GEOMETRY.height}px`} as CSSProperties}>
+  return <div className="site-floor-viewport-frame" data-inline-tools={inlineTools || undefined} style={{"--floor-world-width":`${FLOOR_GEOMETRY.width}px`,"--floor-world-height":`${FLOOR_GEOMETRY.height}px`} as CSSProperties}>
     <div className="site-floor-viewport-tools"><Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="화면 이동 도구" aria-pressed={pan} onClick={()=>setPan(value=>!value)}><Hand aria-hidden="true"/></Button></TooltipTrigger><TooltipContent>손 도구 · 배경을 끌어 배치도 보기 이동</TooltipContent></Tooltip></div>
     <div ref={viewport} className="site-floor-viewport" data-pan={panEnabled} tabIndex={0} role="region" aria-label={`${name} 배치도 보기 영역`} onPointerDownCapture={event=>{
       if(!panEnabled||event.pointerType==="touch"||event.button!==0||!viewport.current)return;
