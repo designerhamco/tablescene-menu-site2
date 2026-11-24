@@ -11,7 +11,8 @@ import { FilterFill } from "@/app/components/ui/site-icon";
 import type { KitchenMenuGroup } from "@/lib/kitchen-order";
 import styles from "./KitchenMenuFilter.module.css";
 
-export default function KitchenMenuFilter({ groups, selection, onChange }: {
+export default function KitchenMenuFilter({ groups, selection, onChange, iconOnly }: {
+  iconOnly?: boolean;
   groups: KitchenMenuGroup[];
   selection: ReadonlySet<string> | null;
   onChange: (keys: string[] | null) => void;
@@ -32,11 +33,13 @@ export default function KitchenMenuFilter({ groups, selection, onChange }: {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="compact" disabled={!keys.length}>
-          메뉴 필터 <FilterFill />
-        </Button>
+        {iconOnly ? (
+          <Button variant="ghost" size="icon" iconSize="compact" aria-label="메뉴 필터" disabled={!keys.length}><FilterFill /></Button>
+        ) : (
+          <Button variant="outline" size="compact" disabled={!keys.length}>메뉴 필터 <FilterFill /></Button>
+        )}
       </PopoverTrigger>
-      <PopoverContent className={styles.popup} side="top" align="end" collisionPadding={12} aria-labelledby={headingId}>
+      <PopoverContent className={styles.popup} side={iconOnly ? "bottom" : "top"} align="end" collisionPadding={12} aria-labelledby={headingId}>
         <div id={headingId} className={`${styles.title} type-label`}>
           <FilterFill size={16} /> 메뉴 필터
         </div>

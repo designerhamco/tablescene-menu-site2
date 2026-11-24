@@ -1,4 +1,5 @@
-export const KITCHEN_ORDER_STATUSES = ["received", "accepted", "cooking", "ready"] as const;
+export const KITCHEN_ACTIVE_STATUSES = ["received", "accepted", "cooking", "ready"] as const;
+export const KITCHEN_ORDER_STATUSES = [...KITCHEN_ACTIVE_STATUSES, "served"] as const;
 type KitchenStatus = (typeof KITCHEN_ORDER_STATUSES)[number];
 
 export type KitchenAction = "start" | "check" | "finish" | "return";
@@ -8,11 +9,14 @@ export type KitchenMenuSource = {
   category: { id: string; name: string; sortOrder: number } | null;
 };
 
+export type KitchenOrderOption = { groupName: string; valueName: string; kind?: "price" | "product" | "request" };
+
 export type KitchenOrderItem = {
   id: string;
   name: string;
   quantity: number;
-  options: { groupName: string; valueName: string }[];
+  options: KitchenOrderOption[];
+  priceNote?: string | null;
   done: boolean;
   lineTotal: number;
   menuSource?: KitchenMenuSource;
@@ -33,8 +37,18 @@ export type KitchenOrder = {
 export const KITCHEN_STAGES = ["before", "cooking", "ready"] as const;
 export const KITCHEN_STAGE_LABELS = { before: "조리전", cooking: "조리중", ready: "조리완료" } as const;
 
-export function getKitchenStage(status: KitchenStatus) {
-  return status === "received" || status === "accepted" ? "before" : status;
+export function getKitchenStage(status: KitchenStatus): KitchenStage {
+  if (status === "received" || status === "accepted") return "before";
+  return status === "served" ? "ready" : status;
+}
+
+export function getKitchenOptionLabels(options: KitchenOrderOption[]) {
+  const product = options.filter(option => option.kind === "product").map(option => option.valueName).join(", ");
+  const request = options.filter(option => option.kind === "request").map(option => option.valueName).join(", ");
+  return {
+    product: product && request ? `${product} (${request})` : product || request,
+    price: options.filter(option => !option.kind || option.kind === "price").map(option => option.valueName).join(", "),
+  };
 }
 
 export function canFinishKitchenOrder(order: Pick<KitchenOrder, "status" | "items">) {

@@ -9,9 +9,15 @@ export const SITE_TABLE_COLUMNS = {
 } as const;
 export type SiteTableColumn = keyof typeof SITE_TABLE_COLUMNS;
 
-export function getSiteTableLayout(columns: readonly SiteTableColumn[]) {
-  const minWidthRem = columns.reduce((total, kind) => total + SITE_TABLE_COLUMNS[kind].rem, 0);
-  return { minWidthRem, widths: columns.map(kind => SITE_TABLE_COLUMNS[kind].rem / minWidthRem * 100) };
+export type SiteTableColumns = readonly SiteTableColumn[] | "kitchen-orders";
+
+// Selection, room, point, order number, clock, elapsed, menu, item option, price option, quantity, state, actions.
+const kitchenOrderColumnWidths = [2.25, 3.5, 4.5, 5.25, 4.25, 4, 7.75, 6.5, 4.75, 2.75, 5.25, 7] as const;
+
+export function getSiteTableLayout(columns: SiteTableColumns) {
+  const widths = columns === "kitchen-orders" ? kitchenOrderColumnWidths : columns.map(kind => SITE_TABLE_COLUMNS[kind].rem);
+  const minWidthRem = widths.reduce((total: number, width) => total + width, 0);
+  return { minWidthRem, widths: widths.map(width => width / minWidthRem * 100) };
 }
 
 export const SITE_TABLE_RULES = [

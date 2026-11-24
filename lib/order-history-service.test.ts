@@ -7,7 +7,7 @@ import * as history from "./order-history-query";
 import * as kitchen from "./kitchen-order";
 const site="11111111-1111-4111-8111-111111111111",table="22222222-2222-4222-8222-222222222222";
 const uuid=(n:number)=>`33333333-3333-4333-8333-${String(n).padStart(12,"0")}`;
-function row(n:number,status="received",payment="unpaid") {return{id:uuid(n),menu_site_id:site,menu_table_id:table,order_number:n,status,payment_status:payment,created_at:`2020-01-${String(1+Math.floor((n-1)/24)).padStart(2,"0")}T${String((n-1)%24).padStart(2,"0")}:00:00.000000+00:00`,updated_at:"2020-01-01T00:00:00Z",total_amount:1000,currency:"KRW"};}
+function row(n:number,status="received",payment="unpaid",served_at:string|null=null) {return{id:uuid(n),menu_site_id:site,menu_table_id:table,order_number:n,status,served_at,payment_status:payment,created_at:`2020-01-${String(1+Math.floor((n-1)/24)).padStart(2,"0")}T${String((n-1)%24).padStart(2,"0")}:00:00.000000+00:00`,updated_at:"2020-01-01T00:00:00Z",total_amount:1000,currency:"KRW"};}
 function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?:boolean;fail?:boolean;items?:number;optionsPerItem?:number;doneItems?:number;menuSources?:unknown[]}={}){
  const calls:{table:string;filters:Record<string,unknown>;or?:string;columns?:string}[]=[];let gates=0;
  const itemRows=Array.from({length:options.items??0},(_,i)=>({id:uuid(i+5000),order_id:rows[0]?.id,menu_site_id:site,item_name_snapshot:`상품 ${i}`,base_price_snapshot:1000,option_price_snapshot:0,unit_price_snapshot:1000,quantity:1,line_total_snapshot:1000,display_order:i,cooking_completed_at:i<(options.doneItems??0)?"2020-01-01T00:00:00Z":null,menu_item:options.menuSources?.[i]}));
@@ -18,6 +18,9 @@ function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?
   let result:Record<string,unknown>[]= name==="menu_customer_orders"?rows:name==="menu_customer_order_items"?itemRows:name==="menu_customer_order_item_options"?optionRows:[{id:table,label:"테이블 1",point_kind:"table",status:"archived",menu_site_id:site}];
   result=result.filter(item=>Object.entries(filters).every(([key,value])=>{const [op,field]=key.includes(":")?key.split(":"):["eq",key];const actual=item[field];return op==="neq"?actual!==value:op==="in"?(value as unknown[]).includes(actual):op==="gte"?String(actual)>=String(value):op==="lte"?String(actual)<=String(value):op==="lt"?String(actual)<String(value):actual===value;}));
   if(or.includes("status.neq.served"))result=result.filter(item=>item.status!=="served"||item.payment_status==="unpaid");
+  const kitchenScope=or.match(/status\.in\.\(([^)]+)\),and\(status\.eq\.served,served_at\.gte\.([^,]+),served_at\.lte\.([^)]+)\)/);
+  if(kitchenScope)result=result.filter(item=>kitchenScope[1].split(",").includes(String(item.status))||
+    (item.status==="served"&&typeof item.served_at==="string"&&Date.parse(item.served_at)>=Date.parse(kitchenScope[2])&&Date.parse(item.served_at)<=Date.parse(kitchenScope[3])));
   const cursor=or.match(/created_at\.(gt|lt)\.([^,()]+),and\(created_at\.eq\.([^,()]+),id\.(gt|lt)\.([^,()]+)/);
   if(cursor)result=result.filter(item=>cursor[1]==="gt"?String(item.created_at)>cursor[2]||(item.created_at===cursor[2]&&String(item.id)>cursor[5]):String(item.created_at)<cursor[2]||(item.created_at===cursor[2]&&String(item.id)<cursor[5]));
   result.sort((a,b)=>{for(const order of orders){const compared=String(a[order.key]).localeCompare(String(b[order.key]));if(compared)return order.ascending?compared:-compared;}return 0;});
@@ -78,11 +81,31 @@ test("주방에 조리 대상만 표시하고 모든 메뉴를 체크한 주문�
     assert.deepEqual(data.orders.map(order => kitchen.getKitchenStage(order.status)), ["cooking", "before", "before", "ready"]);
     assert.equal(kitchen.canFinishKitchenOrder(data.orders[0]), doneItems === 2);
     assert.equal(kitchen.canFinishKitchenOrder({ status: "cooking", items: [] }), false);
-    assert.deepEqual(data.orders[0].items[0].options, [{ groupName: "옵션", valueName: "값 0" }]);
+    assert.deepEqual(data.orders[0].items[0].options, [{ groupName: "옵션", valueName: "값 0", kind: "price" }]);
   }
   const hall = await fixture(orders).service.listOrderDashboard(site);
   assert.equal(hall.orders.find(order => order.status === "cooking")?.nextStatus, null);
   assert.equal(hall.orders.find(order => order.status === "ready")?.nextStatus, "served");
+});
+
+test("주방은 한국시간 오늘 서빙한 주문과 이전 조리 대상 주문을 함께 읽는다", async () => {
+  const lastDay = new Date(Date.now() - 86_400_000);
+  const { orders } = await fixture([
+    row(1, "received"),
+    row(2, "served", "paid", new Date().toISOString()),
+    row(3, "served", "paid", lastDay.toISOString()),
+    row(4, "ready"),
+  ], { items: 1 }).service.listKitchenDashboard(site);
+  assert.deepEqual(orders.map(order => [order.orderNumber, kitchen.getKitchenStage(order.status)]), [[1, "before"], [2, "ready"], [4, "ready"]]);
+  assert.equal(kitchen.canChangeKitchenStage(orders[1], "return"), false);
+});
+
+test("주방은 상품 선택과 직접 입력을 같은 칸에 넣고 가격 옵션을 별도 표시한다", () => {
+  assert.deepEqual(kitchen.getKitchenOptionLabels([
+    { groupName: "가격 옵션", valueName: "세트", kind: "price" },
+    { groupName: "상품 옵션", valueName: "레몬 에이드", kind: "product" },
+    { groupName: "상품 요청", valueName: "얼음 적게", kind: "request" },
+  ]), { product: "레몬 에이드 (얼음 적게)", price: "세트" });
 });
 
 test("주방 메뉴 필터는 메뉴판의 등록 순서를 쓰고 연결이 끊긴 기존 주문도 조회한다", async () => {

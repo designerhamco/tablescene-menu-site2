@@ -4,7 +4,7 @@
   background: var(--ui-surface);
 }
 
-.viewBar, .toolbar, .mobileTools, .batchBar, .listView, .error {
+.viewBar, .toolbar, .mobileTools, .batchBar, .empty, .error {
   padding: var(--site-space-block);
 }
 
@@ -63,9 +63,9 @@
   background: var(--stage-ink);
 }
 
-.column[data-stage="before"] { --stage-ink: var(--ui-chip-error); }
-.column[data-stage="cooking"] { --stage-ink: var(--ui-chip-pending); }
-.column[data-stage="ready"] { --stage-ink: var(--ui-chip-active); }
+:is(.column, .stageName)[data-stage="before"] { --stage-ink: var(--ui-chip-error); }
+:is(.column, .stageName)[data-stage="cooking"] { --stage-ink: var(--ui-chip-pending); }
+:is(.column, .stageName)[data-stage="ready"] { --stage-ink: var(--ui-chip-active); }
 
 .column[data-drop-target="true"] .orderArea {
   background: var(--ui-info-surface);
@@ -88,21 +88,39 @@
   cursor: grab;
 }
 
-.orderTimes {
+.listView {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--site-space-detail) var(--site-space-copy);
-  font-variant-numeric: tabular-nums;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.orderTimes > :nth-child(even) {
-  margin: 0;
-  text-align: end;
+.flag {
+  --flag-ink: var(--ui-text-subtle);
+  display: inline-block;
+  position: relative;
+  flex: none;
+  inline-size: 0.875rem;
+  block-size: 1.25rem;
+  border-inline-start: 0.09375rem solid var(--flag-ink);
 }
 
-.cardItem + .cardItem {
-  padding-top: var(--site-space-copy);
-  border-top: 1px dotted var(--ui-border-strong);
+.flag[data-done="true"] {
+  --flag-ink: var(--ui-chip-active);
+}
+
+.flag::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  block-size: 0.625rem;
+  background: repeating-conic-gradient(var(--flag-ink) 0% 25%, transparent 0% 50%) 0 0 / 0.25rem 0.25rem;
+}
+
+.flagDisplay, .progressCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--site-space-detail);
+  flex: none;
 }
 
 .progress {
@@ -144,6 +162,10 @@
 @media (min-width: 64rem) {
   .mobileTools {
     display: none;
+  }
+
+  .listView[data-progress="true"] {
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 15%);
   }
 
   .board {

@@ -4,12 +4,10 @@ import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useEffect, useId, useState, useTransition, type ReactNode } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/app/components/ui/alert-dialog";
-import { Badge } from "@/app/components/ui/badge";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { BarChart3, X } from "@/app/components/ui/site-icon";
+import { BarChart3, PrinterFill, X } from "@/app/components/ui/site-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import OrderReceipt from "@/components/mypage/OrderReceipt";
@@ -19,20 +17,22 @@ import {
   type KitchenMutation, type KitchenOrder, type KitchenStage, type KitchenStageAction,
 } from "@/lib/kitchen-order";
 import { mutateKitchenOrderAction } from "./actions";
-import KitchenOrderCard, { KitchenOrderActions, KitchenOrderItems, KitchenOrderNumber, KitchenOrderTime, kitchenActionVariants, type KitchenOrderControls } from "./KitchenOrderCard";
-import KitchenToolbar, { type KitchenSearchField } from "./KitchenToolbar";
+import { KitchenFlag } from "./KitchenFlag";
+import KitchenMenuFilter from "./KitchenMenuFilter";
+import KitchenOrderCard, { kitchenActionVariants, type KitchenOrderControls } from "./KitchenOrderCard";
+import KitchenOrderList from "./KitchenOrderList";
+import KitchenToolbar, { KitchenStageFilter, type KitchenSearchField } from "./KitchenToolbar";
 import styles from "./KitchenDashboard.module.css";
-
-const stageTones = { before: "error", cooking: "pending", ready: "active" } as const;
 
 function KitchenProgress({ orders, menuFilter, close }: { orders: KitchenOrder[]; menuFilter: ReadonlySet<string> | null; close: () => void }) {
   const totals = new Map<string, { incomplete: number; complete: number }>();
   for (const order of orders) {
     for (const item of order.items) {
       if (menuFilter && !menuFilter.has(kitchenMenuKey(item))) continue;
-      const total = totals.get(item.name) ?? { incomplete: 0, complete: 0 };
+      const name = item.priceNote ? `${item.name} (${item.priceNote})` : item.name;
+      const total = totals.get(name) ?? { incomplete: 0, complete: 0 };
       total[item.done ? "complete" : "incomplete"] += item.quantity;
-      totals.set(item.name, total);
+      totals.set(name, total);
     }
   }
   return (
@@ -49,7 +49,8 @@ function KitchenProgress({ orders, menuFilter, close }: { orders: KitchenOrder[]
           {[...totals].map(([name, count]) => (
             <div key={name} className={`${styles.progressRow} type-body-sm`} role="row">
               <span className="min-w-0 break-words" role="cell">{name} × {count.incomplete + count.complete}</span>
-              <span role="cell">{count.incomplete}</span><span role="cell">{count.complete}</span>
+              <span className={styles.progressCount} role="cell"><KitchenFlag done={false} />{count.incomplete}</span>
+              <span className={styles.progressCount} role="cell"><KitchenFlag done />{count.complete}</span>
             </div>
           ))}
         </div>
@@ -77,7 +78,7 @@ export default function KitchenDashboard({
   const [roomFilter, setRoomFilter] = useState("all");
   const [view, setView] = useState("board");
   const [stage, setStage] = useState<KitchenStage>("before");
-  const [stageFilter, setStageFilter] = useState<KitchenStage[]>([]);
+  const [stageFilter, setStageFilter] = useState<KitchenStage[] | null>(null);
   const [menuFilter, setMenuFilter] = useState<string[] | null>(null);
   const [sort, setSort] = useState("latest");
   const [query, setQuery] = useState("");
@@ -118,7 +119,7 @@ export default function KitchenDashboard({
   const roomOrders = orders.filter(order => activeRoom === "all" || roomIdByTable[order.tableId] === activeRoom);
   const menuGroups = getKitchenMenuGroups(roomOrders);
   const selectedMenus = menuFilter ? new Set(menuFilter) : null;
-  const visibleStages = stageFilter.length ? stageFilter : KITCHEN_STAGES;
+  const visibleStages = stageFilter ?? KITCHEN_STAGES;
   const mobileStage = visibleStages.includes(stage) ? stage : visibleStages[0];
   const search = query.trim().replace(/^#/, "").toLocaleLowerCase("ko");
   const visibleOrders = roomOrders.filter(order =>
@@ -152,7 +153,7 @@ export default function KitchenDashboard({
         }
         if (mutation.action !== "check") {
           setSelection(current => current.filter(id => !mutation.orderIds.includes(id)));
-          if (!stageFilter.length) {
+          if (stageFilter === null) {
             setStage(mutation.action === "start" ? "cooking" : mutation.action === "finish" ? "ready" : "before");
           }
         }
@@ -181,6 +182,9 @@ export default function KitchenDashboard({
   const selectionFull = selectedOrders.length >= KITCHEN_SELECTION_LIMIT;
   const clearDrag = () => { setDraggedId(undefined); setDropTarget(undefined); };
   const showProgress = progressOpen && visibleStages.includes("cooking");
+  const printOrder = (order: KitchenOrder) => setPrinting([order]);
+  const menuFilterProps = { groups: menuGroups, selection: selectedMenus, onChange: setMenuFilter };
+  const stageFilterProps = { selected: stageFilter, onChange: setStageFilter };
 
   return (
     <>
@@ -219,8 +223,12 @@ export default function KitchenDashboard({
           </div>
           <div className={styles.toolbar}>
             <KitchenToolbar query={query} setQuery={setQuery} searchField={searchField} setSearchField={setSearchField}
-              sort={sort} setSort={setSort} stages={stageFilter} setStages={setStageFilter}
-              menus={selectedMenus} setMenus={setMenuFilter} menuGroups={menuGroups} refreshing={refreshing}
+              sort={sort} setSort={setSort} refreshing={refreshing}
+              tools={view === "board" ? (
+                <><KitchenStageFilter {...stageFilterProps} /><KitchenMenuFilter {...menuFilterProps} /></>
+              ) : !progressOpen && (
+                <Button variant="outline" size="compact" aria-expanded={false} onClick={() => setProgressOpen(true)}>조리 진척도</Button>
+              )}
               onRefresh={() => { setError(undefined); refresh(() => router.refresh()); }} />
           </div>
           {error && <p role="alert" className={`${styles.error} type-body-sm text-destructive`}>{error}</p>}
@@ -228,17 +236,18 @@ export default function KitchenDashboard({
             {view === "board" ? (
               <>
                 <div className={`${styles.mobileTools} lg:hidden`}>
-                  <Select value={mobileStage} onValueChange={value => {
+                  {mobileStage && <Select value={mobileStage} onValueChange={value => {
                     const next = KITCHEN_STAGES.find(candidate => candidate === value);
                     if (next) setStage(next);
                   }}>
                     <SelectTrigger aria-label="조리 상태 보기"><SelectValue>{KITCHEN_STAGE_LABELS[mobileStage]} {ordersByStage[mobileStage].length}건</SelectValue></SelectTrigger>
                     <SelectContent>{visibleStages.map(value => <SelectItem key={value} value={value}>{KITCHEN_STAGE_LABELS[value]} {ordersByStage[value].length}건</SelectItem>)}</SelectContent>
-                  </Select>
+                  </Select>}
                   {!showProgress && visibleStages.includes("cooking") && (
                     <Button size="compact" variant="outline" onClick={() => setProgressOpen(true)}>조리 진척도</Button>
                   )}
                 </div>
+                {!visibleStages.length && <p className={`${styles.empty} type-body-sm site-copy-muted`}>표시할 조리 상태를 선택해 주세요.</p>}
                 <div className={styles.board} data-stage-count={visibleStages.length} data-progress-open={showProgress || undefined}>
                   {KITCHEN_STAGES.filter(value => visibleStages.includes(value)).map(value => {
                     const stageOrders = ordersByStage[value];
@@ -267,7 +276,7 @@ export default function KitchenDashboard({
                           move([dragged.id], KITCHEN_STAGE_ACTIONS[value]);
                         }}>
                         <header className={styles.columnHeader}>
-                          <Checkbox aria-label={`${KITCHEN_STAGE_LABELS[value]} 주문 선택`} disabled={!stageIds.length || pending}
+                          <Checkbox shape="circle" aria-label={`${KITCHEN_STAGE_LABELS[value]} 주문 선택`} disabled={!stageIds.length || pending}
                             checked={allSelected || (stageSelected > 0 ? "indeterminate" : false)}
                             onCheckedChange={() => selectOrders(stageIds, !allSelected && !(selectionFull && stageSelected > 0))} />
                           <h3 id={headingId} className={`${styles.stageName} type-item-title`}>
@@ -292,7 +301,7 @@ export default function KitchenDashboard({
                             {stageOrders.length ? (
                               <div className={styles.orderGrid}>{stageOrders.map(order => (
                                 <KitchenOrderCard key={order.id} controls={controls(order)} now={now} roomName={roomName(order)} menuFilter={selectedMenus}
-                                  onDrag={setDraggedId} onDragEnd={clearDrag} selectionFull={selectionFull} />
+                                  onDrag={setDraggedId} onDragEnd={clearDrag} selectionFull={selectionFull} print={printOrder} />
                               ))}</div>
                             ) : <p className="type-body-sm site-copy-muted">주문이 없습니다.</p>}
                           </div>
@@ -311,31 +320,13 @@ export default function KitchenDashboard({
                 </div>}
               </>
             ) : (
-              <div className={`${styles.listView} site-stack-block`}>
-                <div className="site-action-row" data-distribution="end">
-                  <Button variant="outline" size="compact" aria-expanded={progressOpen} onClick={() => setProgressOpen(value => !value)}>조리 진척도</Button>
-                </div>
+              <div className={styles.listView} data-progress={progressOpen || undefined}>
+                <KitchenOrderList orders={visibleOrders} controls={controls} now={now} roomName={roomName}
+                  menuFilter={selectedMenus} menuFilterControl={<KitchenMenuFilter iconOnly {...menuFilterProps} />}
+                  stageFilterControl={<KitchenStageFilter iconOnly {...stageFilterProps} />}
+                  selectedCount={selectedOrders.length} selectionFull={selectionFull} busy={pending} print={printOrder}
+                  selectAll={checked => selectOrders(visibleOrders.map(order => order.id), checked)} />
                 {progressOpen && <KitchenProgress menuFilter={selectedMenus} orders={ordersByStage.cooking} close={() => setProgressOpen(false)} />}
-                <Table variant="management" label="주방 주문 리스트" columns={["control", "text", "text", "detail", "actions"]}>
-                  <TableHeader><TableRow>
-                    <TableHead scope="col">주문번호</TableHead><TableHead scope="col">룸·테이블</TableHead>
-                    <TableHead scope="col">주문시각</TableHead><TableHead scope="col">주문내역</TableHead><TableHead scope="col">조리상태</TableHead>
-                  </TableRow></TableHeader>
-                  <TableBody>
-                    {visibleOrders.length === 0 && <TableRow><TableCell colSpan={5}>주문이 없습니다.</TableCell></TableRow>}
-                    {visibleOrders.map(order => {
-                      const actions = controls(order);
-                      const orderStage = getKitchenStage(order.status);
-                      return <TableRow key={order.id} data-kitchen-order={order.id}>
-                        <TableCell><KitchenOrderNumber order={order} selected={actions.selected} select={actions.select} disabled={pending || (selectionFull && !actions.selected)} /></TableCell>
-                        <TableCell>{[roomName(order), order.tableLabel].filter(Boolean).join(" · ")}</TableCell>
-                        <TableCell><KitchenOrderTime order={order} now={now} /></TableCell>
-                        <TableCell><KitchenOrderItems {...actions} menuFilter={selectedMenus} /></TableCell>
-                        <TableCell><div className="site-stack-copy"><span><Badge tone={stageTones[orderStage]}>{KITCHEN_STAGE_LABELS[orderStage]}</Badge></span><KitchenOrderActions {...actions} /></div></TableCell>
-                      </TableRow>;
-                    })}
-                  </TableBody>
-                </Table>
               </div>
             )}
           </div>
@@ -345,10 +336,10 @@ export default function KitchenDashboard({
               <p role="status" className="type-label">일괄 처리 <span className="type-caption site-copy-muted">{selectedOrders.length}건 선택</span></p>
               <div className="site-action-row">
                 {canManage && (["return", "start", "finish"] as const).map(action => (
-                  <Button key={action} size="compact" variant={view === "board" ? kitchenActionVariants[action] : "outline"} disabled={pending || !selectedOrders.length || !selectedOrders.every(order => canChangeKitchenStage(order, action))}
+                  <Button key={action} size="compact" variant={kitchenActionVariants[action]} disabled={pending || !selectedOrders.length || !selectedOrders.every(order => canChangeKitchenStage(order, action))}
                     onClick={() => move(selectedOrders.map(order => order.id), action)}>{KITCHEN_ACTION_LABELS[action]}</Button>
                 ))}
-                <Button variant="outline" size="compact" disabled={!selectedOrders.length || pending} onClick={() => setPrinting(selectedOrders)}>청구서 인쇄</Button>
+                <Button variant="outline" size="compact" disabled={!selectedOrders.length || pending} onClick={() => setPrinting(selectedOrders)}><PrinterFill /> 청구서 인쇄</Button>
               </div>
             </div>
           </footer>
