@@ -21,7 +21,7 @@ import type { OrderDashboardPageData } from "@/lib/server/order-management-servi
 import type { OperationRecordSources, OperationArrivalGroup } from "@/lib/all-menu-operations";
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
-const STATUS_LABELS: Record<string, string> = CUSTOMER_ORDER_STATUS_LABELS;
+const STATUS_LABELS: Record<string, string> = { ...CUSTOMER_ORDER_STATUS_LABELS, ready: "조리완료", served: "픽업·서빙 완료" };
 const PAYMENT_LABELS: Record<string, string> = {
   unpaid: "미결제",
   manual_paid: "외부 결제 완료",
@@ -209,9 +209,9 @@ export default function OrderDashboard({
             <input type="hidden" name="menuSiteId" value={recordMenuSiteId} />
             <input type="hidden" name="orderId" value={order.id} />
             <input type="hidden" name="nextStatus" value={order.nextStatus} />
-            <p className="type-label">
+            {order.nextStatus !== "served" && <p className="type-label">
               다음 단계: {STATUS_LABELS[order.nextStatus]}
-            </p>
+            </p>}
             <div className="site-action-row">
               <button
                 name="intent"
@@ -219,7 +219,7 @@ export default function OrderDashboard({
                 disabled={pending}
                 className="site-button site-button-primary"
               >
-                상태 변경
+                {order.nextStatus === "served" ? "픽업·서빙 완료" : "상태 변경"}
               </button>
             </div>
           </form>

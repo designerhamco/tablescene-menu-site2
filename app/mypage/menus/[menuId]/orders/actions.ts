@@ -59,6 +59,7 @@ export async function mutateOrderAction(
     }
 
     revalidatePath(`/mypage/menus/${menuSiteId}/orders`);
+    revalidatePath(`/mypage/menus/${menuSiteId}/kitchen`);
     revalidatePath("/mypage/operations");
     revalidatePath("/mypage/operations/orders");
     return {
@@ -67,7 +68,9 @@ export async function mutateOrderAction(
         ? "외부 결제 완료로 기록했습니다."
         : intent === "cancel"
           ? "미결제 주문을 취소했습니다."
-          : "주문 상태를 다음 단계로 변경했습니다.",
+          : formString(formData, "nextStatus") === "served"
+            ? "픽업·서빙 완료로 표시했습니다."
+            : "주문 상태를 다음 단계로 변경했습니다.",
       orderId,
     };
   } catch (error) {

@@ -15,6 +15,7 @@ import {
   type OrderStatus,
 } from "@/lib/order-management";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
+import { KITCHEN_ORDER_STATUSES, type KitchenOrder } from "@/lib/kitchen-order";
 import { hasMenuSitePermission } from "@/lib/menu-site-permissions";
 import {
   requireMenuSitePermission,
@@ -58,7 +59,7 @@ type ItemRow = Pick<
   | "quantity"
   | "line_total_snapshot"
   | "display_order"
->;
+> & { cooking_completed_at?: string | null };
 
 type OptionRow = Pick<
   Database["public"]["Tables"]["menu_customer_order_item_options"]["Row"],
@@ -77,6 +78,7 @@ export type OrderDashboardItem = {
   unitPrice: number;
   quantity: number;
   lineTotal: number;
+  cookingDone?: boolean;
   options: Array<{
     groupName: string;
     valueName: string;
@@ -225,7 +227,7 @@ function assertUpdated<T>(data: T | null) {
   return data;
 }
 
-export async function listOrderDashboard(menuSiteIdValue: unknown, search: OrderHistorySearch = {}): Promise<OrderDashboardPageData> {
+export async function listOrderDashboard(menuSiteIdValue: unknown, search: OrderHistorySearch = {}, scope: "hall" | "kitchen" = "hall"): Promise<OrderDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const context = await requireMenuSitePermission(menuSiteId, "order.read");
   await assertDashboardEnabled(menuSiteId);
@@ -238,7 +240,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
   if (menuSiteResult.error) mapReadError(menuSiteResult.error);
   if (!menuSiteResult.data) throw new OrderManagementError("ORDER_NOT_FOUND", "메뉴판을 찾을 수 없습니다.", 404);
 
-  const history = search.tab === "history";
+  const history = scope === "hall" && search.tab === "history";
   let request: ReturnType<typeof normalizeOrderHistory> | undefined, queryError: string | undefined;
   if (history) try {request = normalizeOrderHistory(search);} catch (error) {if (!(error instanceof OrderHistoryInputError)) throw error;queryError=error.message;}
   const view: OrderDashboardView = {kind:history?"history":"current", filters:request?.filters??defaultOrderHistoryFilters(), error:queryError, totalCount:0, olderCursor:null, newerCursor:null, tables:[]};
@@ -283,8 +285,13 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
     const asOf=new Date().toISOString();let cursor:OrderCursor|null=null;
     for(;;){
       let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",asOf);
-      const active="or(status.neq.served,payment_status.eq.unpaid)";
-      query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
+      if (scope === "kitchen") {
+        query = query.in("status", KITCHEN_ORDER_STATUSES);
+        if (cursor) query = query.or(orderCursorPredicate(cursor, "newer"));
+      } else {
+        const active="or(status.neq.served,payment_status.eq.unpaid)";
+        query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
+      }
       const result=await query.order("created_at",{ascending:true}).order("id",{ascending:true}).limit(200);
       if(result.error)mapReadError(result.error);
       const batch=(result.data??[]) as unknown as OrderRow[];orders.push(...batch);
@@ -297,13 +304,18 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
   const tableIds = [...new Set(orders.map((order) => order.menu_table_id))];
 
   const chunks = (ids:string[]) => Array.from({length:Math.ceil(ids.length/100)},(_,index)=>ids.slice(index*100,index*100+100));
+  const itemColumns = "id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order";
   const [tables,items] = await Promise.all([
     (async()=>{const rows:Array<{id:string;label:string;point_kind:string}>=[];for(const ids of chunks(tableIds)){
       const result=await supabase.from("menu_tables").select("id,label,point_kind").eq("menu_site_id",menuSiteId).in("id",ids);
       if(result.error)mapReadError(result.error);rows.push(...(result.data??[]));
     }return rows;})(),
     (async()=>{const rows:ItemRow[]=[];for(const ids of chunks(orderIds))for(let offset=0;;offset+=500){
-      const result=await supabase.from("menu_customer_order_items").select("id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order").eq("menu_site_id",menuSiteId).in("order_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
+      const itemQuery = supabase.from("menu_customer_order_items");
+      const selection = scope === "kitchen"
+        ? itemQuery.select(`${itemColumns}, cooking_completed_at` as const)
+        : itemQuery.select(itemColumns);
+      const result = await selection.eq("menu_site_id",menuSiteId).in("order_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
       if(result.error)mapReadError(result.error);const batch=result.data??[];rows.push(...batch);if(batch.length<500)break;
     }return rows;})(),
   ]);
@@ -340,7 +352,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       tableId: order.menu_table_id,
       tableLabel: tableLabelById.get(order.menu_table_id) ?? "알 수 없는 테이블",
       status: order.status,
-      nextStatus: getNextOrderStatus(order.status),
+      nextStatus: order.status === "cooking" ? null : getNextOrderStatus(order.status),
       paymentStatus: order.payment_status,
       paymentMethod: order.payment_method,
       requestText: order.request_text,
@@ -362,6 +374,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
         unitPrice: item.unit_price_snapshot,
         quantity: item.quantity,
         lineTotal: item.line_total_snapshot,
+        ...(scope === "kitchen" ? { cookingDone: order.status === "ready" || Boolean(item.cooking_completed_at) } : {}),
         options: (optionsByItemId.get(item.id) ?? []).map((option) => ({
           groupName: option.group_name_snapshot,
           valueName: option.value_name_snapshot,
@@ -370,6 +383,66 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       })),
     })),
   };
+}
+
+export async function listKitchenDashboard(menuSiteId: string) {
+  const data = await listOrderDashboard(menuSiteId, {}, "kitchen");
+  const orders: KitchenOrder[] = data.orders.flatMap(order => {
+    const status = KITCHEN_ORDER_STATUSES.find(status => status === order.status);
+    if (!status) return [];
+    return [{
+      id: order.id,
+      orderNumber: order.orderNumber,
+      tableLabel: order.tableLabel,
+      status,
+      createdAt: order.createdAt,
+      requestText: order.requestText,
+      items: order.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        done: item.cookingDone === true,
+        options: item.options.map(({ groupName, valueName }) => ({ groupName, valueName })),
+      })),
+    }];
+  });
+  return { orders, canManage: data.permissions.canManage };
+}
+
+export async function updateKitchenOrder(input: {
+  menuSiteId: unknown;
+  orderId: unknown;
+  action: unknown;
+  itemId?: unknown;
+  checked?: unknown;
+}) {
+  const menuSiteId = normalizedId(input.menuSiteId);
+  const orderId = normalizedId(input.orderId);
+  const { action } = input;
+  if ((action !== "start" && action !== "check" && action !== "finish")
+    || (action === "check" && typeof input.checked !== "boolean")) {
+    throw new OrderManagementError("INVALID_INPUT", "올바른 조리 작업을 선택해 주세요.", 400);
+  }
+  const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_status_management");
+  await assertDashboardEnabled(menuSiteId);
+  const { error } = await supabase.rpc("manage_kitchen_order", {
+    p_menu_site_id: menuSiteId,
+    p_order_id: orderId,
+    p_actor_user_id: context.actorUserId,
+    p_action: action,
+    ...(action === "check" ? { p_order_item_id: normalizedId(input.itemId), p_checked: input.checked as boolean } : {}),
+  });
+  if (!error) return;
+  if (error.message === "KITCHEN_ITEMS_INCOMPLETE") {
+    throw new OrderManagementError("ORDER_CONFLICT", "모든 메뉴를 체크한 뒤 조리완료 처리할 수 있습니다.", 409);
+  }
+  if (error.message === "KITCHEN_STATUS_CHANGED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "주문 상태가 변경됐습니다. 현재 상태를 확인해 주세요.", 409);
+  }
+  if (error.code === "P0002") {
+    throw new OrderManagementError("ORDER_NOT_FOUND", "주문 또는 메뉴를 찾을 수 없습니다.", 404);
+  }
+  mapUpdateError(error);
 }
 
 export async function transitionOrderStatus({
@@ -400,13 +473,15 @@ export async function transitionOrderStatus({
     throw error;
   }
   const now = new Date().toISOString();
+  if (normalizedNext === "ready") {
+    throw new OrderManagementError("INVALID_INPUT", "주방 대시보드에서 모든 메뉴를 체크한 뒤 조리완료 처리해 주세요.", 400);
+  }
   const update: Database["public"]["Tables"]["menu_customer_orders"]["Update"] = {
     status: normalizedNext,
     status_updated_by: context.actorUserId,
   };
   if (normalizedNext === "accepted") update.accepted_at = now;
   else if (normalizedNext === "cooking") update.cooking_at = now;
-  else if (normalizedNext === "ready") update.ready_at = now;
   else if (normalizedNext === "served") update.served_at = now;
   else throw new OrderManagementError("INVALID_INPUT", "올바른 다음 주문 상태가 필요합니다.", 400);
   const { data, error } = await supabase

@@ -932,6 +932,7 @@ export type Database = {
       menu_customer_order_items: {
         Row: {
           base_price_snapshot: number
+          cooking_completed_at: string | null
           created_at: string
           display_order: number
           id: string
@@ -946,6 +947,7 @@ export type Database = {
         }
         Insert: {
           base_price_snapshot: number
+          cooking_completed_at?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -960,6 +962,7 @@ export type Database = {
         }
         Update: {
           base_price_snapshot?: number
+          cooking_completed_at?: string | null
           created_at?: string
           display_order?: number
           id?: string
@@ -3820,6 +3823,17 @@ export type Database = {
       list_visit_customer_orders: {
         Args: { p_menu_site_id: string; p_table_visit_session_id: string }
         Returns: Json
+      }
+      manage_kitchen_order: {
+        Args: {
+          p_action: string
+          p_actor_user_id: string
+          p_checked?: boolean
+          p_menu_site_id: string
+          p_order_id: string
+          p_order_item_id?: string
+        }
+        Returns: undefined
       }
       register_table_terminal_visit: {
         Args: {
