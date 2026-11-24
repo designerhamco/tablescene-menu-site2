@@ -81,7 +81,7 @@ test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사
 
   assert.match(source, /site-gutter site-page-spacing-compact/);
   assert.match(source, /function SectionCard[\s\S]*?<section className="site-card site-editor-panel p-5 sm:p-6">/);
-  assert.match(source, /<header className="site-card site-editor-panel mb-6 p-5 sm:p-6">/);
+  assert.match(source, /<header className="site-card site-editor-panel mb-6 p-5 sm:p-6"(?=\s|>)/);
   assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
 });
 
@@ -102,7 +102,7 @@ test("메뉴 편집기의 탭과 구조 편집 패널도 공통 무그림자 표
   assert.doesNotMatch(management, /shadow-(?:sm|md|lg|xl|2xl)/);
 });
 
-test("메뉴 편집기 상단 바로가기는 모바일에서 한 열 전체 폭을 사용한다", () => {
+test("메뉴 편집기 상단 바로가기는 모바일에서 사용 가능한 너비로 배치된다", () => {
   const editor = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
 
   assert.match(editor, /className="site-editor-header-actions"/);

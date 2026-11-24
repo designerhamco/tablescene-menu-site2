@@ -16,8 +16,9 @@ type NavigationTab = {
 };
 
 /** URL navigation stays links; selection tabs retain their separate Radix contract. */
-export function NavigationTabs({ label, items, className, size = "md", purpose = "page" }: {
+export function NavigationTabs({ label, items, className, size = "md", purpose = "page", layout, scroll }: {
   label: string; items: NavigationTab[]; className?: string; size?: TabsSize; purpose?: TabsPurpose;
+  layout?: "responsive-sidebar"; scroll?: boolean;
 }) {
   const navRef = useRef<HTMLElement>(null);
   const activeHref = items.find(item => item.active && !item.disabledReason)?.href;
@@ -48,12 +49,12 @@ export function NavigationTabs({ label, items, className, size = "md", purpose =
   }, [activeHref]);
 
   const itemClass = purpose === "section" ? "site-area-tab" : purpose === "category" ? "site-topic-tab" : "site-tab";
-  return <nav ref={navRef} aria-label={label} data-purpose={purpose} data-size={size} className={cn(purpose === "section" ? "site-area-tabs" : purpose === "category" ? "site-topic-tabs" : "site-tabs", purpose === "state" && "site-tabs-outline", purpose === "page" && "site-page-tabs", `site-tab-size-${size}`, className)}>
+  return <nav ref={navRef} aria-label={label} data-purpose={purpose} data-size={size} data-layout={layout} className={cn(purpose === "section" ? "site-area-tabs" : purpose === "category" ? "site-topic-tabs" : "site-tabs", purpose === "state" && "site-tabs-outline", purpose === "page" && "site-page-tabs", `site-tab-size-${size}`, className)}>
     {items.map(item => {
       const content = <>{item.label}{item.count !== undefined && !item.disabledReason ? <span className="site-tab-count">{item.count.toLocaleString("ko-KR")}<span className="sr-only">개</span></span> : null}{item.statusLabel && !item.disabledReason ? <span className="type-caption ml-1">{item.statusLabel}</span> : null}</>;
       return item.disabledReason ? <span key={item.href} className={itemClass} aria-disabled="true" title={item.disabledReason} aria-label={`${item.label} ${item.disabledLabel ?? "권한 없음"}: ${item.disabledReason}`}>
         {content}<span className="type-caption ml-2">{item.disabledLabel ?? "권한 없음"}</span>
-      </span> : <Link key={item.href} href={item.href} aria-current={item.active ? "page" : undefined} className={itemClass}>{content}</Link>;
+      </span> : <Link key={item.href} href={item.href} scroll={scroll} aria-current={item.active ? "page" : undefined} className={itemClass}>{content}</Link>;
     })}
   </nav>;
 }
