@@ -31,18 +31,18 @@ test("테이블 카드는 대표 주문의 시각·상태와 해당 테이블의
     pointLabel: order.pointLabel, order, records: [order, extra],
     fields: new Set(ORDER_CARD_FIELDS.map(field => field.id)), now,
   }));
-  assert.match(html, /#3.*1번 테이블.*조리중.*23:59:00.*주문 후 5분.*주문 총 2건.*메뉴 총 8개.*합계 8,000원.*열기/);
+  assert.match(html, /#3.*1번 테이블.*조리중.*23:59:00.*주문 후 5분.*주문 총 2건.*메뉴 총 8개.*합계 8,000원/);
   assert.doesNotMatch(html, /#5|상품 3|상품 5/);
 });
 
-test("보기필터 기본값과 전체 해제 시에도 테이블 이름과 열기 진입을 유지한다", () => {
+test("보기필터 기본값과 전체 해제 시에도 테이블 이름을 표시한다", () => {
   const order = row("3", timestamp, true, true);
   const render = (fields: ReadonlySet<(typeof ORDER_CARD_FIELDS)[number]["id"]>) =>
     renderToStaticMarkup(createElement(Summary, { pointLabel: order.pointLabel, order, records: [order], fields, now }));
   const defaults = render(new Set(DEFAULT_ORDER_CARD_FIELDS));
-  assert.match(defaults, /조리중.*주문 후 5분.*주문 총 1건.*메뉴 총 3개.*열기/);
+  assert.match(defaults, /조리중.*주문 후 5분.*주문 총 1건.*메뉴 총 3개/);
   assert.doesNotMatch(defaults, /#3|23:59:00|3,000원/);
   const hidden = render(new Set());
-  assert.match(hidden, /1번 테이블.*열기/);
+  assert.match(hidden, /1번 테이블/);
   assert.doesNotMatch(hidden, /조리중|주문 후|주문 총|메뉴 총/);
 });

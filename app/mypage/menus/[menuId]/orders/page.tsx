@@ -1,3 +1,4 @@
+import OrderReceptionControl from "@/components/mypage/OrderReceptionControl";
 import OperationsViewLayout from "@/components/mypage/OperationsViewLayout";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import type { OrderHistorySearch } from "@/lib/order-history-query";
@@ -68,10 +69,12 @@ export default async function OrderDashboardPage({
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="orders">
-      <OperationsViewLayout title="주문 관리" selectable={data.view?.kind!=="history"} help={<InfoTooltip label="주문 관리 안내"><p>ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.</p><p>조리 상태는 주방 대시보드와 함께 갱신됩니다. 테이블·키오스크를 선택하면 전체 주문과 처리 상태를 확인할 수 있습니다.</p></InfoTooltip>}>
+      <OperationsViewLayout title="주문 관리" selectable={false} help={<InfoTooltip label="주문 관리 안내"><p>ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.</p><p>조리 상태는 주방 대시보드와 함께 갱신됩니다. 테이블·키오스크를 선택하면 전체 주문과 처리 상태를 확인할 수 있습니다.</p></InfoTooltip>}>
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} orderHistory={data.view?.kind === "history"} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
-        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} view={data.view} permissions={data.permissions} />
+        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} view={data.view} permissions={data.permissions}
+          receptionControl={data.view?.kind !== "history" ? <OrderReceptionControl menuId={menuId} canConfigure={selectedSite.canConfigure}
+            published={selectedSite.status === "published"} activeTablesReady={selectedSite.activeTablesReady} /> : undefined} />
       </OperationsViewLayout>
     </StoreOperationsShell>
   );

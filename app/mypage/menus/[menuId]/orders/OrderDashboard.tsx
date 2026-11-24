@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import OrderPointDetail from "./OrderPointDetail";
+import OrderTableWorkspace from "./OrderTableWorkspace";
 import { Button } from "@/app/components/ui/button";
 import OrderHistoryFilters from "@/components/mypage/OrderHistoryFilters";
 import {orderHistoryHref,isCurrentOrder} from "@/lib/order-history-query";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
@@ -53,9 +53,10 @@ export default function OrderDashboard({
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
-  recordSources, arrivalGroups, historyPath, mutationAction = mutateOrderAction,
+  recordSources, arrivalGroups, historyPath, receptionControl, mutationAction = mutateOrderAction,
 }: {
   mutationAction?: typeof mutateOrderAction;
+  receptionControl?: ReactNode;
   recordSources?: OperationRecordSources;
   arrivalGroups?: OperationArrivalGroup[];
   historyPath?: string;
@@ -68,6 +69,7 @@ export default function OrderDashboard({
   floorPlan: OperationsFloorPlan;
 }) {
   const history=view?.kind === "history";
+  const tableWorkspace = !history && !recordSources;
   const orders = useLiveOrderStatuses(serverOrders, menuSiteId, recordSources, history);
   const path = historyPath ?? `/mypage/menus/${menuSiteId}/orders`;
   const router = useRouter();
@@ -227,6 +229,57 @@ export default function OrderDashboard({
       </ContentPanel>
     );
   }
+  const records = orders.map(order => ({
+    id: order.id,
+    pointId: order.tableId,
+    pointLabel: order.tableLabel,
+    summary: order.items.map(item => `${item.name} × ${item.quantity}`).join(", "),
+    time: formatKoreanDateTime(order.createdAt),
+    status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
+    attention: isCurrentOrder(order),
+    orderStatus: order.status,
+    orderNumber: order.orderNumber,
+    createdAt: order.createdAt,
+    totalAmount: order.totalAmount,
+    itemCount: order.items.reduce((count, item) => count + item.quantity, 0),
+    processing: order.status !== "served" && order.status !== "cancelled",
+    unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
+  }));
+  const list = (
+    <OperationsHistoryViews
+      listOnly
+      noun="주문"
+      floorPlan={floorPlan}
+      records={records}
+      renderList={open => (
+        <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} recordSources={recordSources}
+          includeEmptyPoints={!history && !recordSources} renderRecord={order => (
+            <>
+              <TableCell>#{order.orderNumber}</TableCell>
+              <TableCell><OrderItems order={order} /></TableCell>
+              <TableCell>{formatKoreanDateTime(order.createdAt)}</TableCell>
+              <TableCell>
+                <div className="site-stack-copy">
+                  <Badge>{STATUS_LABELS[order.status] ?? order.status}</Badge>
+                  <Badge>{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</Badge>
+                  <p>{formatAmount(order.totalAmount)}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button type="button" variant="outline" size="compact" aria-label={`주문 #${order.orderNumber} 상세·처리`}
+                  onClick={() => open(order.id)}>상세·처리</Button>
+              </TableCell>
+            </>
+          )} />
+      )}
+      renderDetail={ids => (
+        <div className="site-stack-group">
+          {orders.filter(order => ids.includes(order.id)).map(detail)}
+        </div>
+      )}
+    />
+  );
+
   return (
     <>
       {printOrders.length > 0 && createPortal(
@@ -256,7 +309,7 @@ export default function OrderDashboard({
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         /> : null}
         {history && view ? <OrderHistoryFilters key={JSON.stringify(view.filters)} path={path} filters={view.filters} tables={view.tables} error={view.error} onApply={onHistoryFilterApply}/> : null}
-        <div className="site-content-heading-row">
+        {!tableWorkspace && <div className="site-content-heading-row">
             <div className="site-stack-title">
               <p className="type-label">
                 {view?.error ? "조회 조건을 확인해 주세요." : history ? "주문 이력" : "현재 주문"} {!view?.error ? ` ${history ? (view?.totalCount ?? orders.length).toLocaleString("ko-KR") : orders.length.toLocaleString("ko-KR")}건` : ""}
@@ -267,7 +320,7 @@ export default function OrderDashboard({
               loading={refreshing}
               onClick={() => refresh(() => router.refresh())}
             />
-        </div>
+        </div>}
         {state.message ? (
           <ContentPanel as="aside" surface="notice" density="compact">
             <p role="status" className="type-body-sm">
@@ -275,78 +328,13 @@ export default function OrderDashboard({
             </p>
           </ContentPanel>
         ) : null}
-        {!view?.error ? <OperationsHistoryViews
-          listOnly={history || Boolean(recordSources)}
-          noun="주문"
-          floorPlan={floorPlan}
-          records={orders.map((order) => ({
-            id: order.id,
-            pointId: order.tableId,
-            pointLabel: order.tableLabel,
-            summary: order.items
-              .map((item) => `${item.name} × ${item.quantity}`)
-              .join(", "),
-            options: order.items
-              .flatMap((item) =>
-                item.options.map(
-                  (option) => `${option.groupName}: ${option.valueName}`,
-                ),
-              )
-              .join(" · "),
-            time: formatKoreanDateTime(order.createdAt),
-            status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
-            attention:
-              isCurrentOrder(order),
-            orderStatus: order.status,
-            orderNumber: order.orderNumber,
-            createdAt: order.createdAt,
-            totalAmount: order.totalAmount,
-            itemCount: order.items.reduce((count, item) => count + item.quantity, 0),
-            processing: order.status !== "served" && order.status !== "cancelled",
-            unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
-          }))}
-          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} recordSources={recordSources} includeEmptyPoints={!history && !recordSources} renderRecord={order => <>
-                        <TableCell>#{order.orderNumber}</TableCell>
-                        <TableCell>
-                          <OrderItems order={order} />
-                        </TableCell>
-                        <TableCell>
-                          {formatKoreanDateTime(order.createdAt)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="site-stack-copy">
-                            <Badge>
-                              {STATUS_LABELS[order.status] ?? order.status}
-                            </Badge>
-                            <Badge>
-                              {PAYMENT_LABELS[order.paymentStatus] ??
-                                order.paymentStatus}
-                            </Badge>
-                            <p>{formatAmount(order.totalAmount)}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <button
-                            type="button"
-                            className="site-button site-button-outline site-button-compact"
-                            aria-label={`주문 #${order.orderNumber} 상세·처리`}
-                            onClick={() => open(order.id)}
-                          >
-                            상세·처리
-                          </button>
-                        </TableCell>
-          </>} />}
-          renderPointDetail={(point, ids) => (
-            <OrderPointDetail key={point.id} pointLabel={point.label} menuSiteId={menuSiteId}
-              orders={orders.filter(order => ids.includes(order.id))} permissions={permissions}
-              onPrint={setPrintOrders} mutateAction={mutationAction} />
-          )}
-          renderDetail={(ids) => (
-            <div className="site-stack-group">
-              {orders.filter((order) => ids.includes(order.id)).map(detail)}
-            </div>
-          )}
-        /> : null}
+        {!view?.error && (tableWorkspace ? (
+          <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
+            permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
+            onPrint={setPrintOrders} list={list}
+            refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
+              aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
+        ) : list)}
         {history && view && !view.error ? <div className="site-action-row" aria-label="주문 이력 페이지 이동">
           {view.newerCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.newerCursor,direction:"newer"})}>이전 페이지</Link></Button> : null}
           {view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.olderCursor,direction:"older"})}>다음 페이지</Link></Button> : null}

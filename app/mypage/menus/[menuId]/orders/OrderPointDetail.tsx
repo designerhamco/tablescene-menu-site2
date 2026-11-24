@@ -3,20 +3,19 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
+import { DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
 import OrderStage from "@/components/mypage/OrderStage";
 import { formatAmount, PAYMENT_LABELS } from "@/components/mypage/OrderReceipt";
 import { getKitchenOptionLabels } from "@/lib/kitchen-order";
-import { canCancelTableOrder, canRecordTableOrderPayment } from "@/lib/order-management";
 import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import { initialOrderManagementActionState, type OrderManagementActionState } from "./action-state";
+import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperation, type PointOrderMutation } from "./OrderPointOperationDialog";
 import styles from "./OrderPointDetail.module.css";
 
 type Order = OrderDashboardOrder;
-type Operation = { kind: "payment" | "cancel"; orderId: string };
 
 function OrderTimes({ order, now }: { order: Order; now: number | null }) {
   const clock = formatKoreanClockTime(order.createdAt);
@@ -66,10 +65,11 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
   orders: Order[];
   permissions: OrderDashboardPageData["permissions"];
   onPrint: (orders: Order[]) => void;
-  mutateAction: (previous: OrderManagementActionState, form: FormData) => Promise<OrderManagementActionState>;
+  mutateAction: PointOrderMutation;
 }) {
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string> | null>(null);
-  const [operation, setOperation] = useState<Operation | null>(null);
+  const [operation, setOperation] = useState<PointOrderOperation | null>(null);
+  const [completedOperation, setCompletedOperation] = useState<OrderManagementActionState>();
   const [now, setNow] = useState<number | null>(null);
   const operationTrigger = useRef<HTMLButtonElement | null>(null);
   const header = useRef<HTMLHeadingElement>(null);
@@ -83,16 +83,16 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
     };
   }, []);
 
-  const [feedback, submit, pending] = useActionState(async (previous: OrderManagementActionState, form: FormData): Promise<OrderManagementActionState> => {
+  const [pickupFeedback, submit, pending] = useActionState(async (previous: OrderManagementActionState, form: FormData): Promise<OrderManagementActionState> => {
     try {
-      const result = await mutateAction(previous, form);
-      if (result.status === "success") setOperation(null);
-      return result;
+      setCompletedOperation(undefined);
+      return await mutateAction(previous, form);
     } catch {
       return { status: "error", orderId: String(form.get("orderId") ?? ""), message: "주문 처리를 저장하지 못했어요. 연결을 확인하고 다시 시도해 주세요." };
     }
   }, initialOrderManagementActionState);
 
+  const feedback = completedOperation ?? pickupFeedback;
   const ordered = [...orders].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.orderNumber - a.orderNumber);
   const lead = ordered.find(order => order.status !== "served" && order.status !== "cancelled") ?? ordered[0];
   const selected = ordered.filter(order => selectedIds === null || selectedIds.has(order.id));
@@ -101,12 +101,8 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
   const activeOrder = operation ? ordered.find(order => order.id === operation.orderId) : undefined;
   const total = selected.reduce((amount, order) => amount + order.totalAmount, 0);
 
-  const canCancel = (order?: Order) => Boolean(order && order.canCancelUnpaid && permissions.canCancelUnpaid
-    && canCancelTableOrder(order.status, order.paymentStatus));
-  const canPay = (order?: Order) => Boolean(order && order.canMarkManualPayment && permissions.canMarkManualPayment
-    && canRecordTableOrderPayment(order.status, order.paymentStatus));
-  const canPrint = (order: Order) => ["cooking", "ready", "served"].includes(order.status);
-  const activeOperationAllowed = operation?.kind === "payment" ? canPay(activeOrder) : canCancel(activeOrder);
+  const canCancel = isPointOrderOperationAllowed(selectedOrder, permissions, "cancel");
+  const canPay = isPointOrderOperationAllowed(selectedOrder, permissions, "payment");
 
   function selectOrder(id: string, checked: boolean) {
     setSelectedIds(previous => {
@@ -162,8 +158,8 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
                     </div>
                     <div className="site-action-row" data-wrap="nowrap">
                       <Button type="button" variant="ghost" size="icon" iconSize="compact"
-                        disabled={!canPrint(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
-                        title={canPrint(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
+                        disabled={!canPrintPointOrder(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
+                        title={canPrintPointOrder(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
                       {(order.status === "ready" || order.status === "served") && (
                         <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
                       )}
@@ -197,8 +193,8 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
               {feedback.message && !operation && <p role="status" className="type-body-sm">{feedback.message}</p>}
               <div className="site-action-row" data-distribution="end">
                 {permissions.canMarkManualPayment && ordered.some(order => order.paymentStatus === "unpaid") && (
-                  <Button type="button" variant="secondary" disabled={pending || !canPay(selectedOrder)}
-                    title={canPay(selectedOrder) ? undefined : "픽업·서빙이 끝난 미결제 주문 한 건을 선택해 주세요."}
+                  <Button type="button" variant="secondary" disabled={pending || !canPay}
+                    title={canPay ? undefined : "픽업·서빙이 끝난 미결제 주문 한 건을 선택해 주세요."}
                     onClick={event => {
                       if (!selectedOrder) return;
                       operationTrigger.current = event.currentTarget;
@@ -206,67 +202,31 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
                     }}>결제하기</Button>
                 )}
                 {permissions.canCancelUnpaid && (
-                  <Button type="button" variant="outline-danger" disabled={pending || !canCancel(selectedOrder)}
-                    title={canCancel(selectedOrder) ? undefined : "조리전 상태의 미결제 주문 한 건을 선택해 주세요."}
+                  <Button type="button" variant="outline-danger" disabled={pending || !canCancel}
+                    title={canCancel ? undefined : "조리전 상태의 미결제 주문 한 건을 선택해 주세요."}
                     onClick={event => {
                       if (!selectedOrder) return;
                       operationTrigger.current = event.currentTarget;
                       setOperation({ kind: "cancel", orderId: selectedOrder.id });
                     }}>주문취소</Button>
                 )}
-                <Button type="button" variant="outline" disabled={pending || !selected.length || !selected.every(canPrint)}
+                <Button type="button" variant="outline" disabled={pending || !selected.length || !selected.every(canPrintPointOrder)}
                   title="조리가 시작된 주문만 인쇄할 수 있습니다." onClick={() => onPrint(selected)}><PrinterFill /> 청구서 인쇄</Button>
               </div>
             </footer>
           </>
         )}
       </div>
-      <Dialog open={Boolean(operation && activeOrder)} onOpenChange={open => { if (!open && !pending) setOperation(null); }}>
-        {operation && activeOrder && (
-          <DialogContent scrollable className="print:hidden" onCloseAutoFocus={event => {
+      {operation && (
+        <OrderPointOperationDialog key={operation.orderId} operation={operation} order={activeOrder}
+          pointLabel={pointLabel} menuSiteId={menuSiteId} permissions={permissions} mutateAction={mutateAction}
+          close={() => setOperation(null)} onSuccess={setCompletedOperation} onCloseAutoFocus={event => {
             event.preventDefault();
             const trigger = operationTrigger.current;
             if (trigger?.isConnected && !trigger.disabled) trigger.focus();
             else header.current?.focus();
-          }}>
-            <DialogHeader reserveCloseButton>
-              <DialogTitle>{operation.kind === "payment" ? "결제하기" : "주문취소"}</DialogTitle>
-              <DialogDescription>{pointLabel} · 주문 #{activeOrder.orderNumber}</DialogDescription>
-            </DialogHeader>
-            <form action={submit} className="site-stack-block">
-              <input type="hidden" name="source" value="table-detail" />
-              <input type="hidden" name="menuSiteId" value={menuSiteId} />
-              <input type="hidden" name="orderId" value={activeOrder.id} />
-              {operation.kind === "payment" ? (
-                <>
-                  <div className="site-action-row type-label" data-distribution="between"><span>결제 금액</span><strong>{formatAmount(activeOrder.totalAmount)}</strong></div>
-                  <label className="site-field-stack">
-                    <span className="type-label">외부에서 결제한 방법</span>
-                    <select name="method" className="site-field">
-                      <option value="manual_card">기존 카드 단말기</option>
-                      <option value="manual_cash">현금</option>
-                    </select>
-                  </label>
-                </>
-              ) : (
-                <label className="site-field-stack">
-                  <span className="type-label">취소 사유</span>
-                  <textarea name="reason" minLength={1} maxLength={500} required rows={2} className="site-field" />
-                </label>
-              )}
-              {feedback.status === "error" && feedback.orderId === activeOrder.id && <p role="alert" className="type-body-sm">{feedback.message}</p>}
-              {!activeOperationAllowed && <p role="status" className="type-body-sm">주문 상태가 바뀌었어요. 주문 내역을 확인해 주세요.</p>}
-              <div className="site-action-row" data-distribution="end">
-                <Button type="button" variant="outline" disabled={pending} onClick={() => setOperation(null)}>닫기</Button>
-                <Button type="submit" name="intent" value={operation.kind === "payment" ? "manual-payment" : "cancel"}
-                  disabled={pending || !activeOperationAllowed} variant={operation.kind === "payment" ? "default" : "destructive"}>
-                  {operation.kind === "payment" ? "결제 완료 기록" : "주문취소"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        )}
-      </Dialog>
+          }} />
+      )}
     </>
   );
 }

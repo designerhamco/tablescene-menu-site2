@@ -1,15 +1,13 @@
 "use client";
 import {FloorPlanViewport} from "@/app/components/ui/floor-plan-viewport";
 import {readableFloorDocument} from "@/lib/menu-floor-plan";
-import OrderCardSummary, { DEFAULT_ORDER_CARD_FIELDS, ORDER_CARD_FIELDS, type OrderCardField } from "./OrderCardSummary";
-import { Checkbox } from "@/app/components/ui/checkbox";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import {SectionHeader} from "@/app/components/ui/section-header";
 import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import {RoomLabel} from "@/app/components/ui/room-label";
 import {useOperationsView} from "./OperationsViewLayout";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Armchair, FilterFill, Monitor } from "@/app/components/ui/site-icon";
+import { useRef, useState, type ReactNode } from "react";
+import { Armchair, Monitor } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
   FloorPlanCanvas,
@@ -29,7 +27,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO } from "@/lib/menu-floor-plan";
 import {
-  groupOperationHistory, representativeOperationOrder,
+  groupOperationHistory,
   getHistoryPlacements,
   type OperationHistoryRecord,
   type OperationsFloorPlan,
@@ -40,7 +38,7 @@ export default function OperationsHistoryViews({
   records,
   floorPlan,
   renderList,
-  renderDetail, renderPointDetail, listOnly = false,
+  renderDetail, listOnly = false,
 }: {
   noun: "주문" | "호출";
   listOnly?: boolean;
@@ -48,7 +46,6 @@ export default function OperationsHistoryViews({
   floorPlan: OperationsFloorPlan;
   renderList: (open: (recordId: string) => void) => ReactNode;
   renderDetail: (recordIds: string[]) => ReactNode;
-  renderPointDetail?: (point: { id: string; label: string }, recordIds: string[]) => ReactNode;
 }) {
   const sharedView=useOperationsView();
   const [localView, setLocalView] = useState("map"),
@@ -57,29 +54,6 @@ export default function OperationsHistoryViews({
   const [selection, setSelection] = useState<
     { pointId: string; label: string } | { recordId: string; label: string } | null
   >(null);
-  const orderMap = noun === "주문" && !listOnly;
-  const [cardFields, setCardFields] = useState<ReadonlySet<OrderCardField>>(() => new Set(DEFAULT_ORDER_CARD_FIELDS));
-  const [now, setNow] = useState<number | null>(null);
-  const trackElapsed = orderMap && view === "map" && cardFields.has("elapsed");
-  useEffect(() => {
-    if (!trackElapsed) return;
-    const frame = window.requestAnimationFrame(() => setNow(Date.now()));
-    const interval = window.setInterval(() => setNow(Date.now()), 15_000);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.clearInterval(interval);
-    };
-  }, [trackElapsed]);
-
-  function setCardField(field: OrderCardField, checked: boolean) {
-    setCardFields(previous => {
-      const next = new Set(previous);
-      if (checked) next.add(field);
-      else next.delete(field);
-      return next;
-    });
-  }
-
   const groups = groupOperationHistory(records),
     placements = getHistoryPlacements({...floorPlan,document:readableFloorDocument(floorPlan.document)});
   const room =
@@ -103,11 +77,10 @@ export default function OperationsHistoryViews({
   const openRecord = (recordId: string) => {
     setSelection({ recordId, label: records.find(record => record.id === recordId)?.pointLabel ?? "테이블·키오스크" });
   };
-  const pointDetail = renderPointDetail && selection && "pointId" in selection ? selection : null;
   const recordIds = selected.map(item => item.id);
   const detailDialog = (
     <Dialog open={selection !== null} onOpenChange={open => { if (!open) setSelection(null); }}>
-      <DialogContent scrollable data-order-point-detail={Boolean(pointDetail) || undefined} className="print:hidden"
+      <DialogContent scrollable className="print:hidden"
         aria-describedby={undefined} onCloseAutoFocus={event => {
           const trigger = pointTrigger.current;
           pointTrigger.current = null;
@@ -116,19 +89,15 @@ export default function OperationsHistoryViews({
             trigger.focus();
           }
         }}>
-        {pointDetail && renderPointDetail
-          ? renderPointDetail({ id: pointDetail.pointId, label: pointDetail.label }, recordIds)
-          : <>
-              <DialogHeader reserveCloseButton>
-                <div className="site-action-row">
-                  <DialogTitle>{selected[0]?.pointLabel ?? selection?.label ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
-                  <InfoTooltip label="내역 갱신 안내"><p>{listOnly ? "현재 조회 조건의 내역을 표시합니다. 새 내역은 다시 조회하면 반영됩니다." : "현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다."}</p></InfoTooltip>
-                </div>
-              </DialogHeader>
-              {selected.length ? renderDetail(recordIds) : (
-                <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
-              )}
-            </>}
+        <DialogHeader reserveCloseButton>
+          <div className="site-action-row">
+            <DialogTitle>{selected[0]?.pointLabel ?? selection?.label ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
+            <InfoTooltip label="내역 갱신 안내"><p>{listOnly ? "현재 조회 조건의 내역을 표시합니다. 새 내역은 다시 조회하면 반영됩니다." : "현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다."}</p></InfoTooltip>
+          </div>
+        </DialogHeader>
+        {selected.length ? renderDetail(recordIds) : (
+          <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -172,18 +141,6 @@ export default function OperationsHistoryViews({
                 </TabsList>
                 <TabsContent value={room.id}>
                   <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
-                    {orderMap && (
-                      <div className="site-action-row site-order-map-filters" role="group" aria-label="보기필터">
-                        <span className="site-action-row type-label" data-wrap="nowrap" aria-hidden="true"><FilterFill /> 보기필터</span>
-                        {ORDER_CARD_FIELDS.map(({ id, label }) => (
-                          <label key={id} className="site-action-row type-label" data-wrap="nowrap">
-                            <Checkbox shape="circle" checked={cardFields.has(id)}
-                              onCheckedChange={checked => setCardField(id, checked === true)} />
-                            {label}
-                          </label>
-                        ))}
-                      </div>
-                    )}
                     <FloorPlanViewport name={room.name}><FloorPlanCanvas
                       data-mobile-cards="true"
                       name={room.name}
@@ -197,16 +154,11 @@ export default function OperationsHistoryViews({
                             (item) => item.id === placement.pointId,
                           )!;
                           const history = groups.get(point.id) ?? [],
-                            latest =
-                              noun === "주문" && history.some(item=>item.orderNumber!==undefined) ? representativeOperationOrder(history) : history.find((item) => item.attention) ?? history[0];
+                            latest = history.find((item) => item.attention) ?? history[0];
                           const count = history.filter(
                             (item) => item.attention,
                           ).length;
-                          const orderCard = Boolean(orderMap && latest?.orderNumber !== undefined);
-                          const summary = latest ? orderCard ? (
-                            <OrderCardSummary pointLabel={point.status === "active" ? point.label : `${point.label} · 비활성`}
-                              order={latest} records={history} fields={cardFields} now={now} />
-                          ) : (
+                          const summary = latest ? (
                             <>
                               <span>
                                 {count
@@ -225,14 +177,12 @@ export default function OperationsHistoryViews({
                                 </span>
                               ) : null}
                             </>
-                          ) : orderMap ? null : <span>표시 내역 없음</span>;
+                          ) : <span>표시 내역 없음</span>;
                           return (
                             <FloorPlanObject
                               key={point.id}
                               rect={placement}
                               label={point.label}
-                              showLabel={!orderCard}
-                              data-order-map-card={orderCard || undefined}
                               typeLabel={
                                 point.kind === "kiosk" ? "키오스크" : "테이블"
                               }

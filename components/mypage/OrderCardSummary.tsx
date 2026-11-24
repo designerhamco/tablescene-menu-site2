@@ -43,6 +43,5 @@ export default function OrderCardSummary({ pointLabel, order, records, fields, n
     {fields.has("orders") && <span data-order-card="orders">주문 총 {records.length}건</span>}
     {fields.has("items") && <span data-order-card="items">메뉴 총 {records.reduce((sum, record) => sum + (record.itemCount ?? 0), 0)}개</span>}
     {fields.has("total") && <span data-order-card="total"><strong className="type-label">합계 {formatAmount(records.reduce((sum, record) => sum + (record.totalAmount ?? 0), 0))}</strong></span>}
-    <span data-order-card="detail" className="type-label">열기</span>
   </>;
 }

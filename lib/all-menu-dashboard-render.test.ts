@@ -16,7 +16,7 @@ function dashboard(kind: "orders" | "calls") {
   const dependencies: Record<string, unknown> = {
     "react/jsx-runtime": jsxRuntime,
     "react-dom": { createPortal: stub },
-    "./OrderPointDetail": { default: stub },
+    "./OrderTableWorkspace": { default: ({ list }: { list: React.ReactNode }) => list },
     react: { ...React, useState: (initial: unknown) => [initial, stub], useId: () => "qa", useMemo: (fn: () => unknown) => fn(), useEffect: stub, useTransition: () => [false, stub], useActionState: () => [{ status: "idle", message: "" }, "/qa-inert-action", false] },
     "next/navigation": { useRouter: () => ({ refresh: stub }) }, "next/link": { default: stub },
     "@/app/components/ui/button": { Button: stub }, "@/app/components/ui/content-panel": { ContentPanel: panel },
