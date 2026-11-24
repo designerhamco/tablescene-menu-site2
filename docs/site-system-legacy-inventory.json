@@ -152,11 +152,6 @@
       "78f263ec03d40202"
     ]
   },
-  "app/mypage/menus/[menuId]/orders/OrderDashboard.tsx": {
-    "shared-heading": [
-      "51cb4692c2dbd20a"
-    ]
-  },
   "app/mypage/menus/[menuId]/pickup/PickupQueueDashboard.tsx": {
     "control-appearance": [
       "180da78f268d8042"

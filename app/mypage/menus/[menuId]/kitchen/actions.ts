@@ -1,17 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import type { KitchenAction } from "@/lib/kitchen-order";
+import type { KitchenMutation } from "@/lib/kitchen-order";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { OrderManagementError, updateKitchenOrder } from "@/lib/server/order-management-service";
 
-export async function mutateKitchenOrderAction(input: {
-  menuSiteId: string;
-  orderId: string;
-  action: KitchenAction;
-  itemId?: string;
-  checked?: boolean;
-}): Promise<{ error?: string }> {
+export async function mutateKitchenOrderAction(input: KitchenMutation): Promise<{ error?: string }> {
   try {
     await updateKitchenOrder(input);
     revalidatePath(`/mypage/menus/${input.menuSiteId}/kitchen`);

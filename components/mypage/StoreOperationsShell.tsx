@@ -174,7 +174,7 @@ export default async function StoreOperationsShell({
 
             <section className="min-w-0">
               {user && (activeSection === "orders" || activeSection === "kitchen") && (
-                <OrderUpdateRefresh userId={user.id} menuSiteId={allMenus ? undefined : selectedSite?.menuSiteId} poll={activeSection === "kitchen"} />
+                <OrderUpdateRefresh userId={user.id} menuSiteId={allMenus ? undefined : selectedSite?.menuSiteId} kitchen={activeSection === "kitchen"} />
               )}
               {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "kiosks" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
                 <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}

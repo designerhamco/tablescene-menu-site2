@@ -12,8 +12,9 @@ import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import { Badge } from "@/app/components/ui/badge";
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import OperationsHistoryViews from "@/components/mypage/OperationsHistoryViews";
+import { useLiveOrderStatuses } from "@/components/mypage/useLiveOrderStatuses";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
-import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
+import OrderReceipt, { STATUS_LABELS, PAYMENT_LABELS, formatAmount } from "@/components/mypage/OrderReceipt";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { OperationsFloorPlan } from "@/lib/operations-history";
@@ -21,15 +22,6 @@ import type { OrderDashboardPageData } from "@/lib/server/order-management-servi
 import type { OperationRecordSources, OperationArrivalGroup } from "@/lib/all-menu-operations";
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
-const STATUS_LABELS: Record<string, string> = { ...CUSTOMER_ORDER_STATUS_LABELS, ready: "조리완료", served: "픽업·서빙 완료" };
-const PAYMENT_LABELS: Record<string, string> = {
-  unpaid: "미결제",
-  manual_paid: "외부 결제 완료",
-  paid: "PG 결제 완료",
-  cancelled: "결제 취소",
-  refunded: "환불 완료",
-};
-const formatAmount = (value: number) => `${value.toLocaleString("ko-KR")}원`;
 type Order = OrderDashboardPageData["orders"][number];
 function OrderItems({ order }: { order: Order }) {
   return (
@@ -53,61 +45,10 @@ function OrderItems({ order }: { order: Order }) {
     </div>
   );
 }
-function OrderReceipt({
-  order,
-  menuSiteName,
-}: {
-  order: OrderDashboardPageData["orders"][number];
-  menuSiteName: string;
-}) {
-  return (
-    <section className="mx-auto max-w-[80mm] bg-white p-6 font-mono text-black">
-      <h1 className="type-content-title text-center">{menuSiteName}</h1>
-      <p className="mt-1 text-center text-copy">
-        주문 #{order.orderNumber} · {order.tableLabel}
-      </p>
-      <p className="mt-1 text-center text-support">
-        {formatKoreanDateTime(order.createdAt)}
-      </p>
-      <div className="my-4 border-t border-dashed border-black" />
-      {order.items.map((item) => (
-        <div key={item.id} className="mb-3 text-copy">
-          <div className="flex justify-between gap-3">
-            <span>
-              {item.name} × {item.quantity}
-            </span>
-            <span>{formatAmount(item.lineTotal)}</span>
-          </div>
-          {item.options.map((option) => (
-            <p
-              key={`${item.id}-${option.groupName}-${option.valueName}`}
-              className="text-support"
-            >
-              + {option.groupName}: {option.valueName}
-            </p>
-          ))}
-        </div>
-      ))}
-      <div className="my-4 border-t border-dashed border-black" />
-      <p className="flex justify-between text-copy font-medium">
-        <span>합계</span>
-        <span>{formatAmount(order.totalAmount)}</span>
-      </p>
-      <p className="mt-3 text-support">
-        주문: {STATUS_LABELS[order.status] ?? order.status} / 결제:{" "}
-        {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
-      </p>
-      {order.requestText ? (
-        <p className="mt-2 text-support">요청: {order.requestText}</p>
-      ) : null}
-    </section>
-  );
-}
-
 export default function OrderDashboard({
   menuSiteId,
   menuSiteName,
-  orders,
+  orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
   recordSources, arrivalGroups, historyPath,
@@ -124,6 +65,7 @@ export default function OrderDashboard({
   floorPlan: OperationsFloorPlan;
 }) {
   const history=view?.kind === "history";
+  const orders = useLiveOrderStatuses(serverOrders, menuSiteId, recordSources, history);
   const path = historyPath ?? `/mypage/menus/${menuSiteId}/orders`;
   const router = useRouter();
   const [refreshing, refresh] = useTransition();

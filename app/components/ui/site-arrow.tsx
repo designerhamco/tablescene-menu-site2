@@ -5,7 +5,7 @@ type SiteArrowProps = SVGProps<SVGSVGElement> & { size?: number | string };
 type Direction = "right" | "down-right" | "down" | "down-left" | "left" | "up-left" | "up" | "up-right";
 type Kind = "shaft" | "chevron" | "double-chevron" | "turn" | "turn-back" | "bidirectional" | "refresh" | "rotate";
 
-/** The official site's Remix Line arrows share SVG props and React 19 ref behavior. */
+/** The official site's Remix arrows share SVG props and React 19 ref behavior. */
 function arrow(name: SiteArrowName, direction: Direction, kind: Kind = "shaft", mirrored = false) {
   function SiteArrow({ size = 24, children, ...props }: SiteArrowProps) {
     return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
@@ -29,6 +29,7 @@ export const ArrowUp = /* @__PURE__ */ arrow("arrow-up-line", "up");
 export const ArrowUpRight = /* @__PURE__ */ arrow("arrow-right-up-line", "up-right");
 
 export const ChevronRight = /* @__PURE__ */ arrow("arrow-right-s-line", "right", "chevron");
+export const CaretDown = /* @__PURE__ */ arrow("arrow-down-s-fill", "down", "chevron");
 export const ChevronDown = /* @__PURE__ */ arrow("arrow-down-s-line", "down", "chevron");
 export const ChevronLeft = /* @__PURE__ */ arrow("arrow-left-s-line", "left", "chevron");
 export const ChevronUp = /* @__PURE__ */ arrow("arrow-up-s-line", "up", "chevron");

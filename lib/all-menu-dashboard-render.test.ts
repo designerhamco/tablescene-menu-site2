@@ -5,6 +5,8 @@ import ts from "typescript";
 import * as React from "react";
 import * as jsxRuntime from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
+import * as orderReceipt from "../components/mypage/OrderReceipt";
+import * as liveOrderStatuses from "../components/mypage/useLiveOrderStatuses";
 import type { OperationRecordSources } from "./all-menu-operations";
 
 /** Render the real detail/form JSX with inert actions; no database or browser writes. */
@@ -21,7 +23,7 @@ function dashboard(kind: "orders" | "calls") {
     "@/components/mypage/OrderHistoryFilters": { default: stub }, "@/components/mypage/OperationsHistoryTable": { default: stub },
     "@/components/mypage/OperationalArrivalAlert": { default: stub }, "@/components/ui/ActionFeedbackToast": { default: stub },
     "@/components/mypage/OperationsHistoryViews": { default: ({ records, renderDetail }: { records: { id: string }[]; renderDetail: (ids: string[]) => React.ReactNode }) => renderDetail(records.map(record => record.id)) },
-    "@/lib/customer-order-history": { CUSTOMER_ORDER_STATUS_LABELS: { received: "주문 접수", accepted: "조리 준비" } },
+    "@/components/mypage/OrderReceipt": orderReceipt, "@/components/mypage/useLiveOrderStatuses": liveOrderStatuses,
     "@/lib/dashboard-arrival-alerts": { shouldRefreshArrivalDashboard: stub }, "@/lib/korean-date-time": { formatKoreanDateTime: () => "2026. 11. 18." },
     "@/lib/order-history-query": { isCurrentOrder: () => true, orderHistoryHref: stub },
     "./actions": { mutateOrderAction: stub, mutateCallAction: stub },

@@ -17,7 +17,9 @@ const states = [
 ] as const;
 const actions = [
   ["default", "저장"], ["outline", "미리보기"], ["secondary", "초기화"],
-  ["ghost", "아이콘 도구"], ["destructive", "삭제"], ["outline-danger", "삭제 요청"], ["ai", "AI 상담"], ["link", "자세히"], ["danger-ghost", "제거 아이콘"], ["kakao", "카카오 로그인"],
+  ["ghost", "아이콘 도구"], ["destructive", "삭제"], ["outline-danger", "삭제 요청"],
+  ["warning", "조리중 처리"], ["success", "조리완료 처리"],
+  ["ai", "AI 상담"], ["link", "자세히"], ["danger-ghost", "제거 아이콘"], ["kakao", "카카오 로그인"],
 ] as const;
 
 /** State previews share selectors with the actual pseudo states; they have no private palette. */

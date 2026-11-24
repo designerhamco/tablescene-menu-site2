@@ -15,7 +15,7 @@ import {
   type OrderStatus,
 } from "@/lib/order-management";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
-import { KITCHEN_ORDER_STATUSES, type KitchenOrder } from "@/lib/kitchen-order";
+import { KITCHEN_ACTIVE_STATUSES, KITCHEN_ORDER_STATUSES, KITCHEN_SELECTION_LIMIT, type KitchenMenuSource, type KitchenOrder, type KitchenOrderOption } from "@/lib/kitchen-order";
 import { hasMenuSitePermission } from "@/lib/menu-site-permissions";
 import {
   requireMenuSitePermission,
@@ -59,7 +59,16 @@ type ItemRow = Pick<
   | "quantity"
   | "line_total_snapshot"
   | "display_order"
-> & { cooking_completed_at?: string | null };
+> & {
+  cooking_completed_at?: string | null;
+  menu_item?: {
+    id: string;
+    menu_site_id: string;
+    sort_order: number;
+    price_note: string | null;
+    category: { id: string; name: string; menu_site_id: string; sort_order: number } | null;
+  } | null;
+};
 
 type OptionRow = Pick<
   Database["public"]["Tables"]["menu_customer_order_item_options"]["Row"],
@@ -79,10 +88,13 @@ export type OrderDashboardItem = {
   quantity: number;
   lineTotal: number;
   cookingDone?: boolean;
+  menuSource?: KitchenMenuSource;
+  priceNote?: string | null;
   options: Array<{
     groupName: string;
     valueName: string;
     priceDelta: number;
+    kind?: KitchenOrderOption["kind"];
   }>;
 };
 
@@ -282,12 +294,15 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
     }
   } else {
     // Stable keyset batches include every outstanding order, regardless of age.
-    const asOf=new Date().toISOString();let cursor:OrderCursor|null=null;
+    const asOf = new Date();
+    const through = asOf.toISOString();
+    const servedSince = orderHistoryBounds(defaultOrderHistoryFilters(asOf)).from;
+    const kitchenStatuses = `status.in.(${KITCHEN_ACTIVE_STATUSES.join(",")}),and(status.eq.served,served_at.gte.${servedSince},served_at.lte.${through})`;
+    let cursor:OrderCursor|null=null;
     for(;;){
-      let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",asOf);
+      let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",through);
       if (scope === "kitchen") {
-        query = query.in("status", KITCHEN_ORDER_STATUSES);
-        if (cursor) query = query.or(orderCursorPredicate(cursor, "newer"));
+        query = query.or(cursor ? `and(or(${kitchenStatuses}),or(${orderCursorPredicate(cursor, "newer")}))` : kitchenStatuses);
       } else {
         const active="or(status.neq.served,payment_status.eq.unpaid)";
         query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
@@ -313,7 +328,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
     (async()=>{const rows:ItemRow[]=[];for(const ids of chunks(orderIds))for(let offset=0;;offset+=500){
       const itemQuery = supabase.from("menu_customer_order_items");
       const selection = scope === "kitchen"
-        ? itemQuery.select(`${itemColumns}, cooking_completed_at` as const)
+        ? itemQuery.select(`${itemColumns}, cooking_completed_at, menu_item:menu_items!menu_customer_order_items_menu_item_id_fkey(id, menu_site_id, sort_order, price_note, category:menu_categories!menu_items_category_id_fkey(id, name, menu_site_id, sort_order))` as const)
         : itemQuery.select(itemColumns);
       const result = await selection.eq("menu_site_id",menuSiteId).in("order_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
       if(result.error)mapReadError(result.error);const batch=result.data??[];rows.push(...batch);if(batch.length<500)break;
@@ -366,21 +381,32 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       cancellationReason: order.cancellation_reason,
       canCancelUnpaid: canCancelUnpaidOrder(order.status, order.payment_status),
       canMarkManualPayment: canMarkManualPayment(order.status, order.payment_status),
-      items: (itemsByOrderId.get(order.id) ?? []).map((item) => ({
-        id: item.id,
-        name: item.item_name_snapshot,
-        basePrice: item.base_price_snapshot,
-        optionPrice: item.option_price_snapshot,
-        unitPrice: item.unit_price_snapshot,
-        quantity: item.quantity,
-        lineTotal: item.line_total_snapshot,
-        ...(scope === "kitchen" ? { cookingDone: order.status === "ready" || Boolean(item.cooking_completed_at) } : {}),
-        options: (optionsByItemId.get(item.id) ?? []).map((option) => ({
-          groupName: option.group_name_snapshot,
-          valueName: option.value_name_snapshot,
-          priceDelta: option.price_delta_snapshot,
-        })),
-      })),
+      items: (itemsByOrderId.get(order.id) ?? []).map(item => {
+        const source = item.menu_item?.menu_site_id === menuSiteId ? item.menu_item : null;
+        const category = source?.category?.menu_site_id === menuSiteId ? source.category : null;
+        const menuSource = source ? {
+          id: source.id,
+          sortOrder: source.sort_order,
+          category: category ? { id: category.id, name: category.name, sortOrder: category.sort_order } : null,
+        } : undefined;
+        return {
+          id: item.id,
+          name: item.item_name_snapshot,
+          basePrice: item.base_price_snapshot,
+          optionPrice: item.option_price_snapshot,
+          unitPrice: item.unit_price_snapshot,
+          quantity: item.quantity,
+          lineTotal: item.line_total_snapshot,
+          ...(scope === "kitchen" ? { cookingDone: order.status === "ready" || order.status === "served" || Boolean(item.cooking_completed_at), menuSource, priceNote: source?.price_note } : {}),
+          options: (optionsByItemId.get(item.id) ?? []).map(option => ({
+            groupName: option.group_name_snapshot,
+            valueName: option.value_name_snapshot,
+            priceDelta: option.price_delta_snapshot,
+            // The order submission RPC reserves positions 20 and 21 for the item choice and its request.
+            ...(scope === "kitchen" ? { kind: option.display_order === 21 ? "request" as const : option.display_order === 20 ? "product" as const : "price" as const } : {}),
+          })),
+        };
+      }),
     })),
   };
 }
@@ -393,7 +419,10 @@ export async function listKitchenDashboard(menuSiteId: string) {
     return [{
       id: order.id,
       orderNumber: order.orderNumber,
+      tableId: order.tableId,
       tableLabel: order.tableLabel,
+      totalAmount: order.totalAmount,
+      paymentStatus: order.paymentStatus,
       status,
       createdAt: order.createdAt,
       requestText: order.requestText,
@@ -402,39 +431,47 @@ export async function listKitchenDashboard(menuSiteId: string) {
         name: item.name,
         quantity: item.quantity,
         done: item.cookingDone === true,
-        options: item.options.map(({ groupName, valueName }) => ({ groupName, valueName })),
+        lineTotal: item.lineTotal,
+        menuSource: item.menuSource,
+        priceNote: item.priceNote,
+        options: item.options.map(({ groupName, valueName, kind }) => ({ groupName, valueName, kind })),
       })),
     }];
   });
-  return { orders, canManage: data.permissions.canManage };
+  return { orders, menuSiteName: data.menuSite.name, canManage: data.permissions.canManage };
 }
 
 export async function updateKitchenOrder(input: {
   menuSiteId: unknown;
-  orderId: unknown;
+  orderIds: unknown;
   action: unknown;
   itemId?: unknown;
   checked?: unknown;
 }) {
   const menuSiteId = normalizedId(input.menuSiteId);
-  const orderId = normalizedId(input.orderId);
   const { action } = input;
-  if ((action !== "start" && action !== "check" && action !== "finish")
-    || (action === "check" && typeof input.checked !== "boolean")) {
+  if (!Array.isArray(input.orderIds) || input.orderIds.length < 1 || input.orderIds.length > KITCHEN_SELECTION_LIMIT
+    || (action !== "start" && action !== "check" && action !== "finish" && action !== "return")
+    || (action === "check" && (input.orderIds.length !== 1 || typeof input.checked !== "boolean"))) {
     throw new OrderManagementError("INVALID_INPUT", "올바른 조리 작업을 선택해 주세요.", 400);
   }
+  const orderIds = [...new Set(input.orderIds.map(normalizedId))];
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_status_management");
   await assertDashboardEnabled(menuSiteId);
-  const { error } = await supabase.rpc("manage_kitchen_order", {
-    p_menu_site_id: menuSiteId,
-    p_order_id: orderId,
-    p_actor_user_id: context.actorUserId,
-    p_action: action,
-    ...(action === "check" ? { p_order_item_id: normalizedId(input.itemId), p_checked: input.checked as boolean } : {}),
-  });
+  const args = { p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId, p_action: action };
+  const { error } = orderIds.length === 1
+    ? await supabase.rpc("manage_kitchen_order", {
+      ...args,
+      p_order_id: orderIds[0],
+      ...(action === "check" ? { p_order_item_id: normalizedId(input.itemId), p_checked: input.checked as boolean } : {}),
+    })
+    : await supabase.rpc("manage_kitchen_orders", { ...args, p_order_ids: orderIds });
   if (!error) return;
   if (error.message === "KITCHEN_ITEMS_INCOMPLETE") {
     throw new OrderManagementError("ORDER_CONFLICT", "모든 메뉴를 체크한 뒤 조리완료 처리할 수 있습니다.", 409);
+  }
+  if (error.message === "KITCHEN_ITEMS_ALREADY_CHECKED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "메뉴에 조리 완료 표시가 있으면 조리전으로 되돌릴 수 없습니다.", 409);
   }
   if (error.message === "KITCHEN_STATUS_CHANGED") {
     throw new OrderManagementError("ORDER_CONFLICT", "주문 상태가 변경됐습니다. 현재 상태를 확인해 주세요.", 409);

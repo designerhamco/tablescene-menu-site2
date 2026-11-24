@@ -3,12 +3,12 @@
 import * as React from "react";
 
 import { cn } from "./utils";
-import { getSiteTableLayout, type SiteTableColumn } from "@/lib/site-table";
+import { getSiteTableLayout, type SiteTableColumns } from "@/lib/site-table";
 
-type TableProps = React.ComponentProps<"table"> & { variant?: "default"; label?: never; columns?: never }
-  | Omit<React.ComponentProps<"table">, "className" | "style"> & { variant: "management"; label: string; columns?: readonly SiteTableColumn[]; className?: never; style?: never };
+type TableProps = React.ComponentProps<"table"> & { variant?: "default"; label?: never; columns?: never; appearance?: never }
+  | Omit<React.ComponentProps<"table">, "className" | "style"> & { variant: "management"; label: string; columns?: SiteTableColumns; appearance?: "grid"; className?: never; style?: never };
 
-function Table({ className, style, variant = "default", label, columns, children, ...props }: TableProps) {
+function Table({ className, style, variant = "default", label, columns, appearance, children, ...props }: TableProps) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const [overflowRight, setOverflowRight] = React.useState(false);
   React.useEffect(() => {
@@ -41,6 +41,7 @@ function Table({ className, style, variant = "default", label, columns, children
     >
       <table
         data-slot="table"
+        data-appearance={appearance}
         data-layout={layout ? "columns" : undefined}
         className={cn("w-full caption-bottom text-copy", variant === "management" && "site-management-table type-body-sm", className)}
         style={layout ? { "--site-table-min-width": `${layout.minWidthRem}rem` } as React.CSSProperties : style}

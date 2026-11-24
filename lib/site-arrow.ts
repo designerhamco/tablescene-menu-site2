@@ -1,4 +1,4 @@
-/** Original Remix Line paths from the snapshot pinned in public/licenses/remix-icon-NOTICE.txt. */
+/** Original Remix paths from the snapshot pinned in public/licenses/remix-icon-NOTICE.txt. */
 export const SITE_ARROW_PATHS = {
   "arrow-right-line": "m16.172 11l-5.364-5.364l1.414-1.414L20 12l-7.778 7.778l-1.414-1.414L16.172 13H4v-2z",
   "arrow-right-down-line": "M14.59 16.003L5.983 7.397l1.414-1.415l8.607 8.607V7.003h2v11h-11v-2z",
@@ -9,6 +9,7 @@ export const SITE_ARROW_PATHS = {
   "arrow-up-line": "M13 7.828V20h-2V7.828l-5.364 5.364l-1.414-1.414L12 4l7.778 7.778l-1.414 1.414z",
   "arrow-right-up-line": "m16.004 9.414l-8.607 8.607l-1.414-1.414L14.59 8H7.003V6h11v11h-2z",
   "arrow-right-s-line": "m13.172 12l-4.95-4.95l1.414-1.413L16 12l-6.364 6.364l-1.414-1.415z",
+  "arrow-down-s-fill": "m12 16l-6-6h12z",
   "arrow-down-s-line": "m12 13.171l4.95-4.95l1.414 1.415L12 16L5.636 9.636L7.05 8.222z",
   "arrow-left-s-line": "m10.828 12l4.95 4.95l-1.414 1.415L8 12l6.364-6.364l1.414 1.414z",
   "arrow-up-s-line": "m12 10.828l-4.95 4.95l-1.414-1.414L12 8l6.364 6.364l-1.414 1.414z",

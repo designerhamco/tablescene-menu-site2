@@ -52,7 +52,7 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
 });
 
 test("shared state previews exercise the real guarded hover / pressed / focus selectors", () => {
-  for (const variant of ["primary", "outline", "secondary", "ghost", "danger", "outline-danger", "danger-ghost", "ai", "link", "kakao"]) {
+  for (const variant of ["primary", "outline", "secondary", "ghost", "danger", "warning", "success", "outline-danger", "danger-ghost", "ai", "link", "kakao"]) {
     for (const state of ["hover", "pressed"]) {
       const selector = new RegExp(`\\.site-button-${variant}:is\\(:${state === "hover" ? "hover" : "active"}, \\[data-ui-state="${state}"\\]\\):not\\(:disabled\\):not\\(\\[aria-disabled="true"\\]\\)`);
       assert.match(css, selector, `${variant} ${state} must not override disabled appearance`);

@@ -4,10 +4,10 @@ type ContentPanelProps = Omit<ComponentPropsWithoutRef<"section">, "className" |
   as?: "section" | "article" | "aside" | "div";
   surface?: "white" | "muted" | "notice" | "danger";
   density?: "default" | "compact" | "controls";
-  layout?: "default" | "canvas";
+  layout?: "default" | "canvas" | "card";
 };
 
 /** Work surfaces own their paint, padding and child rhythm; callers choose roles. */
 export function ContentPanel({ as: Tag = "section", surface = "white", density = "default", layout = "default", children, ...props }: ContentPanelProps) {
-  return <Tag {...props} className="site-content-panel" data-surface={surface} data-density={density} data-layout={layout === "canvas" ? layout : undefined}>{children}</Tag>;
+  return <Tag {...props} className="site-content-panel" data-surface={surface} data-density={density} data-layout={layout === "default" ? undefined : layout}>{children}</Tag>;
 }
