@@ -129,7 +129,6 @@ export default function KitchenOrderCard({ controls, now, roomName, onDrag, onDr
               );
             })}
           </ul>
-          {order.requestText && <p className="type-body-sm break-words">요청사항 · {order.requestText}</p>}
         </div>
         <KitchenOrderActions {...controls} />
       </div>

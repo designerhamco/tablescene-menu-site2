@@ -105,7 +105,13 @@ test("주방은 상품 선택과 직접 입력을 같은 칸에 넣고 가격 �
     { groupName: "가격 옵션", valueName: "세트", kind: "price" },
     { groupName: "상품 옵션", valueName: "레몬 에이드", kind: "product" },
     { groupName: "상품 요청", valueName: "얼음 적게", kind: "request" },
-  ]), { product: "레몬 에이드 (얼음 적게)", price: "세트" });
+  ]), { product: "레몬 에이드(얼음 적게)", price: "세트" });
+  assert.deepEqual(kitchen.getKitchenOptionLabels([
+    { groupName: "상품 요청", valueName: "얼음 적게", kind: "request" },
+  ]), { product: "(얼음 적게)", price: "" });
+  assert.deepEqual(kitchen.getKitchenOptionLabels([
+    { groupName: "상품 옵션", valueName: "덜 맵게", kind: "product" },
+  ]), { product: "덜 맵게", price: "" });
 });
 
 test("주방 메뉴 필터는 메뉴판의 등록 순서를 쓰고 연결이 끊긴 기존 주문도 조회한다", async () => {

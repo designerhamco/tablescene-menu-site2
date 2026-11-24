@@ -70,7 +70,6 @@ function KitchenOrderRows({ actions, now, room, selectionFull, menuFilter, print
           </TableRow>
         );
       })}
-      {order.requestText && <TableRow><TableCell colSpan={12}>요청사항 · {order.requestText}</TableCell></TableRow>}
     </TableBody>
   );
 }
