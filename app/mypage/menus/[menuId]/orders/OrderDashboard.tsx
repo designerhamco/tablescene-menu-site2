@@ -287,9 +287,6 @@ export default function OrderDashboard({
           {printOrders.map(order => (
             <OrderReceipt key={order.id} order={order} menuSiteName={recordSources?.[order.id]?.menuSiteName ?? menuSiteName} />
           ))}
-          {printOrders.length > 1 && (
-            <p className="type-label text-center">총 합계 {formatAmount(printOrders.reduce((sum, order) => sum + order.totalAmount, 0))}</p>
-          )}
         </div>,
         document.body,
       )}

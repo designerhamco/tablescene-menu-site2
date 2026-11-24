@@ -20,7 +20,8 @@ import OrderPointDetail from "./OrderPointDetail";
 import type { OrderManagementActionState } from "./action-state";
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderMutation, type PointOrderOperation } from "./OrderPointOperationDialog";
 
-type Selection = { id: string; label: string };
+type Point = { id: string; label: string };
+type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
 export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, onPrint, list }: {
@@ -37,12 +38,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
 }) {
   const [view, setView] = useState("map");
   const [roomId, setRoomId] = useState("");
-  const [selected, setSelected] = useState<ReadonlySet<string>>(() => new Set());
+  const [selection, setSelection] = useState<TableSelection>();
   const [fields, setFields] = useState<ReadonlySet<OrderCardField>>(() => new Set(DEFAULT_ORDER_CARD_FIELDS));
   const [now, setNow] = useState<number | null>(null);
-  const [detail, setDetail] = useState<Selection>();
+  const [detail, setDetail] = useState<Point>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
-  const [operation, setOperation] = useState<(PointOrderOperation & { point: Selection })>();
+  const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
   const trigger = useRef<HTMLButtonElement>(null);
   const mapTab = useRef<HTMLButtonElement>(null);
   const panelId = useId();
@@ -70,14 +71,26 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const placed = new Set(placements.map(placement => placement.pointId));
   const groups = groupOperationHistory(records);
   const unplaced = [...groups].filter(([id]) => !placed.has(id));
-  const selectedPoints = roomPoints.filter(({ point }) => point.status === "active" && selected.has(point.id));
   const availableIds = roomPoints.filter(({ point }) => point.status === "active").map(({ point }) => point.id);
-  const allSelected = availableIds.length > 0 && availableIds.length === selectedPoints.length;
-  const selectedPointIds = new Set(selectedPoints.map(({ point }) => point.id));
+  const selectedPointIds = new Set(availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id)));
+  const allChecked = selection?.kind === "checked" && availableIds.length > 0 && availableIds.length === selectedPointIds.size;
   const selectedOrders = orders.filter(order => selectedPointIds.has(order.tableId));
   const cancelOrder = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const canPrintSelection = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
   const ordersById = new Map(orders.map(order => [order.id, order]));
+
+  function selectSingle(id: string) {
+    setSelection(previous => previous?.kind === "single" && previous.id === id ? undefined : { kind: "single", id });
+  }
+
+  function checkPoint(id: string, checked: boolean) {
+    setSelection(previous => {
+      const ids = new Set(previous?.kind === "checked" ? previous.ids : []);
+      if (checked) ids.add(id);
+      else ids.delete(id);
+      return ids.size > 0 ? { kind: "checked", ids } : undefined;
+    });
+  }
 
   function restoreFocus(event: Event) {
     event.preventDefault();
@@ -86,12 +99,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     else mapTab.current?.focus();
   }
 
-  function openDetail(point: Selection, button: HTMLButtonElement) {
+  function openDetail(point: Point, button: HTMLButtonElement) {
     trigger.current = button;
     setDetail(point);
   }
 
-  function openOperation(kind: PointOrderOperation["kind"], order: Order, point: Selection, button: HTMLButtonElement) {
+  function openOperation(kind: PointOrderOperation["kind"], order: Order, point: Point, button: HTMLButtonElement) {
     trigger.current = button;
     setOperation({ kind, orderId: order.id, point });
   }
@@ -132,11 +145,11 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             </div>
             <div className="site-action-row" data-distribution="between">
               <div className="site-action-row">
-                <Button variant="outline" size="compact" disabled={!availableIds.length || allSelected}
-                  onClick={() => setSelected(new Set(availableIds))}>전체선택</Button>
-                <Button variant="secondary" size="compact" disabled={!selectedPoints.length}
-                  onClick={() => setSelected(new Set())}>선택해제</Button>
-                {selectedPoints.length > 0 && <span className="type-caption site-copy-muted" role="status">{selectedPoints.length}곳 선택</span>}
+                <Button variant="outline" size="compact" disabled={!availableIds.length || allChecked}
+                  onClick={() => setSelection({ kind: "checked", ids: new Set(availableIds) })}>전체선택</Button>
+                <Button variant="secondary" size="compact" disabled={!selectedPointIds.size}
+                  onClick={() => setSelection(undefined)}>선택해제</Button>
+                {selectedPointIds.size > 0 && <span className="type-caption site-copy-muted" role="status">{selectedPointIds.size}곳 선택</span>}
               </div>
               {refreshControl}
             </div>
@@ -153,7 +166,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           <div className="site-floor-workspace-canvas">
             <FloorPlanViewport key={room.id} name={room.name}>
               <FloorPlanCanvas name={room.name} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
-                data-mobile-cards="true" data-order-table-canvas>
+                data-mobile-cards="true" data-order-table-canvas
+                onClick={event => {
+                  if (event.target === event.currentTarget) {
+                    setSelection(previous => previous?.kind === "single" ? undefined : previous);
+                  }
+                }}>
                 {roomPoints.map(({ placement, point }) => {
                   const pointRecords = groups.get(point.id) ?? [];
                   const representative = representativeOperationOrder(pointRecords);
@@ -167,19 +185,18 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                     && isPointOrderOperationAllowed(due[0], permissions, "payment") ? due[0] : undefined;
                   const showPayment = current.length > 0 && current.every(order => order.status === "served") && due.length > 0;
                   const showRefund = current.length > 0 && current.every(order => order.status === "served" && ["paid", "manual_paid"].includes(order.paymentStatus));
-                  const checked = selectedPointIds.has(point.id);
-                  const label = point.status === "active" ? point.label : `${point.label} · 비활성`;
+                  const disabled = point.status !== "active";
+                  const selected = selection?.kind === "single" && selectedPointIds.has(point.id);
+                  const checked = selection?.kind === "checked" && selectedPointIds.has(point.id);
+                  const label = disabled ? `${point.label} · 비활성` : point.label;
                   return (
-                    <FloorPlanObject key={point.id} rect={placement} label={point.label} disabled={point.status !== "active"}
-                      selected={checked} data-order-table-card data-point-kind={point.kind ?? "table"}>
+                    <FloorPlanObject key={point.id} rect={placement} label={point.label} disabled={disabled}
+                      selected={selected} data-checked={checked || undefined} data-order-table-card data-point-kind={point.kind ?? "table"}>
+                      <button type="button" className="site-order-table-card-select" disabled={disabled}
+                        aria-label={`${point.label} 개별 선택`} aria-pressed={selected} onClick={() => selectSingle(point.id)} />
                       <div className="site-order-table-card-choice">
-                        <Checkbox shape="circle" aria-label={`${point.label} 선택`} checked={checked} disabled={point.status !== "active"}
-                          onCheckedChange={value => setSelected(previous => {
-                            const next = new Set(previous);
-                            if (value === true) next.add(point.id);
-                            else next.delete(point.id);
-                            return next;
-                          })} />
+                        <Checkbox shape="circle" aria-label={`${point.label} 선택`} checked={checked} disabled={disabled}
+                          onCheckedChange={value => checkPoint(point.id, value === true)} />
                       </div>
                       {representative ? (
                         <>
@@ -214,7 +231,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           <div className="site-action-row" data-distribution="center">
             <Button variant="outline" size="compact" disabled title="수동 주문 추가 준비 중">수동 주문 추가</Button>
             <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
-            <Button variant="secondary" size="compact" disabled={!cancelOrder}
+            <Button variant="destructive" size="compact" disabled={!cancelOrder} data-order-table-cancel
               title={!cancelOrder ? "조리전 상태의 미결제 주문 한 건을 선택해 주세요." : undefined}
               onClick={event => {
                 if (!cancelOrder) return;
@@ -236,7 +253,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       {room && floorPlan.available ? (
         <Tabs purpose="section" appearance="rooms" value={room.id} onValueChange={id => {
           setRoomId(id);
-          setSelected(new Set());
+          setSelection(undefined);
         }}>
           {view === "map" && <TabsList size="sm" data-active-tone="solid" aria-label="주문 내역 룸">
             {floor.rooms.map(room => <TabsTrigger key={room.id} value={room.id}><RoomLabel name={room.name} emoji={room.emoji} /></TabsTrigger>)}
