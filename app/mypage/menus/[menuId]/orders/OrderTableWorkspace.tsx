@@ -20,6 +20,7 @@ import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/o
 import type { ManualOrderActions } from "@/lib/manual-order";
 import ManualOrderDialog from "./ManualOrderDialog";
 import OrderManagementList from "./OrderManagementList";
+import OrderMoveDialog, { type OrderMoveSource } from "./OrderMoveDialog";
 import OrderPointDetail from "./OrderPointDetail";
 import type { OrderManagementActionState } from "./action-state";
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderMutation, type PointOrderOperation } from "./OrderPointOperationDialog";
@@ -28,7 +29,7 @@ type Point = { id: string; label: string };
 type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
-export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions }: {
+export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions, moveAction }: {
   menuSiteId: string;
   floorPlan: OperationsFloorPlan;
   records: OperationHistoryRecord[];
@@ -37,6 +38,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   receptionControl?: ReactNode;
   refreshControl: ReactNode;
   mutateAction: PointOrderMutation;
+  moveAction?: PointOrderMutation;
   manualOrderActions?: ManualOrderActions;
   onPrint: (orders: Order[]) => void;
   transitionAction: (form: FormData) => void;
@@ -50,6 +52,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const [now, setNow] = useState<number | null>(null);
   const [detail, setDetail] = useState<Point & { orderId?: string }>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
+  const [moveOrder, setMoveOrder] = useState<OrderMoveSource>();
   const [manualOrder, setManualOrder] = useState<Point>();
   const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
   const trigger = useRef<HTMLButtonElement>(null);
@@ -80,12 +83,13 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const listOrders = activeListRoom === "all" ? orders : orders.filter(order => roomByPoint.get(order.tableId) === activeListRoom);
   const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const pointsById = new Map(floorPlan.points.map(point => [point.id, point]));
-  const manualPoints = manualOrderActions && permissions.canManage
+  const activePoints = permissions.canManage
     ? new Map(floorPlan.points.filter(point => point.status === "active").map(point => {
         const roomName = listRoomNames.get(point.id);
         return [point.id, { id: point.id, label: roomName ? `${roomName} · ${point.label}` : point.label }];
       }))
     : undefined;
+  const manualPoints = manualOrderActions ? activePoints : undefined;
   const roomPoints = placements.flatMap(placement => {
     const point = pointsById.get(placement.pointId);
     return placement.roomId === room?.id && point ? [{ placement, point }] : [];
@@ -93,17 +97,34 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const placed = new Set(placements.map(placement => placement.pointId));
   const activeOrders = orders.filter(isCurrentOrder);
   const groups = groupOperationHistory(records.filter(record => record.attention));
+  const ordersById = new Map(orders.map(order => [order.id, order]));
+  const moveSources = new Map<string, OrderMoveSource>();
+  const moveDestinations: Point[] = [];
+  for (const [id, point] of (moveAction ? activePoints : undefined) ?? []) {
+    if (pointsById.get(id)?.kind === "kiosk") continue;
+    const pointRecords = groups.get(id) ?? [];
+    const pointOrders = pointRecords.flatMap(record => ordersById.get(record.id) ?? []);
+    if (!pointOrders.length) {
+      moveDestinations.push(point);
+    } else if (pointOrders.every(order => order.paymentStatus === "unpaid")) {
+      const representative = representativeOperationOrder(pointRecords);
+      moveSources.set(id, { ...point, orderIds: pointOrders.map(order => order.id),
+        status: representative?.orderStatus ?? pointOrders[0].status });
+    }
+  }
   const unplaced = [...groups].filter(([id]) => !placed.has(id));
   const availableIds = roomPoints.filter(({ point }) => point.status === "active").map(({ point }) => point.id);
   const selectedPointIds = new Set(availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id)));
   const manualTarget = selection?.kind === "single" && selectedPointIds.has(selection.id)
     ? manualPoints?.get(selection.id)
     : undefined;
+  const moveTarget = selection?.kind === "single" && selectedPointIds.has(selection.id)
+    ? moveSources.get(selection.id)
+    : undefined;
   const allChecked = selection?.kind === "checked" && availableIds.length > 0 && availableIds.length === selectedPointIds.size;
   const selectedOrders = activeOrders.filter(order => selectedPointIds.has(order.tableId));
   const cancelOrder = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const canPrintSelection = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
-  const ordersById = new Map(orders.map(order => [order.id, order]));
 
   function selectSingle(id: string) {
     setSelection(previous => previous?.kind === "single" && previous.id === id ? undefined : { kind: "single", id });
@@ -138,6 +159,11 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   function openManualOrder(point: Point, button: HTMLButtonElement) {
     trigger.current = button;
     setManualOrder(point);
+  }
+
+  function openMoveOrder(source: OrderMoveSource, button: HTMLButtonElement) {
+    trigger.current = button;
+    setMoveOrder(source);
   }
 
   const shell = (
@@ -193,6 +219,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           <OrderManagementList key={activeListRoom} orders={listOrders} roomNames={listRoomNames} menuSiteId={menuSiteId}
             permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
             onPrint={onPrint} manualPoints={manualPoints} openManualOrder={openManualOrder}
+            moveSources={moveSources} openMoveOrder={openMoveOrder}
             openDetail={(order, button) => openDetail({ id: order.tableId, label: order.tableLabel }, button, order.id)}
             openOperation={(kind, order, button) => openOperation(kind, order, { id: order.tableId, label: order.tableLabel }, button)} />
         ) : !floorPlan.available || !room ? (
@@ -270,7 +297,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
               onClick={event => { if (manualTarget) openManualOrder(manualTarget, event.currentTarget); }}>
               수동 주문 추가
             </Button>
-            <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
+            <Button variant="outline-danger" size="compact" disabled={!moveTarget || pending}
+              onClick={event => { if (moveTarget) openMoveOrder(moveTarget, event.currentTarget); }}>주문(테이블) 이동</Button>
             <Button variant="destructive" size="compact" disabled={!cancelOrder} data-order-table-cancel
               title={!cancelOrder ? "조리전 상태의 미결제 주문 한 건을 선택해 주세요." : undefined}
               onClick={event => {
@@ -324,6 +352,13 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             orders={detail.orderId ? orders.filter(order => order.id === detail.orderId) : activeOrders.filter(order => order.tableId === detail.id)} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
         </DialogContent>
       </Dialog>
+      {moveOrder && moveAction && <OrderMoveDialog source={moveOrder} destinations={moveDestinations} menuSiteId={menuSiteId}
+        mutateAction={moveAction} close={() => setMoveOrder(undefined)} onCloseAutoFocus={restoreFocus}
+        onSuccess={result => {
+          setMoveOrder(undefined);
+          setSelection(undefined);
+          setFeedback(result);
+        }} />}
       {manualOrder && manualOrderActions && (
         <ManualOrderDialog actions={manualOrderActions} point={manualOrder}
           close={() => setManualOrder(undefined)} onCloseAutoFocus={restoreFocus}

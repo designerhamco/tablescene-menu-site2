@@ -1017,6 +1017,7 @@ export type Database = {
           status: string
           status_updated_by: string | null
           subtotal_amount: number
+          service_table_id: string | null
           staff_created_by: string | null
           table_visit_session_id: string | null
           total_amount: number
@@ -1046,6 +1047,7 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount: number
+          service_table_id?: string | null
           staff_created_by?: string | null
           table_visit_session_id?: string | null
           total_amount: number
@@ -1075,12 +1077,20 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount?: number
+          service_table_id?: string | null
           staff_created_by?: string | null
           table_visit_session_id?: string | null
           total_amount?: number
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "menu_customer_orders_service_table_fk"
+            columns: ["menu_site_id", "service_table_id"]
+            isOneToOne: false
+            referencedRelation: "menu_tables"
+            referencedColumns: ["menu_site_id", "id"]
+          },
           {
             foreignKeyName: "menu_customer_orders_menu_site_id_fkey"
             columns: ["menu_site_id"]
@@ -3952,6 +3962,17 @@ export type Database = {
           payment_status: string
           total_amount: number
         }[]
+      }
+      move_table_orders: {
+        Args: {
+          p_actor_user_id: string
+          p_destination_table_id: string
+          p_menu_site_id: string
+          p_order_ids: string[]
+          p_request_id: string
+          p_source_table_id: string
+        }
+        Returns: number
       }
       submit_manual_staff_order: {
         Args: {

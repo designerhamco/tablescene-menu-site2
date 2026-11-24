@@ -21,6 +21,8 @@ import { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperat
 
 const searchLabels: Record<OrderListSearchField, string> = { number: "주문번호", menu: "메뉴명", point: "테이블·키오스크" };
 const statusLabels: Record<OrderListStatus, string> = { all: "모든 상태", ...KITCHEN_STAGE_LABELS, served: "픽업·서빙 완료" };
+import type { OrderMoveSource } from "./OrderMoveDialog";
+
 type Order = OrderDashboardOrder;
 
 function ColumnFilter({ label, options, selected, change }: {
@@ -60,7 +62,7 @@ function ColumnFilter({ label, options, selected, change }: {
   );
 }
 
-export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder }: {
+export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder, moveSources, openMoveOrder }: {
   orders: Order[];
   roomNames: ReadonlyMap<string, string>;
   menuSiteId: string;
@@ -73,6 +75,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   openDetail: (order: Order, trigger: HTMLButtonElement) => void;
   manualPoints?: ReadonlyMap<string, { id: string; label: string }>;
   openManualOrder: (point: { id: string; label: string }, trigger: HTMLButtonElement) => void;
+  moveSources: ReadonlyMap<string, OrderMoveSource>;
+  openMoveOrder: (source: OrderMoveSource, trigger: HTMLButtonElement) => void;
   openOperation: (kind: PointOrderOperation["kind"], order: Order, trigger: HTMLButtonElement) => void;
 }) {
   const [searchField, setSearchField] = useState<OrderListSearchField>("number");
@@ -87,6 +91,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   const selectedOrders = visibleOrders.filter(order => selection.has(order.id));
   const [pointId, otherPoint] = new Set(selectedOrders.map(order => order.tableId));
   const manualTarget = pointId && !otherPoint ? manualPoints?.get(pointId) : undefined;
+  const moveTarget = pointId && !otherPoint ? moveSources.get(pointId) : undefined;
   const all = visibleOrders.length > 0 && visibleOrders.length === selectedOrders.length;
   const cancel = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const print = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
@@ -276,7 +281,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
               수동 주문 추가
             </Button>
             <Button variant="outline" size="compact" disabled={!print || pending} onClick={() => onPrint(selectedOrders)}><PrinterFill aria-hidden="true" /> 청구서 인쇄</Button>
-            <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
+            <Button variant="outline-danger" size="compact" disabled={!moveTarget || pending}
+              onClick={event => { if (moveTarget) openMoveOrder(moveTarget, event.currentTarget); }}>주문(테이블) 이동</Button>
             <Button variant="destructive" size="compact" data-order-table-cancel disabled={!cancel || pending}
               onClick={event => { if (cancel) openOperation("cancel", cancel, event.currentTarget); }}>주문 취소</Button>
           </div>

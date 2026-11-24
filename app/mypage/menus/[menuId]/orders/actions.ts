@@ -6,6 +6,7 @@ import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   cancelUnpaidOrder,
   markOrderManualPayment,
+  moveTableOrders,
   OrderManagementError,
   transitionOrderStatus,
 } from "@/lib/server/order-management-service";
@@ -37,7 +38,16 @@ export async function mutateOrderAction(
   const fromTableDetail = formString(formData, "source") === "table-detail";
 
   try {
-    if (intent === "transition") {
+    let movedCount: number | undefined;
+    if (intent === "move-table") {
+      movedCount = await moveTableOrders({
+        menuSiteId,
+        sourceTableId: formString(formData, "sourceTableId"),
+        destinationTableId: formString(formData, "destinationTableId"),
+        orderIds: formData.getAll("orderIds"),
+        requestId: formString(formData, "requestId"),
+      });
+    } else if (intent === "transition") {
       await transitionOrderStatus({
         menuSiteId,
         orderId,
@@ -67,7 +77,7 @@ export async function mutateOrderAction(
     revalidatePath("/mypage/operations/orders");
     return {
       status: "success",
-      message: intent === "manual-payment"
+      message: movedCount ? `주문 ${movedCount}건을 이동했습니다.` : intent === "manual-payment"
         ? "외부 결제 완료로 기록했습니다."
         : intent === "cancel"
           ? "미결제 주문을 취소했습니다."

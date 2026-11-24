@@ -32,6 +32,7 @@ type OrderRow = Pick<
   | "id"
   | "order_number"
   | "menu_table_id"
+  | "service_table_id"
   | "status"
   | "payment_status"
   | "payment_method"
@@ -210,7 +211,7 @@ function mapReadError(error: DatabaseError | null) {
   throw new OrderManagementError("ORDER_READ_FAILED", "주문 정보를 불러오지 못했습니다.", 500);
 }
 
-function mapUpdateError(error: DatabaseError | null) {
+function mapUpdateError(error: DatabaseError | null): never {
   console.warn("[order-dashboard] update failed", {
     code: error?.code ?? "unknown",
     message: error?.message ?? "unknown",
@@ -268,7 +269,7 @@ export async function listOrderDashboard(
   let request: ReturnType<typeof normalizeOrderHistory> | undefined, queryError: string | undefined;
   if (history) try {request = normalizeOrderHistory(search);} catch (error) {if (!(error instanceof OrderHistoryInputError)) throw error;queryError=error.message;}
   const view: OrderDashboardView = {kind:history?"history":"current", filters:request?.filters??defaultOrderHistoryFilters(), error:queryError, totalCount:0, olderCursor:null, newerCursor:null, tables:[]};
-  const columns = "id, order_number, menu_table_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at";
+  const columns = "id, order_number, menu_table_id, service_table_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at";
   let orders: OrderRow[] = [];
   if (history) {
     for(let offset=0;;offset+=500){
@@ -330,7 +331,8 @@ export async function listOrderDashboard(
       : orders.length;
   }
   const orderIds = orders.map((order) => order.id);
-  const tableIds = [...new Set(orders.map((order) => order.menu_table_id))];
+  const displayedTable = (order: OrderRow) => !history && order.service_table_id ? order.service_table_id : order.menu_table_id;
+  const tableIds = [...new Set(orders.map(displayedTable))];
 
   const chunks = (ids:string[]) => Array.from({length:Math.ceil(ids.length/100)},(_,index)=>ids.slice(index*100,index*100+100));
   const itemColumns = "id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order";
@@ -380,8 +382,8 @@ export async function listOrderDashboard(
     orders: orders.map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
-      tableId: order.menu_table_id,
-      tableLabel: tableLabelById.get(order.menu_table_id) ?? "알 수 없는 테이블",
+      tableId: displayedTable(order),
+      tableLabel: tableLabelById.get(displayedTable(order)) ?? "알 수 없는 테이블",
       status: order.status,
       nextStatus: order.status === "cooking" ? null : getNextOrderStatus(order.status),
       paymentStatus: order.payment_status,
@@ -643,4 +645,42 @@ export async function markOrderManualPayment({
     .maybeSingle();
   if (error) mapUpdateError(error);
   return assertUpdated(data);
+}
+
+export async function moveTableOrders(input: {
+  menuSiteId: unknown;
+  sourceTableId: unknown;
+  destinationTableId: unknown;
+  orderIds: unknown[];
+  requestId: unknown;
+}) {
+  const menuSiteId = normalizedId(input.menuSiteId);
+  const source = normalizedId(input.sourceTableId);
+  const destination = normalizedId(input.destinationTableId);
+  const orderIds = [...new Set(input.orderIds.map(normalizedId))];
+  const requestId = normalizedId(input.requestId);
+  if (source === destination || !orderIds.length) {
+    throw new OrderManagementError("INVALID_INPUT", "이동할 주문과 다른 테이블을 선택해 주세요.", 400);
+  }
+  const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_status_management");
+  await assertDashboardEnabled(menuSiteId);
+  const { data, error } = await supabase.rpc("move_table_orders", {
+    p_menu_site_id: menuSiteId,
+    p_source_table_id: source,
+    p_destination_table_id: destination,
+    p_order_ids: orderIds,
+    p_request_id: requestId,
+    p_actor_user_id: context.actorUserId,
+  });
+  if (error?.message === "ORDER_MOVE_DESTINATION_OCCUPIED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "목적지에 진행 중인 주문이나 이용 중인 손님이 있어요. 다른 테이블을 선택해 주세요.", 409);
+  }
+  if (error?.message === "ORDER_MOVE_SOURCE_CHANGED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "선택한 테이블의 주문이 바뀌었어요. 창을 닫고 주문을 다시 확인해 주세요.", 409);
+  }
+  if (error?.message === "ORDER_MOVE_TABLE_UNAVAILABLE") {
+    throw new OrderManagementError("ORDER_CONFLICT", "이동할 수 없는 테이블이에요. 테이블 상태를 다시 확인해 주세요.", 409);
+  }
+  if (error || !data) mapUpdateError(error);
+  return data;
 }
