@@ -2,12 +2,13 @@
 
 import { useEffect, useEffectEvent } from "react";
 import { useRouter } from "next/navigation";
+import { publishOrderStatusUpdate, readOrderStatusUpdate } from "@/lib/order-status-update";
 import { createClient } from "@/lib/supabase/client";
 
-export default function OrderUpdateRefresh({ userId, menuSiteId, poll = false }: {
+export default function OrderUpdateRefresh({ userId, menuSiteId, kitchen = false }: {
   userId: string;
   menuSiteId?: string;
-  poll?: boolean;
+  kitchen?: boolean;
 }) {
   const router = useRouter();
   const refreshPage = useEffectEvent(() => router.refresh());
@@ -26,7 +27,10 @@ export default function OrderUpdateRefresh({ userId, menuSiteId, poll = false }:
       if (disposed) return;
       channel = supabase.channel(`artimenu-orders:${userId}`, { config: { private: true } })
         .on("broadcast", { event: "orders-changed" }, ({ payload }) => {
-          if (typeof payload?.menuSiteId === "string" && (!menuSiteId || menuSiteId === payload.menuSiteId)) refresh();
+          if (typeof payload?.menuSiteId !== "string" || (menuSiteId && menuSiteId !== payload.menuSiteId)) return;
+          const statusUpdate = readOrderStatusUpdate(payload);
+          if (statusUpdate) publishOrderStatusUpdate(statusUpdate);
+          if (kitchen || payload.itemProgress !== true) refresh();
         })
         .subscribe(status => {
           if (status === "SUBSCRIBED") refresh();
@@ -34,7 +38,7 @@ export default function OrderUpdateRefresh({ userId, menuSiteId, poll = false }:
     }).catch(() => {
       // Existing polling and visibility refresh cover a missed subscription.
     });
-    const timer = poll ? window.setInterval(refresh, 15_000) : undefined;
+    const timer = kitchen ? window.setInterval(refresh, 15_000) : undefined;
     document.addEventListener("visibilitychange", refresh);
 
     return () => {
@@ -44,6 +48,6 @@ export default function OrderUpdateRefresh({ userId, menuSiteId, poll = false }:
       document.removeEventListener("visibilitychange", refresh);
       if (channel) void supabase.removeChannel(channel);
     };
-  }, [userId, menuSiteId, poll]);
+  }, [userId, menuSiteId, kitchen]);
   return null;
 }

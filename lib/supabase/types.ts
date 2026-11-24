@@ -3835,6 +3835,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      manage_kitchen_orders: {
+        Args: { p_action: string; p_actor_user_id: string; p_menu_site_id: string; p_order_ids: string[] }
+        Returns: undefined
+      }
       register_table_terminal_visit: {
         Args: {
           p_menu_site_id: string

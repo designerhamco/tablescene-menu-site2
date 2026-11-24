@@ -15,7 +15,7 @@ import {
   type OrderStatus,
 } from "@/lib/order-management";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
-import { KITCHEN_ORDER_STATUSES, type KitchenOrder } from "@/lib/kitchen-order";
+import { KITCHEN_ORDER_STATUSES, KITCHEN_SELECTION_LIMIT, type KitchenOrder } from "@/lib/kitchen-order";
 import { hasMenuSitePermission } from "@/lib/menu-site-permissions";
 import {
   requireMenuSitePermission,
@@ -393,7 +393,10 @@ export async function listKitchenDashboard(menuSiteId: string) {
     return [{
       id: order.id,
       orderNumber: order.orderNumber,
+      tableId: order.tableId,
       tableLabel: order.tableLabel,
+      totalAmount: order.totalAmount,
+      paymentStatus: order.paymentStatus,
       status,
       createdAt: order.createdAt,
       requestText: order.requestText,
@@ -402,39 +405,45 @@ export async function listKitchenDashboard(menuSiteId: string) {
         name: item.name,
         quantity: item.quantity,
         done: item.cookingDone === true,
+        lineTotal: item.lineTotal,
         options: item.options.map(({ groupName, valueName }) => ({ groupName, valueName })),
       })),
     }];
   });
-  return { orders, canManage: data.permissions.canManage };
+  return { orders, menuSiteName: data.menuSite.name, canManage: data.permissions.canManage };
 }
 
 export async function updateKitchenOrder(input: {
   menuSiteId: unknown;
-  orderId: unknown;
+  orderIds: unknown;
   action: unknown;
   itemId?: unknown;
   checked?: unknown;
 }) {
   const menuSiteId = normalizedId(input.menuSiteId);
-  const orderId = normalizedId(input.orderId);
   const { action } = input;
-  if ((action !== "start" && action !== "check" && action !== "finish")
-    || (action === "check" && typeof input.checked !== "boolean")) {
+  if (!Array.isArray(input.orderIds) || input.orderIds.length < 1 || input.orderIds.length > KITCHEN_SELECTION_LIMIT
+    || (action !== "start" && action !== "check" && action !== "finish" && action !== "return")
+    || (action === "check" && (input.orderIds.length !== 1 || typeof input.checked !== "boolean"))) {
     throw new OrderManagementError("INVALID_INPUT", "올바른 조리 작업을 선택해 주세요.", 400);
   }
+  const orderIds = [...new Set(input.orderIds.map(normalizedId))];
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_status_management");
   await assertDashboardEnabled(menuSiteId);
-  const { error } = await supabase.rpc("manage_kitchen_order", {
-    p_menu_site_id: menuSiteId,
-    p_order_id: orderId,
-    p_actor_user_id: context.actorUserId,
-    p_action: action,
-    ...(action === "check" ? { p_order_item_id: normalizedId(input.itemId), p_checked: input.checked as boolean } : {}),
-  });
+  const args = { p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId, p_action: action };
+  const { error } = orderIds.length === 1
+    ? await supabase.rpc("manage_kitchen_order", {
+      ...args,
+      p_order_id: orderIds[0],
+      ...(action === "check" ? { p_order_item_id: normalizedId(input.itemId), p_checked: input.checked as boolean } : {}),
+    })
+    : await supabase.rpc("manage_kitchen_orders", { ...args, p_order_ids: orderIds });
   if (!error) return;
   if (error.message === "KITCHEN_ITEMS_INCOMPLETE") {
     throw new OrderManagementError("ORDER_CONFLICT", "모든 메뉴를 체크한 뒤 조리완료 처리할 수 있습니다.", 409);
+  }
+  if (error.message === "KITCHEN_ITEMS_ALREADY_CHECKED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "메뉴에 조리 완료 표시가 있으면 조리전으로 되돌릴 수 없습니다.", 409);
   }
   if (error.message === "KITCHEN_STATUS_CHANGED") {
     throw new OrderManagementError("ORDER_CONFLICT", "주문 상태가 변경됐습니다. 현재 상태를 확인해 주세요.", 409);
