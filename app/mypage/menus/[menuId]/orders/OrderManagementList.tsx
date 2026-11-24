@@ -15,13 +15,17 @@ import OrderStage from "@/components/mypage/OrderStage";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { KITCHEN_STAGE_LABELS, getKitchenOptionLabels } from "@/lib/kitchen-order";
 import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } from "@/lib/korean-date-time";
+import { isCurrentOrder } from "@/lib/order-history-query";
 import { getOrderListGroups, getOrderListPaymentFilter, type OrderListSearchField, type OrderListStatus } from "@/lib/order-management-list";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperation } from "./OrderPointOperationDialog";
 
+import type { OrderSettlementIntent } from "@/lib/order-settlement";
+import { SettlementButtons } from "./OrderSettlementDialog";
+import type { OrderMoveSource } from "./OrderMoveDialog";
+
 const searchLabels: Record<OrderListSearchField, string> = { number: "주문번호", menu: "메뉴명", point: "테이블·키오스크" };
 const statusLabels: Record<OrderListStatus, string> = { all: "모든 상태", ...KITCHEN_STAGE_LABELS, served: "픽업·서빙 완료" };
-import type { OrderMoveSource } from "./OrderMoveDialog";
 
 type Order = OrderDashboardOrder;
 
@@ -62,7 +66,7 @@ function ColumnFilter({ label, options, selected, change }: {
   );
 }
 
-export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder, moveSources, openMoveOrder }: {
+export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder, moveSources, openMoveOrder, settlementNumbers, settlementIntent, openSettlement }: {
   orders: Order[];
   roomNames: ReadonlyMap<string, string>;
   menuSiteId: string;
@@ -75,6 +79,9 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   openDetail: (order: Order, trigger: HTMLButtonElement) => void;
   manualPoints?: ReadonlyMap<string, { id: string; label: string }>;
   openManualOrder: (point: { id: string; label: string }, trigger: HTMLButtonElement) => void;
+  settlementNumbers: ReadonlyMap<string, number>;
+  settlementIntent: (ids: ReadonlySet<string>) => OrderSettlementIntent | undefined;
+  openSettlement: (intent: OrderSettlementIntent, trigger: HTMLButtonElement) => void;
   moveSources: ReadonlyMap<string, OrderMoveSource>;
   openMoveOrder: (source: OrderMoveSource, trigger: HTMLButtonElement) => void;
   openOperation: (kind: PointOrderOperation["kind"], order: Order, trigger: HTMLButtonElement) => void;
@@ -88,11 +95,17 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   const [selection, setSelection] = useState<ReadonlySet<string>>(() => new Set());
   const groups = getOrderListGroups(orders, { query, searchField, status, oldestFirst, menus, payments });
   const visibleOrders = groups.flatMap(group => group.orders.map(row => row.order));
-  const selectedOrders = visibleOrders.filter(order => selection.has(order.id));
-  const [pointId, otherPoint] = new Set(selectedOrders.map(order => order.tableId));
-  const manualTarget = pointId && !otherPoint ? manualPoints?.get(pointId) : undefined;
+  const selectedVisible = visibleOrders.filter(order => selection.has(order.id));
+  const selectedVisibleIds = new Set(selectedVisible.map(order => order.id));
+  const selectedGroups = new Set(selectedVisible.flatMap(order =>
+    order.settlementGroupId && isCurrentOrder(order) ? [order.settlementGroupId] : []));
+  const selectedOrders = orders.filter(order => selectedVisibleIds.has(order.id)
+    || Boolean(order.settlementGroupId && selectedGroups.has(order.settlementGroupId) && isCurrentOrder(order)));
+  const selectedTableIds = new Set(selectedOrders.map(order => order.tableId));
+  const [pointId, otherPoint] = selectedTableIds;
+  const manualTarget = pointId && !otherPoint && !selectedOrders.some(order => order.settlementGroupId) ? manualPoints?.get(pointId) : undefined;
   const moveTarget = pointId && !otherPoint ? moveSources.get(pointId) : undefined;
-  const all = visibleOrders.length > 0 && visibleOrders.length === selectedOrders.length;
+  const all = visibleOrders.length > 0 && visibleOrders.length === selectedVisible.length;
   const cancel = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const print = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
   const menuOptions = [...new Set(orders.flatMap(order => order.items.map(item => item.name)))]
@@ -135,7 +148,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
         <TableHeader>
           <TableRow>
             <TableHead align="center">
-              <Checkbox shape="circle" aria-label="표시된 주문 전체 선택" checked={all || (selectedOrders.length ? "indeterminate" : false)}
+              <Checkbox shape="circle" aria-label="표시된 주문 전체 선택" checked={all || (selectedVisible.length ? "indeterminate" : false)}
                 disabled={!visibleOrders.length || pending} onCheckedChange={() => setSelection(new Set(all ? [] : visibleOrders.map(order => order.id)))} />
             </TableHead>
             <TableHead>룸</TableHead>
@@ -181,11 +194,13 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
         {groups.map(group => {
           const first = group.orders[0].order;
           const pointLabel = first.tableLabel;
-          const selectionLabel = group.completed ? `완료 주문 #${first.orderNumber} 선택` : `${pointLabel} 주문 선택`;
+          const groupNumber = group.settlementGroupId ? settlementNumbers.get(group.settlementGroupId) : undefined;
+          const selectionLabel = groupNumber ? `결합 ${groupNumber} 주문 선택`
+            : group.completed ? `완료 주문 #${first.orderNumber} 선택` : `${pointLabel} 주문 선택`;
           const groupCount = group.orders.filter(({ order }) => selection.has(order.id)).length;
           const groupChecked = groupCount === group.orders.length;
           return (
-            <TableBody key={group.key} data-hall-order-group>
+            <TableBody key={group.key} data-hall-order-group data-order-settlement={groupNumber ?? undefined}>
               {group.orders.map(({ order, items }, orderIndex) => {
                 const clock = formatKoreanClockTime(order.createdAt);
                 const elapsed = order.status === "served" ? null : formatElapsedMinutes(order.createdAt, now);
@@ -211,8 +226,15 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
                                   return next;
                                 })} />
                             </TableCell>
-                            <TableCell rowSpan={group.rowCount}>{roomNames.get(group.pointId) ?? "–"}</TableCell>
-                            <TableCell rowSpan={group.rowCount} primary>{pointLabel}</TableCell>
+                          </>}
+                          {index === 0 && (group.settlementGroupId || orderIndex === 0) && <>
+                            <TableCell rowSpan={group.settlementGroupId ? span : group.rowCount}>
+                              {roomNames.get(order.tableId) ?? "–"}
+                            </TableCell>
+                            <TableCell rowSpan={group.settlementGroupId ? span : group.rowCount} primary>
+                              <span>{order.tableLabel}</span>
+                              {groupNumber && <span className="site-action-row type-caption"><Link2 size={16} aria-hidden="true" /> 결합 {groupNumber}</span>}
+                            </TableCell>
                           </>}
                           {index === 0 && <>
                             <TableCell rowSpan={span} primary><div className="site-stack-detail">
@@ -288,8 +310,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
           </div>
           <div className="site-action-row" role="group" aria-label="단체손님 주문 처리">
             <span className="type-label">단체손님용</span>
-            <Button variant="outline" size="compact" disabled title="주문 결합 준비 중">주문결합 <Link2 aria-hidden="true" /></Button>
-            <Button variant="secondary" size="compact" disabled title="결합 해제 준비 중">결합해제</Button>
+            <SettlementButtons disabled={pending} intent={settlementIntent(selectedTableIds)} open={openSettlement} />
           </div>
         </div>
       </div>

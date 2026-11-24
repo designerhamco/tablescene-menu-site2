@@ -38,7 +38,7 @@ export function applyOrderStatusUpdate(order: OrderDashboardOrder, update: Order
     updatedAt: update.updatedAt,
     nextStatus: update.status === "cooking" ? null : getNextOrderStatus(update.status),
     canCancelUnpaid: canCancelUnpaidOrder(update.status, order.paymentStatus),
-    canMarkManualPayment: canMarkManualPayment(update.status, order.paymentStatus),
+    canMarkManualPayment: !order.settlementGroupId && canMarkManualPayment(update.status, order.paymentStatus),
   };
 }
 

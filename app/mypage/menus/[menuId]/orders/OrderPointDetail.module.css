@@ -54,3 +54,11 @@
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+
+.settlementSection {
+  padding-block: var(--site-space-block);
+}
+
+.settlementSection + .settlementSection {
+  border-block-start: 1px solid var(--ui-border);
+}

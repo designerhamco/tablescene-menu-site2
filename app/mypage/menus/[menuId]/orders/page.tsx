@@ -12,6 +12,7 @@ import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import {
   listOrderDashboard,
+  listOpenOrderSettlements,
   OrderManagementError,
 } from "@/lib/server/order-management-service";
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
@@ -67,7 +68,10 @@ export default async function OrderDashboardPage({
     redirect("/mypage/operations");
   }
 
-  const floorPlan = await loadOperationsFloorPlan(menuId, "orders");
+  const [floorPlan, settlementGroups] = await Promise.all([
+    loadOperationsFloorPlan(menuId, "orders"),
+    data.view?.kind === "history" ? [] : listOpenOrderSettlements(menuId),
+  ]);
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="orders">
@@ -75,6 +79,7 @@ export default async function OrderDashboardPage({
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} orderHistory={data.view?.kind === "history"} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
         <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} view={data.view} permissions={data.permissions}
+          settlementGroups={settlementGroups} settlementAction={mutateOrderAction}
           moveAction={data.permissions.canManage ? mutateOrderAction : undefined}
           manualOrderActions={data.permissions.canManage && data.view?.kind !== "history" ? {
             load: loadManualOrderCatalog.bind(null, menuId),

@@ -8,7 +8,7 @@ import { Dialog, DialogContent } from "@/app/components/ui/dialog";
 import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan-canvas";
 import { FloorPlanViewport } from "@/app/components/ui/floor-plan-viewport";
 import { RoomLabel } from "@/app/components/ui/room-label";
-import { FilterFill, Grid2X2, List, PrinterFill } from "@/app/components/ui/site-icon";
+import { FilterFill, Grid2X2, Link2, List, PrinterFill } from "@/app/components/ui/site-icon";
 import { Switch } from "@/app/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -21,6 +21,8 @@ import type { ManualOrderActions } from "@/lib/manual-order";
 import ManualOrderDialog from "./ManualOrderDialog";
 import OrderManagementList from "./OrderManagementList";
 import OrderMoveDialog, { type OrderMoveSource } from "./OrderMoveDialog";
+import type { OrderSettlementGroup, OrderSettlementIntent } from "@/lib/order-settlement";
+import OrderSettlementDialog, { SettlementButtons } from "./OrderSettlementDialog";
 import OrderPointDetail from "./OrderPointDetail";
 import type { OrderManagementActionState } from "./action-state";
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderMutation, type PointOrderOperation } from "./OrderPointOperationDialog";
@@ -29,7 +31,7 @@ type Point = { id: string; label: string };
 type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
-export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions, moveAction }: {
+export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions, moveAction, settlementGroups, settlementAction }: {
   menuSiteId: string;
   floorPlan: OperationsFloorPlan;
   records: OperationHistoryRecord[];
@@ -38,6 +40,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   receptionControl?: ReactNode;
   refreshControl: ReactNode;
   mutateAction: PointOrderMutation;
+  settlementGroups: OrderSettlementGroup[];
+  settlementAction?: PointOrderMutation;
   moveAction?: PointOrderMutation;
   manualOrderActions?: ManualOrderActions;
   onPrint: (orders: Order[]) => void;
@@ -50,8 +54,9 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const [selection, setSelection] = useState<TableSelection>();
   const [fields, setFields] = useState<ReadonlySet<OrderCardField>>(() => new Set(DEFAULT_ORDER_CARD_FIELDS));
   const [now, setNow] = useState<number | null>(null);
-  const [detail, setDetail] = useState<Point & { orderId?: string }>();
+  const [detail, setDetail] = useState<Point & { orderId?: string; groupId?: string }>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
+  const [settlement, setSettlement] = useState<OrderSettlementIntent>();
   const [moveOrder, setMoveOrder] = useState<OrderMoveSource>();
   const [manualOrder, setManualOrder] = useState<Point>();
   const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
@@ -80,9 +85,15 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     const name = roomsById.get(id);
     return name ? [[pointId, name] as const] : [];
   }));
-  const listOrders = activeListRoom === "all" ? orders : orders.filter(order => roomByPoint.get(order.tableId) === activeListRoom);
-  const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const pointsById = new Map(floorPlan.points.map(point => [point.id, point]));
+  const settlementByTable = new Map(settlementGroups.flatMap(group => group.tableIds.map(id => [id, group] as const)));
+  const tableLabel = (id: string) => pointsById.get(id)?.label ?? orders.find(order => order.tableId === id)?.tableLabel ?? "테이블";
+  const settlementNumbers = new Map(settlementGroups.map((group, index) => [group.id, index + 1]));
+  const groupsInRoom = new Set(settlementGroups.filter(group => group.tableIds.some(id => roomByPoint.get(id) === activeListRoom)).map(group => group.id));
+  const listOrders = activeListRoom === "all" ? orders : orders.filter(order =>
+    roomByPoint.get(order.tableId) === activeListRoom || Boolean(order.settlementGroupId && groupsInRoom.has(order.settlementGroupId)));
+
+  const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const activePoints = permissions.canManage
     ? new Map(floorPlan.points.filter(point => point.status === "active").map(point => {
         const roomName = listRoomNames.get(point.id);
@@ -98,43 +109,66 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const activeOrders = orders.filter(isCurrentOrder);
   const groups = groupOperationHistory(records.filter(record => record.attention));
   const ordersById = new Map(orders.map(order => [order.id, order]));
+  const combineSources = new Map<string, Order[]>();
   const moveSources = new Map<string, OrderMoveSource>();
   const moveDestinations: Point[] = [];
-  for (const [id, point] of (moveAction ? activePoints : undefined) ?? []) {
-    if (pointsById.get(id)?.kind === "kiosk") continue;
+  for (const [id, point] of activePoints ?? []) {
+    if (pointsById.get(id)?.kind === "kiosk" || settlementByTable.has(id)) continue;
     const pointRecords = groups.get(id) ?? [];
     const pointOrders = pointRecords.flatMap(record => ordersById.get(record.id) ?? []);
     if (!pointOrders.length) {
-      moveDestinations.push(point);
+      if (moveAction) moveDestinations.push(point);
     } else if (pointOrders.every(order => order.paymentStatus === "unpaid")) {
-      const representative = representativeOperationOrder(pointRecords);
-      moveSources.set(id, { ...point, orderIds: pointOrders.map(order => order.id),
-        status: representative?.orderStatus ?? pointOrders[0].status });
+      if (settlementAction) combineSources.set(id, pointOrders);
+      if (moveAction) {
+        const representative = representativeOperationOrder(pointRecords);
+        moveSources.set(id, { ...point, orderIds: pointOrders.map(order => order.id),
+          status: representative?.orderStatus ?? pointOrders[0].status });
+      }
     }
   }
   const unplaced = [...groups].filter(([id]) => !placed.has(id));
   const availableIds = roomPoints.filter(({ point }) => point.status === "active").map(({ point }) => point.id);
-  const selectedPointIds = new Set(availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id)));
+  const selectedHere = availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id));
+  const selectedPointIds = new Set(selectedHere.flatMap(id => settlementByTable.get(id)?.tableIds ?? [id]));
   const manualTarget = selection?.kind === "single" && selectedPointIds.has(selection.id)
     ? manualPoints?.get(selection.id)
     : undefined;
   const moveTarget = selection?.kind === "single" && selectedPointIds.has(selection.id)
     ? moveSources.get(selection.id)
     : undefined;
-  const allChecked = selection?.kind === "checked" && availableIds.length > 0 && availableIds.length === selectedPointIds.size;
+  const detailGroup = detail?.groupId ? settlementGroups.find(group => group.id === detail.groupId) : undefined;
+  const allChecked = selection?.kind === "checked" && availableIds.length > 0 && selectedHere.length === availableIds.length;
   const selectedOrders = activeOrders.filter(order => selectedPointIds.has(order.tableId));
   const cancelOrder = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const canPrintSelection = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
 
+  function settlementIntent(ids: ReadonlySet<string>): OrderSettlementIntent | undefined {
+    if (!permissions.canManage || !settlementAction || !ids.size) return;
+    const tableIds = [...ids];
+    const group = settlementByTable.get(tableIds[0]);
+    if (group && tableIds.every(id => group.tableIds.includes(id))) {
+      return { action: "release", groupId: group.id, tableIds: group.tableIds,
+        tableLabels: group.tableIds.map(tableLabel),
+        orderIds: [], total: 0 };
+    }
+    if (tableIds.length < 2 || !tableIds.every(id => combineSources.has(id))) return;
+    const members = tableIds.flatMap(id => combineSources.get(id) ?? []);
+    return { action: "combine", tableIds, tableLabels: tableIds.map(id => activePoints?.get(id)?.label ?? "테이블"),
+      orderIds: members.map(order => order.id), total: members.reduce((sum, order) => sum + order.totalAmount, 0) };
+  }
+
   function selectSingle(id: string) {
-    setSelection(previous => previous?.kind === "single" && previous.id === id ? undefined : { kind: "single", id });
+    setSelection(previous => previous?.kind === "single" && selectedPointIds.has(id) ? undefined : { kind: "single", id });
   }
 
   function checkPoint(id: string, checked: boolean) {
     setSelection(previous => {
       const ids = new Set(previous?.kind === "checked" ? previous.ids : []);
-      if (checked) ids.add(id);
-      else ids.delete(id);
+      for (const member of settlementByTable.get(id)?.tableIds ?? [id]) {
+        if (checked) ids.add(member);
+        else ids.delete(member);
+      }
       return ids.size > 0 ? { kind: "checked", ids } : undefined;
     });
   }
@@ -148,7 +182,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
 
   function openDetail(point: Point, button: HTMLButtonElement, orderId?: string) {
     trigger.current = button;
-    setDetail({ ...point, orderId });
+    const groupId = orderId ? ordersById.get(orderId)?.settlementGroupId : settlementByTable.get(point.id)?.id;
+    setDetail({ ...point, orderId, groupId });
   }
 
   function openOperation(kind: PointOrderOperation["kind"], order: Order, point: Point, button: HTMLButtonElement) {
@@ -159,6 +194,11 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   function openManualOrder(point: Point, button: HTMLButtonElement) {
     trigger.current = button;
     setManualOrder(point);
+  }
+
+  function openSettlement(intent: OrderSettlementIntent, button: HTMLButtonElement) {
+    trigger.current = button;
+    setSettlement(intent);
   }
 
   function openMoveOrder(source: OrderMoveSource, button: HTMLButtonElement) {
@@ -220,6 +260,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
             onPrint={onPrint} manualPoints={manualPoints} openManualOrder={openManualOrder}
             moveSources={moveSources} openMoveOrder={openMoveOrder}
+            settlementNumbers={settlementNumbers} settlementIntent={settlementIntent} openSettlement={openSettlement}
             openDetail={(order, button) => openDetail({ id: order.tableId, label: order.tableLabel }, button, order.id)}
             openOperation={(kind, order, button) => openOperation(kind, order, { id: order.tableId, label: order.tableLabel }, button)} />
         ) : !floorPlan.available || !room ? (
@@ -243,11 +284,16 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                     const order = ordersById.get(record.id);
                     return order ? [order] : [];
                   });
-                  const printable = current.filter(canPrintPointOrder);
+                  const group = settlementByTable.get(point.id);
+                  const groupNumber = group && settlementNumbers.get(group.id);
+                  const combined = group ? activeOrders.filter(order => order.settlementGroupId === group.id) : [];
+                  const printable = (group ? combined : current).filter(canPrintPointOrder);
+                  const canPayCombined = group && settlementAction && permissions.canMarkManualPayment && combined.length > 0
+                    && combined.every(order => order.status === "served" && order.paymentStatus === "unpaid");
                   const due = current.filter(order => order.paymentStatus === "unpaid");
                   const payable = due.length === 1 && current.every(order => order.status === "served")
                     && isPointOrderOperationAllowed(due[0], permissions, "payment") ? due[0] : undefined;
-                  const showPayment = current.length > 0 && current.every(order => order.status === "served") && due.length > 0;
+                  const showPayment = !group && current.length > 0 && current.every(order => order.status === "served") && due.length > 0;
                   const showRefund = current.length > 0 && current.every(order => order.status === "served" && ["paid", "manual_paid"].includes(order.paymentStatus));
                   const disabled = point.status !== "active";
                   const selected = selection?.kind === "single" && selectedPointIds.has(point.id);
@@ -255,12 +301,14 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                   const label = disabled ? `${point.label} · 비활성` : point.label;
                   return (
                     <FloorPlanObject key={point.id} rect={placement} label={point.label} disabled={disabled}
-                      selected={selected} data-checked={checked || undefined} data-order-table-card data-point-kind={point.kind ?? "table"}>
+                      selected={selected} data-checked={checked || undefined} data-order-settlement={groupNumber || undefined}
+                      data-order-table-card data-point-kind={point.kind ?? "table"}>
                       <button type="button" className="site-order-table-card-select" disabled={disabled}
                         aria-label={`${point.label} 개별 선택`} aria-pressed={selected} onClick={() => selectSingle(point.id)} />
                       <div className="site-order-table-card-choice">
                         <Checkbox shape="circle" aria-label={`${point.label} 선택`} checked={checked} disabled={disabled}
                           onCheckedChange={value => checkPoint(point.id, value === true)} />
+                        {groupNumber && <span className="site-action-row type-caption"><Link2 size={16} aria-hidden="true" /> 결합 {groupNumber}</span>}
                       </div>
                       {representative ? (
                         <>
@@ -272,6 +320,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                               <Button variant="ghost" size="icon" iconSize="compact" aria-label={`${point.label} 청구서 인쇄`}
                                 title="청구서 인쇄" onClick={() => onPrint(printable)}><PrinterFill aria-hidden="true" /></Button>
                             )}
+                            {canPayCombined && (
+                              <Button variant="outline" size="compact" disabled={pending}
+                                onClick={event => openSettlement({ action: "pay", groupId: group.id, tableIds: group.tableIds,
+                                  tableLabels: group.tableIds.map(tableLabel), orderIds: combined.map(order => order.id),
+                                  total: combined.reduce((sum, order) => sum + order.totalAmount, 0) }, event.currentTarget)}>결제하기</Button>
+                            )}
                             {showPayment && (
                               <Button variant="outline" size="compact" disabled={!payable}
                                 title={!payable ? "상세 화면에서 결제할 주문을 선택해 주세요." : undefined}
@@ -281,7 +335,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                             <Button variant="outline" size="compact" onClick={event => openDetail(point, event.currentTarget)}>열기</Button>
                           </div>
                         </>
-                      ) : <strong className="type-label site-order-table-card-empty">{label}</strong>}
+                      ) : <>
+                        <strong className="type-label site-order-table-card-empty">{label}</strong>
+                        {group && <div className="site-action-row site-order-table-card-actions">
+                          <Button variant="outline" size="compact" onClick={event => openDetail(point, event.currentTarget)}>열기</Button>
+                        </div>}
+                      </>}
                     </FloorPlanObject>
                   );
                 })}
@@ -309,6 +368,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             <Button variant="outline" size="compact" disabled={!canPrintSelection}
               title={!canPrintSelection ? "조리가 시작된 주문만 인쇄할 수 있습니다." : undefined}
               onClick={() => onPrint(selectedOrders)}><PrinterFill aria-hidden="true" /> 청구서 인쇄</Button>
+            <SettlementButtons disabled={pending} intent={settlementIntent(selectedPointIds)} open={openSettlement} />
           </div>
         </div>
       )}
@@ -348,10 +408,22 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       )}
       <Dialog open={detail !== undefined} onOpenChange={open => { if (!open) setDetail(undefined); }}>
         <DialogContent scrollable data-order-point-detail className="print:hidden" aria-describedby={undefined} onCloseAutoFocus={restoreFocus}>
-          {detail && <OrderPointDetail key={detail.id} pointLabel={detail.label} menuSiteId={menuSiteId}
-            orders={detail.orderId ? orders.filter(order => order.id === detail.orderId) : activeOrders.filter(order => order.tableId === detail.id)} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
+          {detail && <OrderPointDetail key={detail.groupId ?? detail.id} pointLabel={detail.label} menuSiteId={menuSiteId}
+            group={detailGroup}
+            groupTableLabels={detailGroup?.tableIds.map(tableLabel)}
+            settlementAction={settlementAction}
+            onGroupPaid={result => { setDetail(undefined); setSelection(undefined); setFeedback(result); }}
+            openOtherOrders={detailGroup && activeOrders.some(order => order.tableId === detail.id && !order.settlementGroupId)
+              ? () => setDetail({ id: detail.id, label: detail.label }) : undefined}
+            orders={detail.groupId ? activeOrders.filter(order => order.settlementGroupId === detail.groupId)
+              : detail.orderId ? orders.filter(order => order.id === detail.orderId)
+                : activeOrders.filter(order => order.tableId === detail.id && !order.settlementGroupId)}
+            permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
         </DialogContent>
       </Dialog>
+      {settlement && settlementAction && <OrderSettlementDialog intent={settlement} menuSiteId={menuSiteId}
+        mutateAction={settlementAction} close={() => setSettlement(undefined)} onCloseAutoFocus={restoreFocus}
+        onSuccess={result => { setSettlement(undefined); setSelection(undefined); setFeedback(result); }} />}
       {moveOrder && moveAction && <OrderMoveDialog source={moveOrder} destinations={moveDestinations} menuSiteId={menuSiteId}
         mutateAction={moveAction} close={() => setMoveOrder(undefined)} onCloseAutoFocus={restoreFocus}
         onSuccess={result => {

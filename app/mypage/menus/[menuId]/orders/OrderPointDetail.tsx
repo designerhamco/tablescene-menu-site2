@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
+import { Link2, MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
 import OrderStage from "@/components/mypage/OrderStage";
 import { formatAmount, PAYMENT_LABELS } from "@/components/mypage/OrderReceipt";
@@ -13,6 +13,8 @@ import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } fro
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import { initialOrderManagementActionState, type OrderManagementActionState } from "./action-state";
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperation, type PointOrderMutation } from "./OrderPointOperationDialog";
+import type { OrderSettlementGroup, OrderSettlementIntent } from "@/lib/order-settlement";
+import OrderSettlementDialog from "./OrderSettlementDialog";
 import styles from "./OrderPointDetail.module.css";
 
 type Order = OrderDashboardOrder;
@@ -59,7 +61,12 @@ function PointOrderItems({ order }: { order: Order }) {
   );
 }
 
-export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permissions, onPrint, mutateAction }: {
+export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permissions, onPrint, mutateAction, group, groupTableLabels, settlementAction, onGroupPaid, openOtherOrders }: {
+  group?: OrderSettlementGroup;
+  groupTableLabels?: string[];
+  settlementAction?: PointOrderMutation;
+  onGroupPaid?: (result: OrderManagementActionState) => void;
+  openOtherOrders?: () => void;
   pointLabel: string;
   menuSiteId: string;
   orders: Order[];
@@ -67,6 +74,7 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
   onPrint: (orders: Order[]) => void;
   mutateAction: PointOrderMutation;
 }) {
+  const [groupPayment, setGroupPayment] = useState<OrderSettlementIntent>();
   const [selectedIds, setSelectedIds] = useState<ReadonlySet<string> | null>(null);
   const [operation, setOperation] = useState<PointOrderOperation | null>(null);
   const [completedOperation, setCompletedOperation] = useState<OrderManagementActionState>();
@@ -99,7 +107,12 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
   const allSelected = ordered.length > 0 && selected.length === ordered.length;
   const selectedOrder = selected.length === 1 ? selected[0] : undefined;
   const activeOrder = operation ? ordered.find(order => order.id === operation.orderId) : undefined;
-  const total = selected.reduce((amount, order) => amount + order.totalAmount, 0);
+  const total = (group ? ordered : selected).reduce((amount, order) => amount + order.totalAmount, 0);
+  const groupedOrders = group?.tableIds.map((id, index) => ({
+    id, label: groupTableLabels?.[index] ?? "테이블", orders: ordered.filter(order => order.tableId === id),
+  })) ?? [{ id: "ungrouped", label: pointLabel, orders: ordered }];
+  const canPayGroup = Boolean(group && settlementAction && permissions.canMarkManualPayment
+    && ordered.length && ordered.every(order => order.status === "served" && order.paymentStatus === "unpaid"));
 
   const canCancel = isPointOrderOperationAllowed(selectedOrder, permissions, "cancel");
   const canPay = isPointOrderOperationAllowed(selectedOrder, permissions, "payment");
@@ -119,13 +132,14 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
         <header className="site-stack-copy">
           <DialogHeader reserveCloseButton className="text-left">
             <div className="site-stack-detail">
-              {lead && <p className="type-caption site-copy-muted">주문번호 #{lead.orderNumber}</p>}
+              {lead && !group && <p className="type-caption site-copy-muted">주문번호 #{lead.orderNumber}</p>}
               <div className="site-action-row">
-                <DialogTitle ref={header} tabIndex={-1}>{pointLabel} 주문 내역</DialogTitle>
-                {lead && <span className="type-label"><OrderStage status={lead.status} /></span>}
+                <DialogTitle ref={header} tabIndex={-1}>{group ? "결합 주문 내역" : `${pointLabel} 주문 내역`}</DialogTitle>
+                {lead && !group && <span className="type-label"><OrderStage status={lead.status} /></span>}
               </div>
             </div>
           </DialogHeader>
+          {openOtherOrders && <div className="site-action-row"><Button variant="link" size="compact" onClick={openOtherOrders}>이 테이블의 추가 주문 보기</Button></div>}
           {ordered.length > 0 && (
             <div className="site-action-row" data-distribution="between">
               <p className="type-label">주문 총 {ordered.length}건</p>
@@ -145,54 +159,74 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
         ) : (
           <>
             <div className={styles.orders} role="region" aria-label="주문 목록" tabIndex={0}>
-              {ordered.map(order => (
-                <article key={order.id} className={styles.order} aria-label={`주문 #${order.orderNumber}`}>
-                  <div className="site-action-row" data-distribution="between">
-                    <div className="site-action-row">
-                      <Checkbox shape="circle" aria-label={`주문 #${order.orderNumber} 선택`} disabled={pending}
-                        checked={selectedIds === null || selectedIds.has(order.id)}
-                        onCheckedChange={checked => selectOrder(order.id, checked === true)} />
-                      <h3 className="type-label">#{order.orderNumber}</h3>
-                      <span className="type-label"><OrderStage status={order.status} /></span>
-                      <span className="type-caption site-copy-muted">{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>
-                    </div>
-                    <div className="site-action-row" data-wrap="nowrap">
-                      <Button type="button" variant="ghost" size="icon" iconSize="compact"
-                        disabled={!canPrintPointOrder(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
-                        title={canPrintPointOrder(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
-                      {(order.status === "ready" || order.status === "served") && (
-                        <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
+              {groupedOrders.map(section => (
+                <section key={section.id} className={group ? styles.settlementSection : undefined}>
+                  {group && <h3 className="site-action-row type-label"><Link2 size={16} aria-hidden="true" /> {section.label} · 주문 {section.orders.length}건</h3>}
+                  {section.orders.map(order => (
+                    <article key={order.id} className={styles.order} aria-label={`주문 #${order.orderNumber}`}>
+                      <div className="site-action-row" data-distribution="between">
+                        <div className="site-action-row">
+                          <Checkbox shape="circle" aria-label={`주문 #${order.orderNumber} 선택`} disabled={pending}
+                            checked={selectedIds === null || selectedIds.has(order.id)}
+                            onCheckedChange={checked => selectOrder(order.id, checked === true)} />
+                          <h3 className="type-label">#{order.orderNumber}</h3>
+                          <span className="type-label"><OrderStage status={order.status} /></span>
+                          <span className="type-caption site-copy-muted">{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>
+                        </div>
+                        <div className="site-action-row" data-wrap="nowrap">
+                          <Button type="button" variant="ghost" size="icon" iconSize="compact"
+                            disabled={!canPrintPointOrder(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
+                            title={canPrintPointOrder(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
+                          {(order.status === "ready" || order.status === "served") && (
+                            <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
+                          )}
+                        </div>
+                      </div>
+                      <OrderTimes order={order} now={now} />
+                      <p className="type-caption site-copy-muted">주문내역 ({order.items.length}개)</p>
+                      <PointOrderItems order={order} />
+                      {order.cancellationReason && <p className="type-body-sm break-words">취소 사유 · {order.cancellationReason}</p>}
+                      <div className="site-action-row type-label" data-distribution="between">
+                        <span>합계</span><strong className={styles.amount}>{formatAmount(order.totalAmount)}</strong>
+                      </div>
+                      {permissions.canManage && order.nextStatus === "served" && (
+                        <form action={submit} className="site-action-row" data-distribution="end">
+                          <input type="hidden" name="menuSiteId" value={menuSiteId} />
+                          <input type="hidden" name="orderId" value={order.id} />
+                          <input type="hidden" name="nextStatus" value="served" />
+                          <Button type="submit" name="intent" value="transition" size="compact" disabled={pending}>
+                            픽업·서빙 완료
+                          </Button>
+                        </form>
                       )}
-                    </div>
-                  </div>
-                  <OrderTimes order={order} now={now} />
-                  <p className="type-caption site-copy-muted">주문내역 ({order.items.length}개)</p>
-                  <PointOrderItems order={order} />
-                  {order.cancellationReason && <p className="type-body-sm break-words">취소 사유 · {order.cancellationReason}</p>}
-                  <div className="site-action-row type-label" data-distribution="between">
-                    <span>합계</span><strong className={styles.amount}>{formatAmount(order.totalAmount)}</strong>
-                  </div>
-                  {permissions.canManage && order.nextStatus === "served" && (
-                    <form action={submit} className="site-action-row" data-distribution="end">
-                      <input type="hidden" name="menuSiteId" value={menuSiteId} />
-                      <input type="hidden" name="orderId" value={order.id} />
-                      <input type="hidden" name="nextStatus" value="served" />
-                      <Button type="submit" name="intent" value="transition" size="compact" disabled={pending}>
-                        픽업·서빙 완료
-                      </Button>
-                    </form>
-                  )}
-                </article>
+                    </article>
+                  ))}
+                  {group && section.orders.length > 0 && <div className="site-action-row type-label" data-distribution="between">
+                    <span>테이블 합계</span><strong>{formatAmount(section.orders.reduce((sum, order) => sum + order.totalAmount, 0))}</strong>
+                  </div>}
+                </section>
               ))}
             </div>
             <footer className={styles.footer}>
               <div className="site-action-row type-label" data-distribution="between" aria-live="polite">
-                <span>총 합계 <span className="type-caption site-copy-muted">({selected.length}건 선택)</span></span>
+                <span>{group ? "결합 총 합계" : "총 합계"} <span className="type-caption site-copy-muted">
+                  ({group ? `${ordered.length}건` : `${selected.length}건 선택`})
+                </span></span>
                 <strong className={styles.amount}>{formatAmount(total)}</strong>
               </div>
               {feedback.message && !operation && <p role="status" className="type-body-sm">{feedback.message}</p>}
               <div className="site-action-row" data-distribution="end">
-                {permissions.canMarkManualPayment && ordered.some(order => order.paymentStatus === "unpaid") && (
+                {group && permissions.canMarkManualPayment && (
+                  <Button type="button" variant="secondary" disabled={pending || !canPayGroup}
+                    title={canPayGroup ? undefined : "결합 주문 전체가 픽업·서빙 완료여야 해요."}
+                    onClick={event => {
+                      if (!group || !canPayGroup) return;
+                      operationTrigger.current = event.currentTarget;
+                      setGroupPayment({ action: "pay", groupId: group.id, tableIds: group.tableIds,
+                        tableLabels: groupedOrders.map(section => section.label), orderIds: ordered.map(order => order.id), total });
+                    }}>결합 결제하기</Button>
+                )}
+                {!group && permissions.canMarkManualPayment && ordered.some(order => order.paymentStatus === "unpaid") && (
                   <Button type="button" variant="secondary" disabled={pending || !canPay}
                     title={canPay ? undefined : "픽업·서빙이 끝난 미결제 주문 한 건을 선택해 주세요."}
                     onClick={event => {
@@ -217,6 +251,14 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
           </>
         )}
       </div>
+      {groupPayment && settlementAction && <OrderSettlementDialog intent={groupPayment} menuSiteId={menuSiteId}
+        mutateAction={settlementAction} close={() => setGroupPayment(undefined)}
+        onSuccess={result => { setGroupPayment(undefined); onGroupPaid?.(result); }}
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+          if (operationTrigger.current?.isConnected && !operationTrigger.current.disabled) operationTrigger.current.focus();
+          else header.current?.focus();
+        }} />}
       {operation && (
         <OrderPointOperationDialog key={operation.orderId} operation={operation} order={activeOrder}
           pointLabel={pointLabel} menuSiteId={menuSiteId} permissions={permissions} mutateAction={mutateAction}

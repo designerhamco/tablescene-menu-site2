@@ -38,7 +38,8 @@ export function getOrderListGroups(orders: readonly OrderDashboardOrder[], {
     }
     const items = menus ? order.items.filter(item => menus.has(item.name)) : order.items;
     if (menus && !items.length) continue;
-    const key = isCurrentOrder(order) ? `table:${order.tableId}` : `completed:${order.id}`;
+    const key = !isCurrentOrder(order) ? `completed:${order.id}`
+      : order.settlementGroupId ? `settlement:${order.settlementGroupId}` : `table:${order.tableId}`;
     const group = groups.get(key);
     const row = { order, items };
     if (group) group.push(row);
@@ -47,6 +48,7 @@ export function getOrderListGroups(orders: readonly OrderDashboardOrder[], {
   return [...groups].map(([key, orders]) => ({
     key,
     pointId: orders[0].order.tableId,
+    settlementGroupId: key.startsWith("settlement:") ? orders[0].order.settlementGroupId : undefined,
     completed: !isCurrentOrder(orders[0].order),
     orders,
     rowCount: orders.reduce((total, row) => total + Math.max(1, row.items.length), 0),

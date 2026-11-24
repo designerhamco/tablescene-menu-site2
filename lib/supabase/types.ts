@@ -1017,6 +1017,7 @@ export type Database = {
           status: string
           status_updated_by: string | null
           subtotal_amount: number
+          settlement_group_id: string | null
           service_table_id: string | null
           staff_created_by: string | null
           table_visit_session_id: string | null
@@ -1047,6 +1048,7 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount: number
+          settlement_group_id?: string | null
           service_table_id?: string | null
           staff_created_by?: string | null
           table_visit_session_id?: string | null
@@ -1077,6 +1079,7 @@ export type Database = {
           status?: string
           status_updated_by?: string | null
           subtotal_amount?: number
+          settlement_group_id?: string | null
           service_table_id?: string | null
           staff_created_by?: string | null
           table_visit_session_id?: string | null
@@ -1688,6 +1691,32 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      menu_order_settlement_groups: {
+        Row: {
+          id: string
+          menu_site_id: string
+          table_ids: string[]
+          order_ids: string[]
+          created_by: string | null
+          created_at: string
+          closed_at: string | null
+          closed_action: string | null
+          close_request_id: string | null
+        }
+        Insert: {
+          id: string
+          menu_site_id: string
+          table_ids: string[]
+          order_ids: string[]
+          created_by?: string | null
+          created_at?: string
+          closed_at?: string | null
+          closed_action?: string | null
+          close_request_id?: string | null
+        }
+        Update: Partial<Database["public"]["Tables"]["menu_order_settlement_groups"]["Insert"]>
+        Relationships: []
       }
       menu_order_option_groups: {
         Row: {
@@ -3962,6 +3991,20 @@ export type Database = {
           payment_status: string
           total_amount: number
         }[]
+      }
+      manage_order_settlement_group: {
+        Args: {
+          p_action: string
+          p_actor_user_id: string
+          p_expected_total: number | null
+          p_group_id: string | null
+          p_menu_site_id: string
+          p_order_ids: string[]
+          p_payment_method: string | null
+          p_request_id: string
+          p_table_ids: string[]
+        }
+        Returns: number
       }
       move_table_orders: {
         Args: {

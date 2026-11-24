@@ -195,3 +195,18 @@ test("주방 메뉴 필터는 메뉴판의 등록 순서를 쓰고 연결이 끊
   assert.ok(hall.orders[0].items.every(item => item.menuSource === undefined));
   assert.doesNotMatch(fixtureData.calls.filter(call => call.table === "menu_customer_order_items").at(-1)!.columns!, /menu_item:/);
 });
+
+test("결합 주문은 테이블을 넘어 한 묶음으로 정렬하고 나중에 들어온 주문은 독립적으로 표시한다", async () => {
+  const { orders } = await fixture([row(1), row(2), row(3)]).service.listOrderDashboard(site);
+  const combined = orders.map((order, index) => ({
+    ...order,
+    tableId: index === 2 ? uuid(500) : table,
+    settlementGroupId: index === 1 ? undefined : uuid(501),
+    createdAt: `2026-11-01T00:00:0${index}+00:00`,
+  }));
+  const options = { query: "", searchField: "number" as const, status: "all" as const, menus: null, payments: null };
+  const groupNumbers = (oldestFirst: boolean) => getOrderListGroups(combined, { ...options, oldestFirst })
+    .map(group => group.orders.map(row => row.order.orderNumber));
+  assert.deepEqual(groupNumbers(true), [[1, 3], [2]]);
+  assert.deepEqual(groupNumbers(false), [[3, 1], [2]]);
+});

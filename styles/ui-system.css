@@ -1877,3 +1877,12 @@ body:has([data-site-header]) {
 .site-icon-control[draggable="true"]:active { cursor: grabbing; }
 .site-icon-control[draggable="true"]:disabled { cursor: not-allowed; }
 .site-button-media.site-button-icon:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); }
+
+.site-floor-object[data-order-settlement]:not([data-selected="true"]):not([data-checked="true"]) {
+  outline: 2px dashed var(--ui-warning-text);
+  outline-offset: -2px;
+}
+
+.site-floor-object[data-order-settlement] .site-order-table-card-choice {
+  justify-content: space-between;
+}

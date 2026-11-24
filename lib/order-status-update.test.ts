@@ -34,3 +34,12 @@ test("이전 알림 형식, 메뉴 체크 알림, 잘못된 상태는 주문 행
   assert.equal(readOrderStatusUpdate({ menuSiteId: "menu", itemProgress: true }), null);
   assert.equal(readOrderStatusUpdate({ menuSiteId: "menu", orderUpdate: { status: "wrong" } }), null);
 });
+
+test("결합 주문에 픽업·서빙 완료 이벤트가 와도 개별 결제는 열리지 않는다", () => {
+  const order = { ...cookingOrder, settlementGroupId: "group", canMarkManualPayment: false };
+  const served = applyOrderStatusUpdate(order, {
+    menuSiteId: "menu", orderId: order.id, status: "served", updatedAt: "2026-11-24T00:00:05+00:00",
+  });
+  assert.equal(served.status, "served");
+  assert.equal(served.canMarkManualPayment, false);
+});

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { createPortal } from "react-dom";
+import type { OrderSettlementGroup } from "@/lib/order-settlement";
 import type { ManualOrderActions } from "@/lib/manual-order";
 import OrderTableWorkspace from "./OrderTableWorkspace";
 import { Button } from "@/app/components/ui/button";
@@ -54,9 +55,11 @@ export default function OrderDashboard({
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
-  recordSources, arrivalGroups, historyPath, receptionControl, manualOrderActions, moveAction, mutationAction = mutateOrderAction,
+  recordSources, arrivalGroups, historyPath, receptionControl, manualOrderActions, moveAction, settlementAction, settlementGroups = [], mutationAction = mutateOrderAction,
 }: {
   manualOrderActions?: ManualOrderActions;
+  settlementAction?: typeof mutateOrderAction;
+  settlementGroups?: OrderSettlementGroup[];
   moveAction?: typeof mutateOrderAction;
   mutationAction?: typeof mutateOrderAction;
   receptionControl?: ReactNode;
@@ -331,7 +334,7 @@ export default function OrderDashboard({
         {!view?.error && (tableWorkspace ? (
           <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
             permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
-            transitionAction={action} pending={pending} onPrint={setPrintOrders} manualOrderActions={manualOrderActions} moveAction={moveAction}
+            transitionAction={action} pending={pending} onPrint={setPrintOrders} manualOrderActions={manualOrderActions} moveAction={moveAction} settlementAction={settlementAction} settlementGroups={settlementGroups}
             refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
               aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
         ) : list)}
