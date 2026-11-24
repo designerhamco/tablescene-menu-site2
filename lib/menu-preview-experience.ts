@@ -10,6 +10,8 @@ import type {
 } from "@/components/public-menu/order-call/types";
 import { isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
 import type { SupportedLocale } from "@/lib/locales";
+import type { MenuOrderCustomization } from "./menu-order-customization";
+import { getOrderPriceColumnOptions } from "./order-price-column-options";
 
 const PREVIEW_TABLE_LABELS: Record<SupportedLocale, string> = {
   ko: "TABLE 3 · 화면 미리보기",
@@ -31,6 +33,7 @@ export function buildMenuPreviewOrderCatalog(
   priceOptions: PublicMenuItemPriceOption[] = [],
   timeSales: PublicMenuTimeSale[] = [],
   now = Date.now(),
+  customizationByItem?: ReadonlyMap<string, MenuOrderCustomization>,
 ): PostpayOrderCatalogItem[] {
   const categoriesById = new Map(
     categories.map((category) => [category.id, category]),
@@ -65,6 +68,16 @@ export function buildMenuPreviewOrderCatalog(
       item.price_visible === false
     )
       return [];
+    if (customizationByItem?.get(item.id)?.priceColumnIds) {
+      const scoped = getOrderPriceColumnOptions(item, category, timeSales, now);
+      return scoped ? [{
+        id: item.id,
+        name: item.name,
+        price: scoped.price,
+        imageUrl: item.image_url ?? undefined,
+        optionGroups: [scoped.group],
+      }] : [];
+    }
     const visibleColumns = new Map(
       category?.priceColumns
         .filter((column) => column.visible)

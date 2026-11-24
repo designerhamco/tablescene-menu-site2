@@ -145,3 +145,31 @@ test("기존 룸의 이름만 저장하거나 첫 빈 룸을 만들 때 geometry
  assert.deepEqual(result.document.placements,before.document.placements);assert.equal(result.document.layoutVersion,undefined);
  const empty=await fixture().service.saveMenuFloorPlan(site,0,{rooms:document().rooms,placements:[]});assert.equal(empty.document.layoutVersion,undefined);assert.deepEqual(empty.document.placements,[]);
 });
+
+test("격자 전환과 크기 변경은 선택한 룸만 재배치하고 기존 항목과 룸 소속을 유지한다", () => {
+  const otherRoom = "44444444-4444-4444-8444-444444444444";
+  const otherPoint = "55555555-5555-4555-8555-555555555555";
+  const original = floor.normalizeFloorDocument(floor.readableFloorDocument({
+    rooms: [...document().rooms, { id: otherRoom, name: "테라스", aspectRatio: 16 / 9 }],
+    placements: [...document().placements, { ...document().placements[0], pointId: otherPoint, roomId: otherRoom }],
+  }));
+  const configured = floor.setFloorRoomGrid(original, room, 5);
+  assert.deepEqual(floor.normalizeFloorDocument(configured), configured);
+  assert.deepEqual(configured.placements[1], original.placements[1]);
+  assert.deepEqual(floor.floorMemberships(configured), floor.floorMemberships(original));
+  assert.equal(floor.setFloorRoomGrid(configured, room, 1).rooms[0].gridSize, 1);
+  assert.equal(floor.mergeSavedFloorRoom(configured, { ...original.rooms[0], name: "홀 2" }).rooms[0].gridSize, 5);
+});
+
+test("가득 찬 격자의 배치·축소와 중복 칸·격자 밖 입력을 거부한다", () => {
+  const compact = floor.setFloorRoomGrid({ ...document(), placements: [] }, room, 2);
+  const ids = Array.from({ length: 5 }, (_, index) => `00000000-0000-4000-8000-00000000000${index + 1}`);
+  const full = floor.placeNewFloorPoints(compact, ids.slice(0, 4), room);
+  assert.equal(floor.canPlaceFloorPoint(full, room), false);
+  assert.throws(() => floor.placeNewFloorPoints(full, ids.slice(4), room), /빈 배치 공간/);
+  assert.throws(() => floor.setFloorRoomGrid(full, room, 1), /모두 들어가는/);
+  assert.throws(() => floor.setFloorRoomGrid(full, room, 11), /격자 크기/);
+  assert.throws(() => floor.normalizeFloorDocument({ ...full, placements: [{ ...full.placements[0], x: 0 }] }), /격자 칸/);
+  assert.throws(() => floor.normalizeFloorDocument({ ...full, placements: [full.placements[0], { ...full.placements[0], pointId: ids[1] }] }), /한 칸/);
+  assert.throws(() => floor.resolveFloorRoomRemoval(full, { mode: "archive", roomId: room, pointIds: ids.slice(0, 4) }, ids.slice(0, 4)), /룸을 비운/);
+});

@@ -1,19 +1,23 @@
 import "server-only";
-import {defaultOrderHistoryFilters, normalizeOrderHistory, orderHistoryBounds, orderCursorPredicate, encodeOrderCursor, ORDER_HISTORY_PAGE_SIZE, OrderHistoryInputError, type OrderHistoryFilters, type OrderHistorySearch, type OrderCursor} from "@/lib/order-history-query";
+import {defaultOrderHistoryFilters, normalizeOrderHistory, orderHistoryBounds, orderCursorPredicate, encodeOrderCursor, isCurrentOrder, ORDER_HISTORY_PAGE_SIZE, OrderHistoryInputError, type OrderHistoryFilters, type OrderHistorySearch, type OrderCursor} from "@/lib/order-history-query";
 import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import {
   assertOrderStatusTransition,
+  canCancelTableOrder,
   canCancelUnpaidOrder,
   canMarkManualPayment,
+  canRecordTableOrderPayment,
   getNextOrderStatus,
   normalizeCancellationReason,
   normalizeManualPaymentMethod,
   normalizeOrderManagementId,
   OrderManagementInputError,
+  ORDER_PAID_PAYMENT_STATUSES,
   type ManualPaymentMethod,
   type OrderStatus,
 } from "@/lib/order-management";
+import type { OrderSettlementGroup } from "@/lib/order-settlement";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
 import { KITCHEN_ACTIVE_STATUSES, KITCHEN_ORDER_STATUSES, KITCHEN_SELECTION_LIMIT, type KitchenMenuSource, type KitchenOrder, type KitchenOrderOption } from "@/lib/kitchen-order";
 import { hasMenuSitePermission } from "@/lib/menu-site-permissions";
@@ -29,6 +33,8 @@ type OrderRow = Pick<
   | "id"
   | "order_number"
   | "menu_table_id"
+  | "service_table_id"
+  | "settlement_group_id"
   | "status"
   | "payment_status"
   | "payment_method"
@@ -64,9 +70,9 @@ type ItemRow = Pick<
   menu_item?: {
     id: string;
     menu_site_id: string;
-    sort_order: number;
+    sort_order?: number;
     price_note: string | null;
-    category: { id: string; name: string; menu_site_id: string; sort_order: number } | null;
+    category?: { id: string; name: string; menu_site_id: string; sort_order: number } | null;
   } | null;
 };
 
@@ -101,6 +107,7 @@ export type OrderDashboardItem = {
 export type OrderDashboardOrder = {
   id: string;
   tableId: string;
+  settlementGroupId?: string;
   orderNumber: number;
   tableLabel: string;
   status: string;
@@ -199,7 +206,7 @@ async function assertDashboardEnabled(menuSiteId: string) {
   }
 }
 
-function mapReadError(error: DatabaseError | null) {
+function mapReadError(error: DatabaseError | null): never {
   console.warn("[order-dashboard] read failed", {
     code: error?.code ?? "unknown",
     message: error?.message ?? "unknown",
@@ -207,7 +214,7 @@ function mapReadError(error: DatabaseError | null) {
   throw new OrderManagementError("ORDER_READ_FAILED", "주문 정보를 불러오지 못했습니다.", 500);
 }
 
-function mapUpdateError(error: DatabaseError | null) {
+function mapUpdateError(error: DatabaseError | null): never {
   console.warn("[order-dashboard] update failed", {
     code: error?.code ?? "unknown",
     message: error?.message ?? "unknown",
@@ -219,7 +226,7 @@ async function loadOrderForMutation(menuSiteId: string, orderId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("menu_customer_orders")
-    .select("id, status, payment_status")
+    .select("id, status, payment_status, settlement_group_id")
     .eq("menu_site_id", menuSiteId)
     .eq("id", orderId)
     .maybeSingle();
@@ -239,7 +246,15 @@ function assertUpdated<T>(data: T | null) {
   return data;
 }
 
-export async function listOrderDashboard(menuSiteIdValue: unknown, search: OrderHistorySearch = {}, scope: "hall" | "kitchen" = "hall"): Promise<OrderDashboardPageData> {
+export async function listOrderDashboard(
+  menuSiteIdValue: unknown,
+  search: OrderHistorySearch = {},
+  scope: "hall" | "kitchen" = "hall",
+  { includeTableDetail = false, includeCompletedToday = false }: {
+    includeTableDetail?: boolean;
+    includeCompletedToday?: boolean;
+  } = {},
+): Promise<OrderDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const context = await requireMenuSitePermission(menuSiteId, "order.read");
   await assertDashboardEnabled(menuSiteId);
@@ -253,10 +268,11 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
   if (!menuSiteResult.data) throw new OrderManagementError("ORDER_NOT_FOUND", "메뉴판을 찾을 수 없습니다.", 404);
 
   const history = scope === "hall" && search.tab === "history";
+  const readItemDetail = scope === "kitchen" || (includeTableDetail && !history);
   let request: ReturnType<typeof normalizeOrderHistory> | undefined, queryError: string | undefined;
   if (history) try {request = normalizeOrderHistory(search);} catch (error) {if (!(error instanceof OrderHistoryInputError)) throw error;queryError=error.message;}
   const view: OrderDashboardView = {kind:history?"history":"current", filters:request?.filters??defaultOrderHistoryFilters(), error:queryError, totalCount:0, olderCursor:null, newerCursor:null, tables:[]};
-  const columns = "id, order_number, menu_table_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at";
+  const columns = "id, order_number, menu_table_id, service_table_id, settlement_group_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at";
   let orders: OrderRow[] = [];
   if (history) {
     for(let offset=0;;offset+=500){
@@ -293,30 +309,33 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       }
     }
   } else {
-    // Stable keyset batches include every outstanding order, regardless of age.
+    // Outstanding orders have no age limit. The hall list can also include orders whose final step finished today.
     const asOf = new Date();
     const through = asOf.toISOString();
-    const servedSince = orderHistoryBounds(defaultOrderHistoryFilters(asOf)).from;
-    const kitchenStatuses = `status.in.(${KITCHEN_ACTIVE_STATUSES.join(",")}),and(status.eq.served,served_at.gte.${servedSince},served_at.lte.${through})`;
+    const today = orderHistoryBounds(defaultOrderHistoryFilters(asOf)).from;
+    const kitchenStatuses = `status.in.(${KITCHEN_ACTIVE_STATUSES.join(",")}),and(status.eq.served,served_at.gte.${today},served_at.lte.${through})`;
+    const hallStatuses = ["status.neq.served", "payment_status.eq.unpaid"];
+    if (includeCompletedToday && scope === "hall") {
+      hallStatuses.push(`and(status.eq.served,payment_status.in.(${ORDER_PAID_PAYMENT_STATUSES.join(",")}),served_at.lte.${through},payment_completed_at.lte.${through},or(served_at.gte.${today},payment_completed_at.gte.${today}))`);
+    }
+    const statuses = scope === "kitchen" ? kitchenStatuses : hallStatuses.join(",");
     let cursor:OrderCursor|null=null;
     for(;;){
       let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",through);
-      if (scope === "kitchen") {
-        query = query.or(cursor ? `and(or(${kitchenStatuses}),or(${orderCursorPredicate(cursor, "newer")}))` : kitchenStatuses);
-      } else {
-        const active="or(status.neq.served,payment_status.eq.unpaid)";
-        query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
-      }
+      query = query.or(cursor ? `and(or(${statuses}),or(${orderCursorPredicate(cursor, "newer")}))` : statuses);
       const result=await query.order("created_at",{ascending:true}).order("id",{ascending:true}).limit(200);
       if(result.error)mapReadError(result.error);
       const batch=(result.data??[]) as unknown as OrderRow[];orders.push(...batch);
       if(batch.length<200)break;
       const last=batch[batch.length-1];cursor={createdAt:last.created_at,id:last.id};
     }
-    view.totalCount=orders.length;
+    view.totalCount = includeCompletedToday && scope === "hall"
+      ? orders.filter(order => isCurrentOrder({ status: order.status, paymentStatus: order.payment_status })).length
+      : orders.length;
   }
   const orderIds = orders.map((order) => order.id);
-  const tableIds = [...new Set(orders.map((order) => order.menu_table_id))];
+  const displayedTable = (order: OrderRow) => !history && order.service_table_id ? order.service_table_id : order.menu_table_id;
+  const tableIds = [...new Set(orders.map(displayedTable))];
 
   const chunks = (ids:string[]) => Array.from({length:Math.ceil(ids.length/100)},(_,index)=>ids.slice(index*100,index*100+100));
   const itemColumns = "id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order";
@@ -329,7 +348,9 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       const itemQuery = supabase.from("menu_customer_order_items");
       const selection = scope === "kitchen"
         ? itemQuery.select(`${itemColumns}, cooking_completed_at, menu_item:menu_items!menu_customer_order_items_menu_item_id_fkey(id, menu_site_id, sort_order, price_note, category:menu_categories!menu_items_category_id_fkey(id, name, menu_site_id, sort_order))` as const)
-        : itemQuery.select(itemColumns);
+        : readItemDetail
+          ? itemQuery.select(`${itemColumns}, cooking_completed_at, menu_item:menu_items!menu_customer_order_items_menu_item_id_fkey(id, menu_site_id, price_note)` as const)
+          : itemQuery.select(itemColumns);
       const result = await selection.eq("menu_site_id",menuSiteId).in("order_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
       if(result.error)mapReadError(result.error);const batch=result.data??[];rows.push(...batch);if(batch.length<500)break;
     }return rows;})(),
@@ -364,8 +385,9 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
     orders: orders.map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
-      tableId: order.menu_table_id,
-      tableLabel: tableLabelById.get(order.menu_table_id) ?? "알 수 없는 테이블",
+      tableId: displayedTable(order),
+      ...(order.settlement_group_id ? { settlementGroupId: order.settlement_group_id } : {}),
+      tableLabel: tableLabelById.get(displayedTable(order)) ?? "알 수 없는 테이블",
       status: order.status,
       nextStatus: order.status === "cooking" ? null : getNextOrderStatus(order.status),
       paymentStatus: order.payment_status,
@@ -380,13 +402,13 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
       paymentCompletedAt: order.payment_completed_at,
       cancellationReason: order.cancellation_reason,
       canCancelUnpaid: canCancelUnpaidOrder(order.status, order.payment_status),
-      canMarkManualPayment: canMarkManualPayment(order.status, order.payment_status),
+      canMarkManualPayment: !order.settlement_group_id && canMarkManualPayment(order.status, order.payment_status),
       items: (itemsByOrderId.get(order.id) ?? []).map(item => {
         const source = item.menu_item?.menu_site_id === menuSiteId ? item.menu_item : null;
         const category = source?.category?.menu_site_id === menuSiteId ? source.category : null;
-        const menuSource = source ? {
+        const menuSource = scope === "kitchen" && source ? {
           id: source.id,
-          sortOrder: source.sort_order,
+          sortOrder: source.sort_order ?? 0,
           category: category ? { id: category.id, name: category.name, sortOrder: category.sort_order } : null,
         } : undefined;
         return {
@@ -397,13 +419,17 @@ export async function listOrderDashboard(menuSiteIdValue: unknown, search: Order
           unitPrice: item.unit_price_snapshot,
           quantity: item.quantity,
           lineTotal: item.line_total_snapshot,
-          ...(scope === "kitchen" ? { cookingDone: order.status === "ready" || order.status === "served" || Boolean(item.cooking_completed_at), menuSource, priceNote: source?.price_note } : {}),
+          ...(readItemDetail ? {
+            cookingDone: order.status === "ready" || order.status === "served" || Boolean(item.cooking_completed_at),
+            priceNote: source?.price_note,
+          } : {}),
+          ...(scope === "kitchen" ? { menuSource } : {}),
           options: (optionsByItemId.get(item.id) ?? []).map(option => ({
             groupName: option.group_name_snapshot,
             valueName: option.value_name_snapshot,
             priceDelta: option.price_delta_snapshot,
             // The order submission RPC reserves positions 20 and 21 for the item choice and its request.
-            ...(scope === "kitchen" ? { kind: option.display_order === 21 ? "request" as const : option.display_order === 20 ? "product" as const : "price" as const } : {}),
+            ...(readItemDetail ? { kind: option.display_order === 21 ? "request" as const : option.display_order === 20 ? "product" as const : "price" as const } : {}),
           })),
         };
       }),
@@ -537,10 +563,12 @@ export async function cancelUnpaidOrder({
   menuSiteId: menuSiteIdValue,
   orderId: orderIdValue,
   reason,
+  fromTableDetail = false,
 }: {
   menuSiteId: unknown;
   orderId: unknown;
   reason: unknown;
+  fromTableDetail?: boolean;
 }) {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const orderId = normalizedId(orderIdValue);
@@ -552,6 +580,9 @@ export async function cancelUnpaidOrder({
   );
   await assertDashboardEnabled(menuSiteId);
   const current = await loadOrderForMutation(menuSiteId, orderId);
+  if (fromTableDetail && !canCancelTableOrder(current.status, current.payment_status)) {
+    throw new OrderManagementError("ORDER_CONFLICT", "조리전 상태의 미결제 주문만 취소할 수 있습니다.", 409);
+  }
   if (!canCancelUnpaidOrder(current.status, current.payment_status)) {
     throw new OrderManagementError("ORDER_CONFLICT", "미결제·미제공 주문만 취소할 수 있습니다.", 409);
   }
@@ -578,10 +609,12 @@ export async function markOrderManualPayment({
   menuSiteId: menuSiteIdValue,
   orderId: orderIdValue,
   method,
+  fromTableDetail = false,
 }: {
   menuSiteId: unknown;
   orderId: unknown;
   method: ManualPaymentMethod | unknown;
+  fromTableDetail?: boolean;
 }) {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const orderId = normalizedId(orderIdValue);
@@ -593,11 +626,17 @@ export async function markOrderManualPayment({
   );
   await assertDashboardEnabled(menuSiteId);
   const current = await loadOrderForMutation(menuSiteId, orderId);
+  if (current.settlement_group_id) {
+    throw new OrderManagementError("ORDER_CONFLICT", "결합 주문 내역에서 결제를 완료해 주세요.", 409);
+  }
+  if (fromTableDetail && !canRecordTableOrderPayment(current.status, current.payment_status)) {
+    throw new OrderManagementError("ORDER_CONFLICT", "픽업·서빙이 끝난 미결제 주문만 결제 완료로 기록할 수 있습니다.", 409);
+  }
   if (!canMarkManualPayment(current.status, current.payment_status)) {
     throw new OrderManagementError("ORDER_CONFLICT", "취소되지 않은 미결제 주문만 수동 결제 완료로 표시할 수 있습니다.", 409);
   }
   const now = new Date().toISOString();
-  const { data, error } = await supabase
+  const paymentUpdate = supabase
     .from("menu_customer_orders")
     .update({
       payment_status: "manual_paid",
@@ -608,9 +647,106 @@ export async function markOrderManualPayment({
     .eq("menu_site_id", menuSiteId)
     .eq("id", orderId)
     .eq("payment_status", "unpaid")
-    .neq("status", "cancelled")
-    .select("id, payment_status, payment_method")
+    .is("settlement_group_id", null);
+  const eligible = fromTableDetail ? paymentUpdate.eq("status", "served") : paymentUpdate.neq("status", "cancelled");
+  const { data, error } = await eligible.select("id, payment_status, payment_method")
     .maybeSingle();
   if (error) mapUpdateError(error);
   return assertUpdated(data);
+}
+
+export async function moveTableOrders(input: {
+  menuSiteId: unknown;
+  sourceTableId: unknown;
+  destinationTableId: unknown;
+  orderIds: unknown[];
+  requestId: unknown;
+}) {
+  const menuSiteId = normalizedId(input.menuSiteId);
+  const source = normalizedId(input.sourceTableId);
+  const destination = normalizedId(input.destinationTableId);
+  const orderIds = [...new Set(input.orderIds.map(normalizedId))];
+  const requestId = normalizedId(input.requestId);
+  if (source === destination || !orderIds.length) {
+    throw new OrderManagementError("INVALID_INPUT", "이동할 주문과 다른 테이블을 선택해 주세요.", 400);
+  }
+  const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_status_management");
+  await assertDashboardEnabled(menuSiteId);
+  const { data, error } = await supabase.rpc("move_table_orders", {
+    p_menu_site_id: menuSiteId,
+    p_source_table_id: source,
+    p_destination_table_id: destination,
+    p_order_ids: orderIds,
+    p_request_id: requestId,
+    p_actor_user_id: context.actorUserId,
+  });
+  if (error?.message === "ORDER_MOVE_GROUPED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "결합된 테이블은 해제한 뒤 이동할 수 있어요.", 409);
+  }
+  if (error?.message === "ORDER_MOVE_DESTINATION_OCCUPIED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "목적지에 진행 중인 주문이나 이용 중인 손님이 있어요. 다른 테이블을 선택해 주세요.", 409);
+  }
+  if (error?.message === "ORDER_MOVE_SOURCE_CHANGED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "선택한 테이블의 주문이 바뀌었어요. 창을 닫고 주문을 다시 확인해 주세요.", 409);
+  }
+  if (error?.message === "ORDER_MOVE_TABLE_UNAVAILABLE") {
+    throw new OrderManagementError("ORDER_CONFLICT", "이동할 수 없는 테이블이에요. 테이블 상태를 다시 확인해 주세요.", 409);
+  }
+  if (error || !data) mapUpdateError(error);
+  return data;
+}
+
+export async function listOpenOrderSettlements(menuSiteId: string): Promise<OrderSettlementGroup[]> {
+  await requireMenuSitePermission(menuSiteId, "order.read");
+  const supabase = createAdminClient();
+  const groups: OrderSettlementGroup[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await supabase.from("menu_order_settlement_groups")
+      .select("id, table_ids").eq("menu_site_id", menuSiteId).is("closed_at", null)
+      .order("created_at").order("id").range(offset, offset + 499);
+    if (error || !data) mapReadError(error);
+    groups.push(...data.map(row => ({ id: row.id, tableIds: row.table_ids })));
+    if (data.length < 500) return groups;
+  }
+}
+
+export async function manageOrderSettlement(input: {
+  menuSiteId: unknown;
+  action: "combine" | "release" | "pay";
+  requestId: unknown;
+  groupId: unknown;
+  tableIds: unknown[];
+  orderIds: unknown[];
+  expectedTotal: unknown;
+  method: unknown;
+}) {
+  const menuSiteId = normalizedId(input.menuSiteId);
+  const creating = input.action === "combine";
+  const paying = input.action === "pay";
+  const requestId = normalizedId(input.requestId);
+  const groupId = creating ? null : normalizedId(input.groupId);
+  const tableIds = creating ? [...new Set(input.tableIds.map(normalizedId))] : [];
+  const orderIds = input.action === "release" ? [] : [...new Set(input.orderIds.map(normalizedId))];
+  const expectedTotal = paying ? Number(input.expectedTotal) : null;
+  if (paying && (typeof input.expectedTotal !== "string" || !/^\d+$/.test(input.expectedTotal)
+    || !Number.isSafeInteger(expectedTotal) || !orderIds.length)) {
+    throw new OrderManagementError("INVALID_INPUT", "결합 결제 금액을 다시 확인해 주세요.", 400);
+  }
+  const method = paying ? normalizedPaymentMethod(input.method) : null;
+  const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId,
+    paying ? "payment.manual" : "order.manage", paying ? "order_manual_payment" : "order_status_management");
+  await assertDashboardEnabled(menuSiteId);
+  const { data, error } = await supabase.rpc("manage_order_settlement_group", {
+    p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId, p_action: input.action,
+    p_request_id: requestId, p_group_id: groupId, p_table_ids: tableIds, p_order_ids: orderIds,
+    p_expected_total: expectedTotal, p_payment_method: method,
+  });
+  if (error?.message === "ORDER_GROUP_PAY_CHANGED") {
+    throw new OrderManagementError("ORDER_CONFLICT", "결합 주문의 상태나 금액이 바뀌었어요. 모든 주문이 픽업·서빙 완료인지 다시 확인해 주세요.", 409);
+  }
+  if (error?.message.startsWith("ORDER_GROUP_")) {
+    throw new OrderManagementError("ORDER_CONFLICT", "테이블이나 주문 상태가 바뀌었어요. 주문 관리에서 다시 확인해 주세요.", 409);
+  }
+  if (error || !data) mapUpdateError(error);
+  return { count: data, groupId: groupId ?? requestId };
 }

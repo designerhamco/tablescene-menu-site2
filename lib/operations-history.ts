@@ -9,7 +9,13 @@ export type OperationHistoryRecord = {
   time: string;
   status: string;
   attention: boolean;
-  orderStatusLabel?:string;paymentStatusLabel?:string;orderNumber?:number;createdAt?:string;amount?:string;processing?:boolean;unpaid?:boolean;
+  orderStatus?: string;
+  orderNumber?: number;
+  createdAt?: string;
+  totalAmount?: number;
+  itemCount?: number;
+  processing?: boolean;
+  unpaid?: boolean;
 };
 /** Identity joins deliberately use IDs, never mutable/duplicate display names. */
 export function groupOperationHistory(records: OperationHistoryRecord[]) {

@@ -29,26 +29,21 @@ test("미등록 항목을 제외하고 빈 룸은 선택 정보를 만들지 않
   assert.doesNotMatch(render([]), /data-selected-details=/);
 });
 
-test("리스트는 선택 룸의 배치·미배치 소속과 과거 룸 미지정 항목을 구분한다", () => {
+test("배치도 도구에서 다른 룸의 미배치 항목과 과거 미지정 항목도 열 수 있다", () => {
   const terrace = "44444444-4444-4444-8444-444444444444";
   const unplaced = "55555555-5555-4555-8555-555555555555";
   const legacy = "66666666-6666-4666-8666-666666666666";
-  let context: Parameters<NonNullable<Parameters<typeof FloorPlanEditor>[0]["renderList"]>>[0] | undefined;
-  renderToStaticMarkup(createElement(AppRouterContext.Provider, {value: {push() {}} as never}, createElement(FloorPlanEditor, {
-    view: "list",
+  const html = renderToStaticMarkup(createElement(AppRouterContext.Provider, {value: {push() {}} as never}, createElement(FloorPlanEditor, {
+    requireEdit: true,
     initial: {available: true, revision: 1, document: {
       rooms: [{id:room,name:"홀",aspectRatio:4/3},{id:terrace,name:"테라스",aspectRatio:4/3}],
       placements: [placement(first),{...placement(second),roomId:terrace}],
-      memberships: [{pointId:unplaced,roomId:room}],
+      memberships: [{pointId:unplaced,roomId:terrace}],
     }},
     points: [first,second,unplaced,legacy].map(id=>({id,label:id,status:"active"})),
     onSave: async()=>({status:"error" as const,message:"저장하지 않습니다."}),
-    renderList: value=>{context=value;return null;},
   })));
-  assert.ok(context);
-  assert.equal(context.roomId,room);
-  assert.deepEqual(context.pointIds,[first,unplaced]);
-  assert.deepEqual(context.unassignedPointIds,[legacy]);
-  assert.equal(context.rooms.length,2);
-  assert.equal(typeof context.onMovePoint,"function");
+  assert.match(html, /미배치 항목.*2/);
+  assert.match(html, /테이블 · 22222222-2222-4222-8222-222222222222/);
+  assert.doesNotMatch(html, /보기 유형|aria-pressed="true"/);
 });

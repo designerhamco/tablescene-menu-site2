@@ -32,6 +32,15 @@ test("manual payment accepts only external card terminal or cash", () => {
   assert.throws(() => orderManagement.normalizeManualPaymentMethod("pg"), /\uCE74\uB4DC \uB2E8\uB9D0\uAE30/);
 });
 
+test("테이블 팝업은 조리전 취소와 픽업·서빙 완료 후 후불 수납만 허용한다", () => {
+  for (const status of orderManagement.ORDER_STATUSES) {
+    assert.equal(orderManagement.canCancelTableOrder(status, "unpaid"), status === "received" || status === "accepted");
+    assert.equal(orderManagement.canRecordTableOrderPayment(status, "unpaid"), status === "served");
+    assert.equal(orderManagement.canCancelTableOrder(status, "paid"), false);
+    assert.equal(orderManagement.canRecordTableOrderPayment(status, "manual_paid"), false);
+  }
+});
+
 test("order dashboard runtime is default-off without manual site onboarding", async () => {
   const runtime = await import(
     new URL("./order-dashboard-runtime.ts", import.meta.url).href

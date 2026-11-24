@@ -30,6 +30,7 @@ export default function RoomNameForm({room,rooms,pending,saving,focusRoomId,onSa
   catch{setFailures(current=>({...current,[room.id]:"룸 이름을 저장하지 못했습니다. 다시 시도해 주세요."}));}
  }}>
   <FieldActionRow field={<div className="site-icon-name-field">
+   <label className="type-label" htmlFor={id}>룸 이름</label>
    <Select value={value.emoji||"none"} disabled={!unlocked||pending} onValueChange={emoji=>update({emoji:emoji==="none"?"":emoji})}><SelectTrigger iconOnly aria-label="룸 이모지"><SelectValue>{value.emoji||"—"}</SelectValue></SelectTrigger><SelectContent>{FLOOR_ROOM_ICONS.map(icon=><SelectItem key={icon.value||"none"} value={icon.value||"none"}>{icon.value?`${icon.value} ${icon.label}`:icon.label}</SelectItem>)}</SelectContent></Select>
    <input ref={input} id={id} name="roomName" className="site-field" required maxLength={40} value={value.name} disabled={!unlocked||pending} aria-label="룸 이름" aria-invalid={Boolean(error)} aria-describedby={error?`${id}-error`:undefined} onChange={event=>update({name:event.target.value})}/>
   </div>} action={<div className="site-action-row" data-wrap="nowrap">{unlocked?<Button type="submit" disabled={pending||duplicate} aria-busy={saving}>{saving?<LoadingSpinner/>:null}{saving?"저장 중":"저장"}</Button>:<Button ref={editButton} type="button" variant="outline" disabled={pending} onClick={event=>{event.preventDefault();setEditing(current=>({...current,[room.id]:true}));requestAnimationFrame(()=>input.current?.focus());}}>수정</Button>}{deleteAction}</div>}/>

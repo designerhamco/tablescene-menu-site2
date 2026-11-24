@@ -6,6 +6,7 @@ export type MenuOrderCustomization = {
   title: string;
   choices: string[];
   allowRequest: boolean;
+  priceColumnIds?: string[];
 };
 
 export const EMPTY_MENU_ORDER_CUSTOMIZATION: MenuOrderCustomization = {
@@ -41,7 +42,19 @@ export function parseMenuOrderCustomization(value: unknown): MenuOrderCustomizat
   if (new Set(names.map(name => name.toLowerCase())).size !== names.length) {
     throw new Error("같은 상품 옵션을 두 번 등록할 수 없어요.");
   }
-  return { title: normalizedTitle || (names.length > 0 ? "상품 옵션" : ""), choices: names, allowRequest };
+  const priceColumnIds = "priceColumnIds" in value ? value.priceColumnIds : undefined;
+  if (priceColumnIds !== undefined && (!Array.isArray(priceColumnIds)
+    || priceColumnIds.length < 1 || priceColumnIds.length > 3
+    || priceColumnIds.some(id => typeof id !== "string" || !/^[a-z0-9][a-z0-9_-]{0,95}$/i.test(id))
+    || new Set(priceColumnIds).size !== priceColumnIds.length)) {
+    throw new Error("상품 옵션을 적용할 가격 옵션을 선택해 주세요.");
+  }
+  return {
+    title: normalizedTitle || (names.length > 0 ? "상품 옵션" : ""),
+    choices: names,
+    allowRequest,
+    ...(priceColumnIds !== undefined ? { priceColumnIds } : {}),
+  };
 }
 
 export function readMenuOrderCustomization(value: unknown): MenuOrderCustomization {
@@ -65,5 +78,15 @@ export function isOrderCustomizationValid(
 ) {
   if (choice && !config.choices.includes(choice)) return false;
   if (request && !config.allowRequest) return false;
-  return config.choices.length === 0 || Boolean(choice || request);
+  return config.choices.length === 0 || Boolean(choice || (!config.priceColumnIds && request));
+}
+
+export function getApplicableOrderCustomization(
+  config: MenuOrderCustomization | undefined,
+  priceColumnId: string | undefined,
+): MenuOrderCustomization {
+  if (!config || (config.priceColumnIds && !config.priceColumnIds.includes(priceColumnId ?? ""))) {
+    return EMPTY_MENU_ORDER_CUSTOMIZATION;
+  }
+  return config;
 }

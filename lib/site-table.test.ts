@@ -45,14 +45,13 @@ test("표의 문서 치수는 공통 토큰과 일치하고 행은 내용에 맞
   assert.doesNotMatch(css, /data-column="(?:kind|name|connection|status|actions)"/);
 });
 
-test("관리 화면과 라이브러리는 같은 표 API와 간격·상태 예시를 공유한다", () => {
+test("테이블·키오스크 관리에는 배치도만 있고 라이브러리는 공통 표 예시를 제공한다", () => {
   const manager = read("../app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
   const examples = read("../components/design-system/ManagementTableExamples.tsx");
-  assert.match(manager, /columns=\{\["compact", "text", "toggles", "toggles", "detail", "actions"\]\}/);
+  assert.doesNotMatch(manager, /ViewStyleSelect|OrderPointTableRow|renderList/);
+  assert.match(manager, /<FloorPlanEditor requireEdit pointTools=\{archivedItems\}/);
   assert.match(examples, /columns=\{\["compact", "text", "detail", "control", "actions"\]\}/);
-  assert.match(manager, /<ViewStyleSelect[^>]*value=\{displayMode\}/);
   assert.match(read("../app/components/ui/view-style-select.tsx"), /<SelectTrigger[^>]*aria-label=\{label\}/);
-  assert.match(manager, /renderList=\{\(\{pointIds,unassignedPointIds,rooms,roomId,pending,onMovePoint\}\) =>/);
   assert.match(examples, /SITE_TABLE_RULES.map/);
   assert.match(examples, /align="end"/);
   assert.match(examples, /loading=\{index === 2\}/);

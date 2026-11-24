@@ -9,13 +9,17 @@ export const SITE_TABLE_COLUMNS = {
 } as const;
 export type SiteTableColumn = keyof typeof SITE_TABLE_COLUMNS;
 
-export type SiteTableColumns = readonly SiteTableColumn[] | "kitchen-orders";
+export type SiteTableColumns = readonly SiteTableColumn[] | "kitchen-orders" | "hall-orders";
 
 // Selection, room, point, order number, clock, elapsed, menu, item option, price option, quantity, state, actions.
 const kitchenOrderColumnWidths = [2.25, 3.5, 4.5, 5.25, 4.25, 4, 7.75, 6.5, 4.75, 2.75, 5.25, 7] as const;
 
+// The hall adds unit price, order subtotal, notification and payment columns to the order grid.
+const hallOrderColumnWidths = [2.5, 3.25, 6.5, 5, 5, 4.5, 9.5, 7.5, 5.5, 3, 5, 5.5, 8.75, 6, 7] as const;
+
 export function getSiteTableLayout(columns: SiteTableColumns) {
-  const widths = columns === "kitchen-orders" ? kitchenOrderColumnWidths : columns.map(kind => SITE_TABLE_COLUMNS[kind].rem);
+  const widths = columns === "kitchen-orders" ? kitchenOrderColumnWidths
+    : columns === "hall-orders" ? hallOrderColumnWidths : columns.map(kind => SITE_TABLE_COLUMNS[kind].rem);
   const minWidthRem = widths.reduce((total: number, width) => total + width, 0);
   return { minWidthRem, widths: widths.map(width => width / minWidthRem * 100) };
 }

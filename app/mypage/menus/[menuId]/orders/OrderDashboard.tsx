@@ -1,9 +1,13 @@
 "use client";
 import Link from "next/link";
+import { createPortal } from "react-dom";
+import type { OrderSettlementGroup } from "@/lib/order-settlement";
+import type { ManualOrderActions } from "@/lib/manual-order";
+import OrderTableWorkspace from "./OrderTableWorkspace";
 import { Button } from "@/app/components/ui/button";
 import OrderHistoryFilters from "@/components/mypage/OrderHistoryFilters";
 import {orderHistoryHref,isCurrentOrder} from "@/lib/order-history-query";
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
@@ -51,8 +55,14 @@ export default function OrderDashboard({
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
-  recordSources, arrivalGroups, historyPath,
+  recordSources, arrivalGroups, historyPath, receptionControl, manualOrderActions, moveAction, settlementAction, settlementGroups = [], mutationAction = mutateOrderAction,
 }: {
+  manualOrderActions?: ManualOrderActions;
+  settlementAction?: typeof mutateOrderAction;
+  settlementGroups?: OrderSettlementGroup[];
+  moveAction?: typeof mutateOrderAction;
+  mutationAction?: typeof mutateOrderAction;
+  receptionControl?: ReactNode;
   recordSources?: OperationRecordSources;
   arrivalGroups?: OperationArrivalGroup[];
   historyPath?: string;
@@ -65,18 +75,18 @@ export default function OrderDashboard({
   floorPlan: OperationsFloorPlan;
 }) {
   const history=view?.kind === "history";
+  const tableWorkspace = !history && !recordSources;
   const orders = useLiveOrderStatuses(serverOrders, menuSiteId, recordSources, history);
   const path = historyPath ?? `/mypage/menus/${menuSiteId}/orders`;
   const router = useRouter();
   const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(
-    mutateOrderAction,
+    mutationAction,
     initialOrderManagementActionState,
   );
-  const [printOrderId, setPrintOrderId] = useState<string | null>(null);
+  const [printOrders, setPrintOrders] = useState<Order[]>([]);
   const [backgroundPollingEnabled, setBackgroundPollingEnabled] =
     useState(false);
-  const printOrder = orders.find((order) => order.id === printOrderId) ?? null;
   useEffect(() => {
     if(history||!autoRefresh)return;
     const timer = window.setInterval(() => {
@@ -92,15 +102,15 @@ export default function OrderDashboard({
     return () => window.clearInterval(timer);
   }, [backgroundPollingEnabled, pending, router, history, autoRefresh]);
   useEffect(() => {
-    if (!printOrder) return;
-    const clear = () => setPrintOrderId(null);
+    if (!printOrders.length) return;
+    const clear = () => setPrintOrders([]);
     window.addEventListener("afterprint", clear, { once: true });
     const timer = window.setTimeout(() => window.print(), 0);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("afterprint", clear);
     };
-  }, [printOrder]);
+  }, [printOrders]);
   function detail(order: Order) {
     const source = recordSources?.[order.id];
     const recordMenuSiteId = source?.menuSiteId ?? menuSiteId;
@@ -138,7 +148,7 @@ export default function OrderDashboard({
         ) : null}
         <button
           type="button"
-          onClick={() => setPrintOrderId(order.id)}
+          onClick={() => setPrintOrders([order])}
           className="site-button site-button-outline"
         >
           브라우저 영수증 인쇄
@@ -225,13 +235,67 @@ export default function OrderDashboard({
       </ContentPanel>
     );
   }
+  const records = orders.map(order => ({
+    id: order.id,
+    pointId: order.tableId,
+    pointLabel: order.tableLabel,
+    summary: order.items.map(item => `${item.name} × ${item.quantity}`).join(", "),
+    time: formatKoreanDateTime(order.createdAt),
+    status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
+    attention: isCurrentOrder(order),
+    orderStatus: order.status,
+    orderNumber: order.orderNumber,
+    createdAt: order.createdAt,
+    totalAmount: order.totalAmount,
+    itemCount: order.items.reduce((count, item) => count + item.quantity, 0),
+    processing: order.status !== "served" && order.status !== "cancelled",
+    unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
+  }));
+  const list = (
+    <OperationsHistoryViews
+      listOnly
+      noun="주문"
+      floorPlan={floorPlan}
+      records={records}
+      renderList={open => (
+        <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} recordSources={recordSources}
+          includeEmptyPoints={!history && !recordSources} renderRecord={order => (
+            <>
+              <TableCell>#{order.orderNumber}</TableCell>
+              <TableCell><OrderItems order={order} /></TableCell>
+              <TableCell>{formatKoreanDateTime(order.createdAt)}</TableCell>
+              <TableCell>
+                <div className="site-stack-copy">
+                  <Badge>{STATUS_LABELS[order.status] ?? order.status}</Badge>
+                  <Badge>{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</Badge>
+                  <p>{formatAmount(order.totalAmount)}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button type="button" variant="outline" size="compact" aria-label={`주문 #${order.orderNumber} 상세·처리`}
+                  onClick={() => open(order.id)}>상세·처리</Button>
+              </TableCell>
+            </>
+          )} />
+      )}
+      renderDetail={ids => (
+        <div className="site-stack-group">
+          {orders.filter(order => ids.includes(order.id)).map(detail)}
+        </div>
+      )}
+    />
+  );
+
   return (
     <>
-      {printOrder ? (
-        <div className="hidden print:block">
-          <OrderReceipt order={printOrder} menuSiteName={recordSources?.[printOrder.id]?.menuSiteName ?? menuSiteName} />
-        </div>
-      ) : null}
+      {printOrders.length > 0 && createPortal(
+        <div className="hidden print:block" data-order-receipt-print>
+          {printOrders.map(order => (
+            <OrderReceipt key={order.id} order={order} menuSiteName={recordSources?.[order.id]?.menuSiteName ?? menuSiteName} />
+          ))}
+        </div>,
+        document.body,
+      )}
       <div className="site-stack-group print:hidden">
         <ActionFeedbackToast
           message={state.message}
@@ -243,12 +307,12 @@ export default function OrderDashboard({
           arrivalGroups={arrivalGroups}
           kind="orders"
           arrivalIds={orders
-            .filter((order) => order.status !== "cancelled")
+            .filter(order => isCurrentOrder(order))
             .map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         /> : null}
         {history && view ? <OrderHistoryFilters key={JSON.stringify(view.filters)} path={path} filters={view.filters} tables={view.tables} error={view.error} onApply={onHistoryFilterApply}/> : null}
-        <div className="site-content-heading-row">
+        {!tableWorkspace && <div className="site-content-heading-row">
             <div className="site-stack-title">
               <p className="type-label">
                 {view?.error ? "조회 조건을 확인해 주세요." : history ? "주문 이력" : "현재 주문"} {!view?.error ? ` ${history ? (view?.totalCount ?? orders.length).toLocaleString("ko-KR") : orders.length.toLocaleString("ko-KR")}건` : ""}
@@ -259,7 +323,7 @@ export default function OrderDashboard({
               loading={refreshing}
               onClick={() => refresh(() => router.refresh())}
             />
-        </div>
+        </div>}
         {state.message ? (
           <ContentPanel as="aside" surface="notice" density="compact">
             <p role="status" className="type-body-sm">
@@ -267,73 +331,13 @@ export default function OrderDashboard({
             </p>
           </ContentPanel>
         ) : null}
-        {!view?.error ? <OperationsHistoryViews
-          listOnly={history || Boolean(recordSources)}
-          noun="주문"
-          floorPlan={floorPlan}
-          records={orders.map((order) => ({
-            id: order.id,
-            pointId: order.tableId,
-            pointLabel: order.tableLabel,
-            summary: order.items
-              .map((item) => `${item.name} × ${item.quantity}`)
-              .join(", "),
-            options: order.items
-              .flatMap((item) =>
-                item.options.map(
-                  (option) => `${option.groupName}: ${option.valueName}`,
-                ),
-              )
-              .join(" · "),
-            time: formatKoreanDateTime(order.createdAt),
-            status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
-            attention:
-              isCurrentOrder(order),
-            orderStatusLabel: STATUS_LABELS[order.status] ?? order.status,
-            paymentStatusLabel: PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus,
-            orderNumber: order.orderNumber,
-            createdAt: order.createdAt,
-            amount: formatAmount(order.totalAmount),
-            processing: order.status !== "served" && order.status !== "cancelled",
-            unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
-          }))}
-          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} recordSources={recordSources} includeEmptyPoints={!history && !recordSources} renderRecord={order => <>
-                        <TableCell>#{order.orderNumber}</TableCell>
-                        <TableCell>
-                          <OrderItems order={order} />
-                        </TableCell>
-                        <TableCell>
-                          {formatKoreanDateTime(order.createdAt)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="site-stack-copy">
-                            <Badge>
-                              {STATUS_LABELS[order.status] ?? order.status}
-                            </Badge>
-                            <Badge>
-                              {PAYMENT_LABELS[order.paymentStatus] ??
-                                order.paymentStatus}
-                            </Badge>
-                            <p>{formatAmount(order.totalAmount)}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <button
-                            type="button"
-                            className="site-button site-button-outline site-button-compact"
-                            aria-label={`주문 #${order.orderNumber} 상세·처리`}
-                            onClick={() => open(order.id)}
-                          >
-                            상세·처리
-                          </button>
-                        </TableCell>
-          </>} />}
-          renderDetail={(ids) => (
-            <div className="site-stack-group">
-              {orders.filter((order) => ids.includes(order.id)).map(detail)}
-            </div>
-          )}
-        /> : null}
+        {!view?.error && (tableWorkspace ? (
+          <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
+            permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
+            transitionAction={action} pending={pending} onPrint={setPrintOrders} manualOrderActions={manualOrderActions} moveAction={moveAction} settlementAction={settlementAction} settlementGroups={settlementGroups}
+            refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
+              aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
+        ) : list)}
         {history && view && !view.error ? <div className="site-action-row" aria-label="주문 이력 페이지 이동">
           {view.newerCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.newerCursor,direction:"newer"})}>이전 페이지</Link></Button> : null}
           {view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.olderCursor,direction:"older"})}>다음 페이지</Link></Button> : null}

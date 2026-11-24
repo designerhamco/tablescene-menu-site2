@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { placeRegisteredFloorPoint,mergeRegisteredFloorPoint,saveRegisteredFloorPoint } from "./menu-floor-registration";
-import {sameFloorDocument,normalizeFloorDocument,placeNewFloorPoints,readableFloorDocument, type FloorDocument} from "./menu-floor-plan";
+import {sameFloorDocument,normalizeFloorDocument,placeNewFloorPoints,readableFloorDocument,setFloorRoomGrid, type FloorDocument} from "./menu-floor-plan";
 const room="11111111-1111-4111-8111-111111111111", point="33333333-3333-4333-8333-333333333333";
 test("새 등록의 초기 배치는 저장된 원본을 바꾸지 않고 공유 초안에만 추가한다",()=>{
  const saved:FloorDocument={rooms:[{id:room,name:"룸",aspectRatio:4/3}],placements:[]};
@@ -27,4 +27,27 @@ test("과거 배치에 이미 있던 복원 항목도 같은 좌표계와 순서
  const result=await saveRegisteredFloorPoint({available:true,revision:1,document:legacy},{pointId:point,roomId:room},async(_revision,document)=>({status:"success",revision:2,document:normalizeFloorDocument(document)}));
  assert.equal(result.status,"success");if(result.status!=="success")return;
  const merged=mergeRegisteredFloorPoint(legacy,result.document,point);assert.ok(sameFloorDocument(merged,result.document));assert.equal(merged.placements[0].pointId,point);
+});
+
+
+test("다른 룸으로 복원하면 예전 위치를 떼고 새 룸에 등록하며, 격자 초안의 크기도 지킨다", async () => {
+  const otherRoom = "55555555-5555-4555-8555-555555555555";
+  const empty: FloorDocument = { rooms: [
+    { id: room, name: "홀", aspectRatio: 1.78, gridSize: 5 },
+    { id: otherRoom, name: "테라스", aspectRatio: 1.78, gridSize: 5 },
+  ], placements: [], layoutVersion: 3 };
+  const saved = placeNewFloorPoints(empty, [point], room);
+  const result = await saveRegisteredFloorPoint(
+    { available: true, revision: 1, document: saved },
+    { pointId: point, roomId: otherRoom },
+    async (_revision, input) => ({ status: "success", revision: 2, document: normalizeFloorDocument(input) }),
+  );
+  assert.equal(result.status, "success");
+  if (result.status !== "success") return;
+  assert.equal(result.document.placements[0].roomId, otherRoom);
+  const draft = setFloorRoomGrid(saved, otherRoom, 6);
+  const merged = mergeRegisteredFloorPoint(draft, result.document, point);
+  assert.deepEqual(normalizeFloorDocument(merged), merged);
+  assert.equal(merged.rooms[1].gridSize, 6);
+  assert.equal(merged.placements[0].roomId, otherRoom);
 });

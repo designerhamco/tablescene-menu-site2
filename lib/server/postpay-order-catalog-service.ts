@@ -4,6 +4,7 @@ import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-elig
 
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
+import { getOrderPriceColumnOptions } from "@/lib/order-price-column-options";
 import { createHash } from "node:crypto";
 
 import type { PostpayOrderCatalogItem } from "@/components/public-menu/order-call/types";
@@ -22,7 +23,8 @@ export async function getPostpayOrderCatalog(
   publicData?: Pick<
     PublicMenuTemplateProps,
     "categories" | "timeSales" | "menuSite" | "initialNowMs"
-  >,
+  > & Partial<Pick<PublicMenuTemplateProps, "items">>,
+  staffCategoryIds?: Map<string, string | null>,
 ): Promise<PostpayOrderCatalogItem[]> {
   if (!isPostpayOrderRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) return [];
 
@@ -92,6 +94,7 @@ export async function getPostpayOrderCatalog(
     groupsByItem.set(group.menu_item_id, groups);
   }
 
+  const publicItems = new Map(publicData?.items?.map(item => [item.id, item]));
   const catalog: PostpayOrderCatalogItem[] = (itemsResult.data ?? [])
     .filter(
       (item) =>
@@ -102,29 +105,51 @@ export async function getPostpayOrderCatalog(
           ))
         ),
     )
-    .map((item) => ({
-      id: item.id,
-      name: item.name,
-      price: !item.price_label
-        ? (publicData?.timeSales
-            .filter((sale) =>
-              isMenuTimeSaleActive(sale, publicData.initialNowMs),
-            )
-            .flatMap((sale) => sale.items)
-            .find(
-              (target) =>
-                target.menuItemId === item.id &&
-                target.priceColumnId == null &&
-                target.visible &&
-                target.salePrice != null &&
-                target.salePrice > 0 &&
-                target.salePrice < item.price,
-            )?.salePrice ?? item.price)
-        : item.price,
-      imageUrl: item.image_url ?? undefined,
-      optionGroups: groupsByItem.get(item.id) ?? [],
-      customization: readMenuOrderCustomization(item.order_customization),
-    }));
+    .flatMap((item) => {
+      const customization = readMenuOrderCustomization(item.order_customization);
+      const groups = groupsByItem.get(item.id) ?? [];
+      const publicItem = publicItems.get(item.id);
+      const columnPricing = (customization.priceColumnIds || staffCategoryIds) && publicItem && getOrderPriceColumnOptions(
+        publicItem,
+        publicData?.categories.find(category => category.id === item.category_id),
+        publicData?.timeSales ?? [],
+        publicData?.initialNowMs ?? Date.now(),
+      );
+      if (columnPricing) {
+        return [{
+          id: item.id,
+          name: item.name,
+          price: columnPricing.price,
+          imageUrl: item.image_url ?? undefined,
+          optionGroups: [columnPricing.group, ...groups],
+          customization,
+        }];
+      }
+      if (customization.priceColumnIds) return [];
+      return [{
+        id: item.id,
+        name: item.name,
+        price: !item.price_label
+          ? (publicData?.timeSales
+              .filter((sale) =>
+                isMenuTimeSaleActive(sale, publicData.initialNowMs),
+              )
+              .flatMap((sale) => sale.items)
+              .find(
+                (target) =>
+                  target.menuItemId === item.id &&
+                  target.priceColumnId == null &&
+                  target.visible &&
+                  target.salePrice != null &&
+                  target.salePrice > 0 &&
+                  target.salePrice < item.price,
+              )?.salePrice ?? item.price)
+          : item.price,
+        imageUrl: item.image_url ?? undefined,
+        optionGroups: groups,
+        customization,
+      }];
+    });
   const coursesAllowingRequests = new Set((coursesResult.data ?? []).map(course => course.id));
   for (const course of publicData?.categories ?? []) {
     if (
@@ -140,6 +165,10 @@ export async function getPostpayOrderCatalog(
         optionGroups: [],
         customization: { ...EMPTY_MENU_ORDER_CUSTOMIZATION, allowRequest: coursesAllowingRequests.has(course.id) },
       });
+  }
+  if (staffCategoryIds) {
+    for (const item of itemsResult.data ?? []) staffCategoryIds.set(item.id, item.category_id);
+    for (const course of publicData?.categories ?? []) staffCategoryIds.set("course:" + course.id, course.id);
   }
   return catalog;
 }

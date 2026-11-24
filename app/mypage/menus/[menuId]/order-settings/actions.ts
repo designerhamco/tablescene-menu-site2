@@ -32,6 +32,10 @@ export async function updateOrderSettings(
     revalidatePath("/mypage/menus/" + id + "/order-settings");
     revalidatePath(`/mypage/menus/${id}/orders/settings`);
     revalidatePath(`/mypage/menus/${id}/calls/settings`);
+    if (section === "orders") {
+      revalidatePath(`/mypage/menus/${id}/orders`);
+      revalidatePath(`/mypage/menus/${id}/kitchen`);
+    }
     return {
       status: "success",
       message:

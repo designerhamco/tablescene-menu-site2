@@ -8,6 +8,7 @@ export const ORDER_STATUSES = [
 ] as const;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
+export const ORDER_PAID_PAYMENT_STATUSES = ["manual_paid", "paid"] as const;
 export type ManualPaymentMethod = "manual_card" | "manual_cash";
 
 const ORDER_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {
@@ -69,6 +70,14 @@ export function canCancelUnpaidOrder(status: unknown, paymentStatus: unknown) {
 
 export function canMarkManualPayment(status: unknown, paymentStatus: unknown) {
   return isOrderStatus(status) && status !== "cancelled" && paymentStatus === "unpaid";
+}
+
+export function canCancelTableOrder(status: unknown, paymentStatus: unknown) {
+  return (status === "received" || status === "accepted") && canCancelUnpaidOrder(status, paymentStatus);
+}
+
+export function canRecordTableOrderPayment(status: unknown, paymentStatus: unknown) {
+  return status === "served" && canMarkManualPayment(status, paymentStatus);
 }
 
 export function getNextOrderStatus(status: unknown): OrderStatus | null {

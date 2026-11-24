@@ -1,3 +1,5 @@
+import * as orderSettings from "./menu-order-settings";
+import * as floorPlan from "./menu-floor-plan";
 import * as qrRotation from "./qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "./order-point-deletion";
 import assert from "node:assert/strict";
@@ -11,7 +13,7 @@ const siteId = "11111111-1111-4111-8111-111111111111";
 const tableId = "22222222-2222-4222-8222-222222222222";
 const row = { id: tableId, label: "창가", qr_public_id: "33333333-3333-4333-8333-333333333333", display_order: 0, status: "disabled", archived_at: null, token_rotated_at: "2026-11-01T00:00:00Z", created_at: "2026-11-01T00:00:00Z", updated_at: "2026-11-01T00:00:00Z" };
 
-function fixture({ error = null as null | { code: string; message?: string }, missing = false, denied = false, roomMissing=false, roomError=false } = {}) {
+function fixture({ error = null as null | { code: string; message?: string }, missing = false, denied = false, roomMissing=false, roomError=false, fullRoom=false, orderEnabled=false } = {}) {
   const filters: unknown[] = [];
   const writes: Record<string, unknown>[] = [];
   const permissions: unknown[] = [];
@@ -29,12 +31,20 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
     async maybeSingle() { return { data: missing ? null : { ...row, ...writes.at(-1) }, error }; },
   };
   const db = { from(name: string) {
-    if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: siteId, name: "매장", slug: "store", status: "published", template_key: "cafe_design_a" }, error: null }; } };
-    if(name==="menu_floor_plans")return{select(){return this;},eq(){return this;},async maybeSingle(){return{data:roomMissing?null:{document:{rooms:[{id:siteId,name:"홀"}]}},error:roomError?{code:"read-failed"}:null};}};
+    if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: siteId, name: "매장", slug: "store", status: "published", template_key: "cafe_design_a", settings: { table_order: { orderEnabled } } }, error: null }; } };
+    if (name === "menu_floor_plans") {
+      const document: floorPlan.FloorDocument = { rooms: [{ id: siteId, name: "홀", aspectRatio: 1.78, ...(fullRoom ? { gridSize: 1 } : {}) }], placements: [] };
+      const layout = fullRoom ? floorPlan.placeNewFloorPoints(document, [tableId], siteId) : document;
+      return { select() { return this; }, eq() { return this; }, async maybeSingle() {
+        return { data: roomMissing ? null : { document: layout }, error: roomError ? { code: "read-failed" } : null };
+      } };
+    }
     assert.equal(name, "menu_tables");
     return query;
   } };
   const dependencies: Record<string, unknown> = {
+    "@/lib/menu-order-settings": orderSettings,
+    "@/lib/menu-floor-plan": floorPlan,
     "server-only": {}, "@/lib/qr-rotation-policy": qrRotation, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary },
     "@/lib/order-point-policy": pointPolicy,
     "@/lib/menu-table-management": { ...validation, createMenuTableTokenMaterial() { throw new Error("Tokens must not rotate on restore"); } },
@@ -133,4 +143,14 @@ test("이전 사용 중지는 명시적 재개만 허용하고 모든 수신을 
 test("보관 복원도 저장된 룸을 확인하기 전에는 상태를 변경하지 않는다",async()=>{
  for(const options of [{roomMissing:true},{roomError:true}]){const f=fixture(options);await assert.rejects(f.service.restoreMenuTable({menuSiteId:siteId,tableId,label:"새 이름",roomId:siteId}),/복원할 룸/);assert.deepEqual(f.writes,[]);}
  const f=fixture();await assert.rejects(f.service.restoreMenuTable({menuSiteId:siteId,tableId,label:"새 이름",roomId:tableId}),/복원할 룸/);assert.deepEqual(f.writes,[]);
+});
+
+
+test("빈 칸이 없거나 주문을 접수 중인 룸에서는 보관 항목을 복원하지 않는다", async () => {
+  const archivedId = "44444444-4444-4444-8444-444444444444";
+  for (const [options, reason] of [[{ fullRoom: true }, /빈 칸이 부족/], [{ orderEnabled: true }, /주문 접수/]] as const) {
+    const f = fixture(options);
+    await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId: archivedId, roomId: siteId, label: "창가" }), reason);
+    assert.deepEqual(f.writes, []);
+  }
 });

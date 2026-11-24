@@ -1,0 +1,64 @@
+.layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-block-size: 0;
+}
+
+.orders {
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border-block: 1px solid var(--ui-border);
+  margin-block-start: var(--site-space-copy);
+}
+
+.order {
+  display: grid;
+  gap: var(--site-space-copy);
+  padding-block: var(--site-space-block);
+  padding-inline-end: var(--site-space-copy);
+}
+
+.order + .order {
+  border-block-start: 1px solid var(--ui-border);
+}
+
+.footer {
+  display: grid;
+  gap: var(--site-space-copy);
+  padding-block-start: var(--site-space-block);
+}
+
+.itemLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--site-space-copy);
+}
+
+.itemDescription {
+  display: flex;
+  align-items: baseline;
+  gap: var(--site-space-detail);
+}
+
+.flagSlot {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+}
+
+.amount {
+  flex: none;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.settlementSection {
+  padding-block: var(--site-space-block);
+}
+
+.settlementSection + .settlementSection {
+  border-block-start: 1px solid var(--ui-border);
+}

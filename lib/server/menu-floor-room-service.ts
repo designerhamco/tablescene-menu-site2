@@ -9,7 +9,7 @@ export async function removeMenuFloorRoom(menuSiteId: string, revision: number, 
   if (!Number.isSafeInteger(revision) || revision<1) throw new FloorPlanError("룸 버전을 확인해 주세요.");
   if(!request || !Array.isArray(request.pointIds) || request.pointIds.length>200)throw new FloorPlanError("정리할 항목을 확인해 주세요.");
   const normalized={...request,roomId:normalizeMenuTableId(request.roomId),targetRoomId:request.targetRoomId?normalizeMenuTableId(request.targetRoomId):undefined,pointIds:request.pointIds.map(normalizeMenuTableId)};
-  const {context,supabase}=await requireMenuTableWriteAccess(siteId);
+  const {context,supabase}=await requireMenuTableWriteAccess(siteId, { layoutChange: true });
   const stored=await supabase.from("menu_floor_plans").select("document,revision").eq("menu_site_id",siteId).maybeSingle();
   if (stored.error || !stored.data || stored.data.revision!==revision) throw new FloorPlanError("다른 화면에서 룸이 변경되었습니다. 새로고침 후 다시 확인해 주세요.");
   const points=await supabase.from("menu_tables").select("id").eq("menu_site_id",siteId).in("status",["active","disabled"]);

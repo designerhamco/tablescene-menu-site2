@@ -28,6 +28,7 @@ export function buildInteractivePreviewConfig(
     data.priceOptions,
     data.timeSales,
     data.initialNowMs,
+    customizationByItem,
   );
   return {
     mode: "active",

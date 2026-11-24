@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
-import { Switch } from "@/app/components/ui/switch";
-import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
+import OrderReceptionControl from "@/components/mypage/OrderReceptionControl";
 import OperationsViewLayout from "@/components/mypage/OperationsViewLayout";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { floorMemberships } from "@/lib/menu-floor-plan";
-import { loadOperationReceptionSummary } from "@/lib/server/menu-order-settings-service";
 import { loadOperationsFloorPlan } from "@/lib/server/operations-floor-plan-service";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
@@ -52,23 +50,14 @@ export default async function KitchenDashboardPage({ params }: {
   const selectedSite = sites.find(site => site.menuSiteId === menuId);
   if (!selectedSite?.operationAccess.orders) redirect("/mypage/operations");
 
-  const reception = await loadOperationReceptionSummary(menuId).catch(() => null);
-  const receptionControl = reception?.orderEnabled !== null && reception?.orderEnabled !== undefined
-    ? selectedSite.canConfigure
-      ? <OperationFeatureToggle menuId={menuId} feature="orders" enabled={reception.orderEnabled}
-          published={selectedSite.status === "published"} canEnable={reception.runtime.orders} activeTablesReady={selectedSite.activeTablesReady}
-          action={<span className="type-label">주문 시작</span>} />
-      : <div className="site-action-row"><span className="type-label">주문 시작</span>
-          <Switch checked={reception.orderEnabled && reception.runtime.orders && selectedSite.activeTablesReady === true && selectedSite.status === "published"}
-            disabled aria-label="주문 시작" />
-        </div>
-    : null;
 
   return (
     <StoreOperationsShell sites={sites} selectedSite={selectedSite} activeSection="kitchen">
       <OperationsViewLayout title="주방 대시보드" selectable={false}>
         <KitchenDashboard key={menuId} menuSiteId={menuId} menuSiteName={data.menuSiteName} orders={data.orders} canManage={data.canManage}
-          rooms={floor.document.rooms} receptionControl={receptionControl}
+          rooms={floor.document.rooms}
+          receptionControl={<OrderReceptionControl menuId={menuId} canConfigure={selectedSite.canConfigure}
+            published={selectedSite.status === "published"} activeTablesReady={selectedSite.activeTablesReady} />}
           roomIdByTable={Object.fromEntries(floorMemberships(floor.document).map(({ pointId, roomId }) => [pointId, roomId]))} />
       </OperationsViewLayout>
     </StoreOperationsShell>

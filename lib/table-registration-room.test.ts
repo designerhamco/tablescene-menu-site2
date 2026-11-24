@@ -1,3 +1,5 @@
+import * as orderSettings from "./menu-order-settings";
+import * as floorPlan from "./menu-floor-plan";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -21,6 +23,8 @@ function fixture({ stored = document as unknown, readError = false, denied = fal
     return { insert(value: Record<string, unknown>) { writes.push(value); return this; }, select() { return this; }, async maybeSingle() { return { data: { id: tableId, label: "1번 테이블", qr_public_id: roomId, status: "active", display_order: 0, created_at: "2026-11-06", updated_at: "2026-11-06", token_rotated_at: "2026-11-06" }, error: conflict ? { code: "23505" } : null }; } };
   } };
   const deps: Record<string, unknown> = {
+    "@/lib/menu-order-settings": orderSettings,
+    "@/lib/menu-floor-plan": floorPlan,
     "server-only": {}, "@/lib/qr-rotation-policy": qrRotation, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary }, "@/lib/order-point-policy": policy,
     "@/lib/menu-table-management": { ...validation, createMenuTableTokenMaterial() { tokens++; return { tokenHash: "test-token-hash" }; } },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: true }) },

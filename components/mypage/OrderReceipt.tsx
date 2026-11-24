@@ -23,7 +23,7 @@ export default function OrderReceipt({
   menuSiteName: string;
 }) {
   return (
-    <section className="mx-auto max-w-[80mm] bg-white p-6 font-mono text-black">
+    <section data-order-receipt className="mx-auto max-w-[80mm] bg-white p-6 font-mono text-black">
       <h2 className="type-content-title text-center">{menuSiteName}</h2>
       <p className="mt-1 text-center text-copy">
         주문 #{order.orderNumber} · {order.tableLabel}

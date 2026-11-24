@@ -486,15 +486,36 @@ function normalizeCategoryPriceColumnDrafts(
 }
 
 function copyCategoryPriceColumnDrafts(columns: readonly Partial<CategoryPriceColumnDraft>[] | undefined) {
-  return normalizeCategoryPriceColumnDrafts(columns).map((column, index) => ({
-    ...column,
-    id: undefined,
-    sortOrder: index,
-  }));
+  const idMap = new Map<string, string>();
+  const copies = normalizeCategoryPriceColumnDrafts(columns).map((column, index) => {
+    const id = crypto.randomUUID();
+    if (column.visible && column.id) idMap.set(column.id, id);
+    return { ...column, id, sortOrder: index };
+  });
+  return { columns: copies, idMap };
+}
+
+function copyScopedItemOptions(item: MenuItem, draft: ItemBasicDraft | undefined, columnIds: ReadonlyMap<string, string>) {
+  const customization = draft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization);
+  if (!customization.priceColumnIds) return { orderCustomization: customization, priceColumnValues: [] };
+
+  const priceColumnValues = copyItemPriceColumnValueDrafts(draft?.priceColumnValues ?? item.priceColumnValues).flatMap(value => {
+    const id = columnIds.get(value.priceColumnId);
+    return id ? [{ ...value, priceColumnId: id }] : [];
+  });
+  const priceColumnIds = customization.priceColumnIds.flatMap(id => {
+    const copy = columnIds.get(id);
+    return copy && priceColumnValues.some(value => value.priceColumnId === copy && value.visible && value.price) ? [copy] : [];
+  });
+  return {
+    orderCustomization: priceColumnIds.length ? { ...customization, priceColumnIds } : undefined,
+    priceColumnValues,
+  };
 }
 
 function createCategoryPriceColumnDraft(index: number): CategoryPriceColumnDraft {
   return {
+    id: crypto.randomUUID(),
     key: `column_${index + 1}`,
     label: "",
     visible: true,
@@ -3120,6 +3141,17 @@ function MenuItemForm({
     ? effectiveDraftPriceOptions.some((option) => option.visible && (String(option.price).trim() || option.priceLabel.trim()))
     : effectiveDraftPriceOptions.some((option) => option.visible);
   const hasVisiblePriceColumnValue = effectiveDraftPriceColumnValues.some((value) => value.visible);
+  const pricedColumnsForProductOptions = currentCategoryPriceColumns.flatMap(column =>
+    column.id && column.visible && effectiveDraftPriceColumnValues.some(value => value.priceColumnId === column.id && value.visible)
+      ? [{ id: column.id, label: column.label }] : []
+  );
+  const hasProductOptions = orderCustomization.choices.some(choice => choice.trim()) || orderCustomization.allowRequest;
+  const customizationForSave = {
+    ...orderCustomization,
+    priceColumnIds: hasCategoryPriceColumns && hasProductOptions
+      ? orderCustomization.priceColumnIds?.filter(id => pricedColumnsForProductOptions.some(column => column.id === id))
+      : undefined,
+  };
   const visiblePriceColumnTimeSaleRows = effectiveDraftPriceColumnValues
     .filter((value) => value.visible && normalizeDraftText(value.price))
     .map((value) => {
@@ -3256,7 +3288,7 @@ function MenuItemForm({
   const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
   let orderCustomizationError = "";
   if (supportsOrderCustomization) {
-    try { parseMenuOrderCustomization(orderCustomization); }
+    try { parseMenuOrderCustomization(customizationForSave); }
     catch (error) { orderCustomizationError = error instanceof Error ? error.message : "상품 옵션 설정을 확인해 주세요."; }
   }
   const itemSaveDisabledReason = nameInvalid
@@ -3437,7 +3469,7 @@ function MenuItemForm({
     }));
 
     return {
-      ...(supportsOrderCustomization ? { orderCustomization: parseMenuOrderCustomization(orderCustomization) } : {}),
+      ...(supportsOrderCustomization ? { orderCustomization: parseMenuOrderCustomization(customizationForSave) } : {}),
       categoryId: String(formData?.get("item_category_id") ?? categoryId),
       pageId: draftItem?.pageId ?? item?.menu_page_id ?? selectedPageId,
       name: String(formData?.get("item_name") ?? nameValue),
@@ -4309,6 +4341,8 @@ function MenuItemForm({
 
       {supportsOrderCustomization && (
         <MenuProductOptionsField value={orderCustomization} error={orderCustomizationError}
+          priceColumns={pricedColumnsForProductOptions}
+          canScopeToPrices={hasCategoryPriceColumns && (pricedColumnsForProductOptions.length > 0 || Boolean(orderCustomization.priceColumnIds))}
           onChange={value => {
             setOrderCustomization(value);
             updateDraftItem({ orderCustomization: value });
@@ -7601,6 +7635,9 @@ export default function MenuManagementSection({
     const copyCount = Object.keys(pageBasicDrafts).filter((id) => id.startsWith(`temp-page-copy-${pageId}-`)).length;
     const draftPageId = `temp-page-copy-${pageId}-${copyCount + 1}`;
     const categoryIdMap = new Map<string, string>();
+    const copiedPriceColumns = new Map(sourceCategories.map(category =>
+      [category.id, copyCategoryPriceColumnDrafts(getCategoryPriceColumns(category.id))]
+    ));
     const existingPageNames = sortedPages.map((page) => getMenuPageTitle(page));
 
     sourceCategories.forEach((category) => {
@@ -7654,7 +7691,7 @@ export default function MenuManagementSection({
           visible: currentDrafts[category.id]?.visible ?? category.visible,
           sortOrder: index,
           priceOptionLabels: currentDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
-          priceColumns: copyCategoryPriceColumnDrafts(currentDrafts[category.id]?.priceColumns ?? getCategoryPriceColumns(category.id)),
+          priceColumns: copiedPriceColumns.get(category.id)?.columns,
           allowCourseOrderRequest: currentDrafts[category.id]?.allowCourseOrderRequest ?? category.allow_course_order_request,
           coursePrice: currentDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price)),
           coursePriceLabel: currentDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "",
@@ -7671,7 +7708,8 @@ export default function MenuManagementSection({
       const nextDrafts = { ...currentDrafts };
       sourceCategories.forEach((category) => {
         const draftCategoryId = categoryIdMap.get(category.id);
-        if (!draftCategoryId) return;
+        const priceColumnCopy = copiedPriceColumns.get(category.id);
+        if (!draftCategoryId || !priceColumnCopy) return;
 
         const sourceItems = sortItems(draftedItems.filter((item) => item.category_id === category.id));
         const copiedItemNames: string[] = [];
@@ -7693,7 +7731,7 @@ export default function MenuManagementSection({
             price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
             priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
             priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
-            orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization),
+            ...copyScopedItemOptions(item, sourceDraft, priceColumnCopy.idMap),
             badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
             visible: sourceDraft?.visible ?? item.visible,
             isSoldOut: false,
@@ -7704,7 +7742,6 @@ export default function MenuManagementSection({
             traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
             traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
             priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
-            priceColumnValues: [],
             badgeStyleKey: sourceDraft?.badgeStyleKey,
             badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
             badgeTextColor: sourceDraft?.badgeTextColor,
@@ -7789,6 +7826,16 @@ export default function MenuManagementSection({
     const draftId = `temp-item-copy-${itemId}-${copyCount + 1}`;
     const nextOrderedIds = [draftId, ...categoryItems.map((item) => item.id)];
     const sourceDraft = draftPatch ? { ...itemBasicDrafts[itemId], ...draftPatch } : itemBasicDrafts[itemId];
+    const sourceCustomization = sourceDraft?.orderCustomization ?? readMenuOrderCustomization(sourceItem.order_customization);
+    const copiedOrderFields = sourceCustomization.priceColumnIds
+      ? copyScopedItemOptions(sourceItem, sourceDraft, new Map(
+          getCategoryPriceColumns(sourceDraft?.categoryId ?? sourceItem.category_id ?? "")
+            .flatMap(column => column.visible && column.id ? [[column.id, column.id] as const] : [])
+        ))
+      : {
+          orderCustomization: sourceCustomization,
+          priceColumnValues: copyItemPriceColumnValueDrafts(sourceDraft?.priceColumnValues ?? sourceItem.priceColumnValues),
+        };
 
     setItemBasicDrafts((currentDrafts) => {
       const copiedDraft: ItemBasicDraft = {
@@ -7805,7 +7852,7 @@ export default function MenuManagementSection({
         price: sourceDraft?.price ?? (sourceItem.price == null ? "" : String(sourceItem.price)),
         priceLabel: sourceDraft?.priceLabel ?? sourceItem.price_label ?? "",
         priceNote: sourceDraft?.priceNote ?? sourceItem.price_note ?? "",
-        orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(sourceItem.order_customization),
+        ...copiedOrderFields,
         badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
         visible: sourceDraft?.visible ?? sourceItem.visible,
         isSoldOut: false,
@@ -7817,7 +7864,6 @@ export default function MenuManagementSection({
         traitsVisible: sourceDraft?.traitsVisible ?? sourceItem.traits_visible,
         traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === sourceItem.id))),
         priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === sourceItem.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
-        priceColumnValues: copyItemPriceColumnValueDrafts(sourceDraft?.priceColumnValues ?? sourceItem.priceColumnValues),
         badgeStyleKey: sourceDraft?.badgeStyleKey,
         badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
         badgeTextColor: sourceDraft?.badgeTextColor,
@@ -7880,6 +7926,7 @@ export default function MenuManagementSection({
     const copyCount = Object.keys(categoryBasicDrafts).filter((id) => id.startsWith(`temp-category-copy-${categoryId}-`)).length;
     const draftCategoryId = `temp-category-copy-${categoryId}-${copyCount + 1}`;
     const existingCategoryNames = pageCategories.map((category) => category.name);
+    const priceColumnCopy = copyCategoryPriceColumnDrafts(getCategoryPriceColumns(sourceCategory.id));
 
     setCategoryBasicDrafts((currentDrafts) => {
       const nextDrafts = { ...currentDrafts };
@@ -7906,7 +7953,7 @@ export default function MenuManagementSection({
         visible: sourceCategory.visible,
         sortOrder: 0,
         priceOptionLabels: getCategoryPriceOptionLabels(sourceCategory.id),
-        priceColumns: copyCategoryPriceColumnDrafts(getCategoryPriceColumns(sourceCategory.id)),
+        priceColumns: priceColumnCopy.columns,
         allowCourseOrderRequest: sourceCategory.allow_course_order_request,
       };
       return nextDrafts;
@@ -7933,7 +7980,7 @@ export default function MenuManagementSection({
           price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
           priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
           priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
-          orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization),
+          ...copyScopedItemOptions(item, sourceDraft, priceColumnCopy.idMap),
           badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
           visible: sourceDraft?.visible ?? item.visible,
           isSoldOut: false,
@@ -7944,7 +7991,6 @@ export default function MenuManagementSection({
           traitsVisible: sourceDraft?.traitsVisible ?? item.traits_visible,
           traitDrafts: copyItemTraitDrafts(sourceDraft?.traitDrafts ?? toItemTraitDrafts(traits.filter((trait) => trait.menu_item_id === item.id))),
           priceOptions: sourceDraft?.priceOptions ?? priceOptions.filter((option) => option.menu_item_id === item.id).sort((a, b) => a.sort_order - b.sort_order).map(toDraftPriceOption),
-          priceColumnValues: [],
           badgeStyleKey: sourceDraft?.badgeStyleKey,
           badgeBackgroundColor: sourceDraft?.badgeBackgroundColor,
           badgeTextColor: sourceDraft?.badgeTextColor,

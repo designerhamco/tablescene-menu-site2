@@ -93,28 +93,6 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.flag {
-  --flag-ink: var(--ui-text-subtle);
-  display: inline-block;
-  position: relative;
-  flex: none;
-  inline-size: 0.875rem;
-  block-size: 1.25rem;
-  border-inline-start: 0.09375rem solid var(--flag-ink);
-}
-
-.flag[data-done="true"] {
-  --flag-ink: var(--ui-chip-active);
-}
-
-.flag::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  block-size: 0.625rem;
-  background: repeating-conic-gradient(var(--flag-ink) 0% 25%, transparent 0% 50%) 0 0 / 0.25rem 0.25rem;
-}
-
 .flagDisplay, .progressCount {
   display: inline-flex;
   align-items: center;

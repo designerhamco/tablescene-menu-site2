@@ -38,7 +38,10 @@ export async function updateOperationFeature(input: {
     await setMenuOrderFeatureEnabled(input.menuId, input.feature, input.enabled, input.expectedEnabled);
     revalidatePath("/menu", "layout");
     revalidatePath(`/mypage/menus/${input.menuId}/orders/settings`);
-    if (input.feature === "orders") revalidatePath(`/mypage/menus/${input.menuId}/kitchen`);
+    if (input.feature === "orders") {
+      revalidatePath(`/mypage/menus/${input.menuId}/orders`);
+      revalidatePath(`/mypage/menus/${input.menuId}/kitchen`);
+    }
     revalidatePath(`/mypage/menus/${input.menuId}/calls/settings`);
     revalidatePath(`/mypage/menus/${input.menuId}/order-settings`);
     revalidatePath(`/mypage/menus/${input.menuId}/tables`);
