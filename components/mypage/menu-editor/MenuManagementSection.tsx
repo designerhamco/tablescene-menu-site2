@@ -6,7 +6,7 @@ import MenuProductOptionsField, { OrderRequestSwitch } from "./MenuProductOption
 import { ArrowUp, ArrowDown, ChevronUp, ChevronDown } from "@/app/components/ui/site-arrow";
 import { getEffectiveWidgetPlacement, orderWidgetContentBlocks } from "@/lib/menu-widget-placement";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
@@ -156,6 +156,7 @@ import type { TemplateCapabilities, TemplateMenuWidgetCapabilities } from "@/lib
 import { getEditorLabelsByTemplateType, type TemplateEditorLabels } from "@/lib/template-types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
 import { Badge } from "@/app/components/ui/badge";
+import { ContentPanel } from "@/app/components/ui/content-panel";
 
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
@@ -213,6 +214,7 @@ type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options
 type MenuManagementSectionProps = {
   menuId: string;
   templateKey: string;
+  basicEditor?: boolean;
   menuPages: MenuPage[];
   categories: MenuCategory[];
   items: MenuItem[];
@@ -621,6 +623,7 @@ function getPriceOptionSortOrder(option: DraftPriceOption | MenuItemPriceOption)
   return "sortOrder" in option ? option.sortOrder : option.sort_order;
 }
 
+const MOBILE_ITEM_EDITOR_QUERY = "(width < 64rem)";
 const MENU_BUILDER_STATE_KEY_PREFIX = "tablescene:menu-editor:builder";
 const PC_TABLET_LAYOUT_MODE_OPTION_LABELS = {
   orderedBalancedFit: {
@@ -5224,6 +5227,7 @@ function DraftPriceOptionsEditor({
 export default function MenuManagementSection({
   menuId,
   templateKey,
+  basicEditor = false,
   menuPages,
   categories,
   items,
@@ -5258,6 +5262,7 @@ export default function MenuManagementSection({
   const isAubeTable = isAubeTableTemplate(templateKey);
   const supportsOrderCustomization = getDiningTemplateFeatures(templateKey).order;
   const cafeAStarterReset = useCafeAStarterResetCoordinator();
+  const finalSaveLabel = basicEditor ? "최종 저장" : "저장";
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const initialTimeSaleDraftByItemId = new Map(
     timeSales
@@ -5585,6 +5590,8 @@ export default function MenuManagementSection({
   const [isSampleResetApplying, setIsSampleResetApplying] = useState(false);
   const [hasRestoredBuilderState, setHasRestoredBuilderState] = useState(false);
   const newItemFormRef = useRef<HTMLDivElement | null>(null);
+  const structureRef = useRef<HTMLElement>(null);
+  const mobileItemOrigin = useRef<{ scrollY: number; trigger: HTMLElement | null } | null>(null);
 
   function getDraftedPageDisplaySettings(page?: MenuPage | null) {
     return normalizeMenuPageDisplaySettings(page ? pageBasicDrafts[page.id]?.displaySettings ?? page.display_settings : null);
@@ -6026,6 +6033,17 @@ export default function MenuManagementSection({
     const nameInput = formElement.querySelector<HTMLInputElement>('input[name="item_name"]');
     window.setTimeout(() => nameInput?.focus(), 120);
   }, [isCreatingItem]);
+
+  useLayoutEffect(() => {
+    const origin = mobileItemOrigin.current;
+    if (editingItemId || !origin) return;
+    mobileItemOrigin.current = null;
+    if (!window.matchMedia(MOBILE_ITEM_EDITOR_QUERY).matches) return;
+
+    const returnTarget = origin.trigger?.isConnected ? origin.trigger : structureRef.current;
+    returnTarget?.focus({ preventScroll: true });
+    window.scrollTo({ top: origin.scrollY, behavior: "instant" });
+  }, [editingItemId]);
 
   function clearFinalSaveSummary() {
     if (finalSaveError) setDismissedFinalSaveError(finalSaveError);
@@ -6656,6 +6674,7 @@ export default function MenuManagementSection({
 
   function commitPendingItemDraft(itemId: string, commitPatch?: Partial<ItemBasicDraft>) {
     clearFinalSaveSummary();
+    const appliedMessage = `수정 내용이 임시 반영되었습니다. ${finalSaveLabel} 후 공개 메뉴판에 반영됩니다.`;
     const pendingDraft = pendingItemDrafts[itemId]
       ? { ...pendingItemDrafts[itemId], ...commitPatch }
       : commitPatch
@@ -6664,11 +6683,10 @@ export default function MenuManagementSection({
     const isNewDraftCommit = !itemBasicDrafts[itemId];
     if (!pendingDraft) {
       if (itemBasicDrafts[itemId]) {
-        const message = "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
         const committedCategoryId = itemBasicDrafts[itemId]?.categoryId;
         if (committedCategoryId) setSelectedCategoryId(committedCategoryId);
         setIsCreatingItem(false);
-        toast.success(message);
+        toast.success(appliedMessage);
       }
       return;
     }
@@ -6698,14 +6716,17 @@ export default function MenuManagementSection({
       return nextDrafts;
     });
     setIsCreatingItem(false);
-    if (committedDraft.categoryId) {
-      const committedCategory = draftedCategories.find((category) => category.id === committedDraft.categoryId);
+    const categoryId = committedDraft.categoryId;
+    if (categoryId) {
+      const committedCategory = draftedCategories.find((category) => category.id === categoryId);
       if (committedCategory) {
         if (committedCategory.menu_page_id) setSelectedPageId(committedCategory.menu_page_id);
-        setExpandedPageIds(new Set(committedCategory.menu_page_id ? [committedCategory.menu_page_id] : []));
+        const pageId = committedCategory.menu_page_id;
+        if (pageId) setExpandedPageIds((expanded) => new Set(basicEditor ? [...expanded, pageId] : [pageId]));
+        else if (!basicEditor) setExpandedPageIds(new Set());
       }
-      setSelectedCategoryId(committedDraft.categoryId);
-      setExpandedCategoryIds(new Set([committedDraft.categoryId]));
+      setSelectedCategoryId(categoryId);
+      setExpandedCategoryIds((expanded) => new Set(basicEditor ? [...expanded, categoryId] : [categoryId]));
     }
     if (isNewDraftCommit) {
       setEditingItemId("");
@@ -6713,8 +6734,8 @@ export default function MenuManagementSection({
     }
     setConfirmingDeleteKey("");
     const message = isNewDraftCommit
-        ? `${labels.itemLabel === "서비스" ? "서비스가" : "아이템이"} 임시 추가되었습니다. 저장 후 공개 메뉴판에 반영됩니다.`
-        : "수정 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.";
+      ? `${labels.itemLabel === "서비스" ? "서비스가" : "아이템이"} 임시 추가되었습니다. ${finalSaveLabel} 후 공개 메뉴판에 반영됩니다.`
+      : appliedMessage;
     toast.success(message);
   }
 
@@ -8018,16 +8039,24 @@ export default function MenuManagementSection({
     toast.success(message);
   }
 
-  function startEditItem(itemId: string) {
+  function rememberMobileItemOrigin(trigger?: HTMLElement) {
+    if (!basicEditor || !window.matchMedia(MOBILE_ITEM_EDITOR_QUERY).matches || mobileItemOrigin.current) return;
+    mobileItemOrigin.current = { scrollY: window.scrollY, trigger: trigger ?? null };
+  }
+
+  function startEditItem(itemId: string, trigger?: HTMLElement) {
     if (!confirmDiscardDraft()) return;
+    rememberMobileItemOrigin(trigger);
     const item = draftedItems.find((entry) => entry.id === itemId);
     const category = item?.category_id ? draftedCategories.find((entry) => entry.id === item.category_id) : null;
     resetModes();
     if (category) {
       if (category.menu_page_id) setSelectedPageId(category.menu_page_id);
+      const pageId = category.menu_page_id;
       setSelectedCategoryId(category.id);
-      setExpandedPageIds(new Set(category.menu_page_id ? [category.menu_page_id] : []));
-      setExpandedCategoryIds(new Set([category.id]));
+      if (pageId) setExpandedPageIds((expanded) => new Set(basicEditor ? [...expanded, pageId] : [pageId]));
+      else if (!basicEditor) setExpandedPageIds(new Set());
+      setExpandedCategoryIds((expanded) => new Set(basicEditor ? [...expanded, category.id] : [category.id]));
     } else if (item?.menu_page_id) {
       setSelectedPageId(item.menu_page_id);
       setSelectedCategoryId("");
@@ -8057,8 +8086,9 @@ export default function MenuManagementSection({
     setSelectedCategoryId(categoryId);
   }
 
-  function selectItem(pageId: string, categoryId: string, itemId: string) {
+  function selectItem(pageId: string, categoryId: string, itemId: string, trigger?: HTMLElement) {
     if (!confirmDiscardDraft()) return;
+    rememberMobileItemOrigin(trigger);
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId(categoryId);
@@ -8765,6 +8795,43 @@ export default function MenuManagementSection({
     );
   }
 
+  const menuCleanupButton = (
+    <button
+      type="button"
+      onClick={() => {
+        setMenuCleanupResult(null);
+        setIsMenuCleanupOpen(true);
+      }}
+      disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
+      className="site-button site-button-outline"
+    >
+      AI 메뉴 정리 · 3크레딧
+    </button>
+  );
+  const pcTabletLayoutSettings = canConfigurePcTabletLayoutMode && (
+    <ContentPanel surface="muted" density="compact">
+      <div className="site-stack-copy">
+        <h4 className="type-label">PC/태블릿 배치 방식</h4>
+        <p className="type-body-sm site-copy-muted">모바일은 등록 순서대로 표시됩니다.</p>
+      </div>
+      <div className="site-stack-copy">
+        {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => updatePcTabletLayoutModeDraft(option.value)}
+            className="site-choice site-choice-control"
+            aria-pressed={pcTabletLayoutModeDraft === option.value}
+          >
+            <span className="block type-label">{option.title}</span>
+            <span className="block type-body-sm site-copy-muted">{option.description}</span>
+          </button>
+        ))}
+      </div>
+      <p className="type-body-sm site-copy-muted">기본 추천은 묶음형 자동 배치입니다.</p>
+    </ContentPanel>
+  );
+
   return (
     <div
       className="space-y-6"
@@ -8782,37 +8849,33 @@ export default function MenuManagementSection({
               <h2 className="type-subsection-title flex min-w-0 items-center gap-2">
                 <span className="min-w-0 truncate">{labels.itemPluralLabel.includes("서비스") ? "가격표 관리" : "메뉴판 구성"}</span>
                 <HelpTooltip label="메뉴판 구성 도움말">
-                  변경사항은 편집 화면에 먼저 반영되며, 하단의 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다. 샘플로 되돌리기도 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
+                  변경사항은 편집 화면에 먼저 반영되며, 하단의 {finalSaveLabel}을 눌러야 미리보기와 공개 메뉴판에 반영됩니다. 샘플로 되돌리기도 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
                 </HelpTooltip>
               </h2>
-              <p className="mt-2 break-words text-copy font-semibold leading-relaxed text-zinc-600">
-                {labels.pageLabel}, {labels.categoryLabel}, {labels.itemPluralLabel}을 관리합니다.
-              </p>
-              <p className="mt-3 break-keep rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 text-support font-medium leading-relaxed text-zinc-600">
-                메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
-              </p>
+              {!basicEditor && (
+                <>
+                  <p className="mt-2 break-words text-copy font-semibold leading-relaxed text-zinc-600">
+                    {labels.pageLabel}, {labels.categoryLabel}, {labels.itemPluralLabel}을 관리합니다.
+                  </p>
+                  <p className="mt-3 break-keep rounded-lg border border-zinc-100 bg-zinc-50 px-4 py-3 text-support font-medium leading-relaxed text-zinc-600">
+                    메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
+                  </p>
+                </>
+              )}
             </div>
-            <div className="shrink-0">
-              <div className="flex flex-col gap-3 sm:items-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuCleanupResult(null);
-                    setIsMenuCleanupOpen(true);
-                  }}
-                  disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
-                  className="site-button site-button-outline inline-flex items-center justify-center"
-                >
-                  AI 메뉴 정리 · 3크레딧
-                </button>
-                <p className="max-w-xs break-keep text-right text-support font-medium leading-relaxed text-zinc-600">
-                  AI가 생성한 문구와 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
-                </p>
-                <div className="w-full min-w-56">
-                  <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
+            {!basicEditor && (
+              <div className="shrink-0">
+                <div className="flex flex-col gap-3 sm:items-end">
+                  {menuCleanupButton}
+                  <p className="max-w-xs break-keep text-right text-support font-medium leading-relaxed text-zinc-600">
+                    AI가 생성한 문구와 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
+                  </p>
+                  <div className="w-full min-w-56">
+                    <AiUsageMeter label="AI 메뉴 정리" used={localAiMenuCleanupUsage.used} limit={localAiMenuCleanupUsage.limit} compact />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -8864,7 +8927,7 @@ export default function MenuManagementSection({
         ) : null}
 
         <div className="site-editor-menu-grid grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-          <aside className="site-editor-panel min-w-0 p-4 lg:sticky lg:top-24">
+          <aside ref={structureRef} tabIndex={basicEditor ? -1 : undefined} aria-label={basicEditor ? "메뉴판 구조" : undefined} className="site-editor-panel min-w-0 p-4 lg:sticky lg:top-24">
             <div className="mb-4 min-w-0">
               <h3 className="type-content-title mt-1 flex min-w-0 items-center gap-2 text-zinc-950">
                 <span className="min-w-0 truncate">메뉴판 구조</span>
@@ -8875,44 +8938,8 @@ export default function MenuManagementSection({
                 </HelpTooltip>
               </h3>
             </div>
-            {canConfigurePcTabletLayoutMode && (
-              <section className="site-section site-editor-subpanel mb-4 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h4 className="type-label break-keep text-zinc-950">PC/태블릿 배치 방식</h4>
-                    <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
-                      PC와 태블릿에서 메뉴판이 보이는 방식을 선택합니다.
-                    </p>
-                    <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
-                      모바일은 등록 순서대로 표시됩니다.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-3 grid gap-2">
-                  {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => {
-                    const selected = pcTabletLayoutModeDraft === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => updatePcTabletLayoutModeDraft(option.value)}
-                        className="site-choice site-choice-control"
-                        aria-pressed={selected}
-                      >
-                        <span className="block break-keep text-support font-medium">{option.title}</span>
-                        <span className={`mt-1 block break-keep text-support font-medium leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-600"}`}>
-                          {option.description}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-600">
-                  기본 추천은 묶음형 자동 배치이며, 필요하면 채움형 배치로 변경할 수 있습니다.
-                </p>
-              </section>
-            )}
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            {!basicEditor && pcTabletLayoutSettings && <div className="mb-4">{pcTabletLayoutSettings}</div>}
+            <div className="site-action-row" data-distribution={basicEditor ? undefined : "end"}>
               {shouldShowPageCreateButton && (
                 <button
                   type="button"
@@ -8954,6 +8981,7 @@ export default function MenuManagementSection({
                   + {labels.itemLabel}
                 </button>
               )}
+              {basicEditor && menuCleanupButton}
             </div>
             {hasActiveWidgetEditorChanges && (
               <p className="site-notice site-notice-warning mt-3 px-3 py-2 text-support font-medium leading-relaxed">
@@ -9159,12 +9187,12 @@ export default function MenuManagementSection({
                                       onDrop={() => handleItemDrop(category.id, item.id)}
                                       onPointerUp={(event) => {
                                         if (event.pointerType === "mouse" && event.button !== 0) return;
-                                        selectItem(page.id, category.id, item.id);
+                                        selectItem(page.id, category.id, item.id, event.currentTarget);
                                       }}
                                       onKeyDown={(event) => {
                                         if (event.key === "Enter" || event.key === " ") {
                                           event.preventDefault();
-                                          selectItem(page.id, category.id, item.id);
+                                          selectItem(page.id, category.id, item.id, event.currentTarget);
                                         }
                                       }}
                                       role="button"
@@ -9225,6 +9253,7 @@ export default function MenuManagementSection({
                 <ArrowDown size={16} className="inline-block align-text-bottom" aria-hidden="true" />
               </button>
             </div>
+            {basicEditor && pcTabletLayoutSettings && <div className="site-basic-editor-layout-settings">{pcTabletLayoutSettings}</div>}
           </aside>
 
           <section className="site-card site-editor-panel site-card-compact min-w-0 p-4 lg:p-6">
@@ -9576,9 +9605,10 @@ export default function MenuManagementSection({
                   allowDirectItem={isAubeTable}
                   selectedPageId={selectedEditingItem.menu_page_id ?? visiblePageId}
                   isEditing
-                  cancelLabel={itemEditorEntryMode === "edit" ? "취소" : "목록으로"}
+                  basicEditor={basicEditor}
+                  cancelLabel={basicEditor || itemEditorEntryMode === "list" ? "목록으로" : "취소"}
                   isConfirmingDelete={confirmingDeleteKey === `item:${selectedEditingItem.id}`}
-                  onEdit={() => startEditItem(selectedEditingItem.id)}
+                  onEdit={(trigger) => startEditItem(selectedEditingItem.id, trigger)}
                   onCancel={resetModes}
                   onCancelDelete={() => setConfirmingDeleteKey("")}
                   onRequestDelete={() => startConfirmDelete(`item:${selectedEditingItem.id}`)}
@@ -9709,7 +9739,7 @@ export default function MenuManagementSection({
                           cancelLabel="목록으로"
                           isEditing={false}
                           isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
-                          onEdit={() => startEditItem(item.id)}
+                          onEdit={(trigger) => startEditItem(item.id, trigger)}
                           onCancel={resetModes}
                           onCancelDelete={() => setConfirmingDeleteKey("")}
                           onRequestDelete={() => startConfirmDelete(`item:${item.id}`)}
@@ -9875,6 +9905,11 @@ export default function MenuManagementSection({
                 {timeSaleLimitMessage}
               </p>
             ) : null}
+            {basicEditor && (
+              <ContentPanel surface="notice" density="compact">
+                <p className="type-body-sm">공개 전에 메뉴명, 가격, 원산지, 알레르기, 이벤트 정보가 실제 매장 운영과 일치하는지 확인해 주세요. 잘못 입력한 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.</p>
+              </ContentPanel>
+            )}
             <FinalActionRow>
               <button
                 type="button"
@@ -9886,7 +9921,7 @@ export default function MenuManagementSection({
                 샘플 메뉴로 되돌리기
               </button>
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
-                저장
+                {finalSaveLabel}
               </SubmitButton>
               {finalSaveMessage && !menuManagementDirty && (
                 <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-emerald-700">
@@ -9900,7 +9935,7 @@ export default function MenuManagementSection({
               )}
               {menuManagementDirty && (
                 <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
-                  아직 저장되지 않은 변경사항이 있습니다. 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
+                  아직 저장되지 않은 변경사항이 있습니다. {finalSaveLabel}을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
                 </p>
               )}
             </FinalActionRow>
@@ -10187,6 +10222,7 @@ function MenuItemCard({
   onAiDescriptionUsageChange,
   badgeStyles,
   labels,
+  basicEditor = false,
   cancelLabel,
   draftItem,
   committedDraftItem,
@@ -10224,6 +10260,7 @@ function MenuItemCard({
   onAiDescriptionUsageChange: (usage: { used: number; limit: number }) => void;
   badgeStyles: BadgeStyles;
   labels: TemplateEditorLabels;
+  basicEditor?: boolean;
   cancelLabel: string;
   draftItem?: ItemBasicDraft;
   committedDraftItem?: ItemBasicDraft;
@@ -10234,7 +10271,7 @@ function MenuItemCard({
   draftOnly?: boolean;
   isEditing: boolean;
   isConfirmingDelete: boolean;
-  onEdit: () => void;
+  onEdit: (trigger: HTMLElement) => void;
   onCancel: () => void;
   onCancelDelete: () => void;
   onRequestDelete: () => void;
@@ -10254,18 +10291,28 @@ function MenuItemCard({
   const [priceMode, setPriceMode] = useState<PriceMode>(
     draftItem?.priceMode ?? (capabilities.priceOptions && priceOptions.some((option) => option.visible) ? "options" : "single")
   );
+  const returnButtonRef = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => {
+    if (basicEditor && isEditing && window.matchMedia(MOBILE_ITEM_EDITOR_QUERY).matches) {
+      returnButtonRef.current?.focus({ preventScroll: true });
+    }
+  }, [basicEditor, isEditing]);
+
   const isCopiedDraftItem =
     item.id.startsWith("temp-item-copy-") ||
     item.id.startsWith("temp-item-category-copy-") ||
     item.id.startsWith("temp-item-page-copy-");
 
   return (
-    <article className={isEditing ? "fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:rounded-lg lg:border lg:border-zinc-100 lg:p-5" : "rounded-lg border border-zinc-100 p-4"}>
+    <article
+      className={isEditing ? "fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:rounded-lg lg:border lg:border-zinc-100 lg:p-5" : "rounded-lg border border-zinc-100 p-4"}
+      data-basic-item-editor={basicEditor && isEditing ? "" : undefined}
+    >
       {isEditing ? (
         <>
           <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
             <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
-            <button type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex lg:hidden">
+            <button ref={returnButtonRef} type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>
           </div>
@@ -10353,7 +10400,7 @@ function MenuItemCard({
           {traitText && <p className="mt-2 break-words text-support font-medium text-zinc-600">{traitText}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-          <button type="button" onClick={onEdit} className="site-button site-button-outline">
+          <button type="button" onClick={(event) => onEdit(event.currentTarget)} className="site-button site-button-outline">
             수정
           </button>
           <SubmitButton type="button" tone="light" onClick={() => onCopy()}>

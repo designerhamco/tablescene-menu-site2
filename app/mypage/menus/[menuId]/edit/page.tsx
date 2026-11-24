@@ -1817,6 +1817,26 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     editorCapabilities.chefs && templateCapabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
   ].filter((item): item is { label: string; ok: boolean } => Boolean(item));
 
+  const menuEditorCreditSummary = accessState?.canUseAi && accessContext.isOwner ? (
+    <AiCreditRechargePanel
+      menuSiteId={site.id}
+      menuName={site.name}
+      userId={user.id}
+      userEmail={user.email}
+      storeId={portOneConfig.storeId ?? undefined}
+      channelKey={portOneConfig.channelKey ?? undefined}
+      initialBalance={aiCreditBalance}
+    />
+  ) : accessState?.canUseAi ? (
+    <div className="site-notice site-notice-info p-4">
+      AI 기능은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
+    </div>
+  ) : (
+    <div className="site-notice site-notice-warning p-4">
+      현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
+    </div>
+  );
+
   return (
     <>
       <OfficialSiteNavbar />
@@ -2401,33 +2421,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               templateType === "schedule" ? (
                 <SchedulePlaceholder />
               ) : (
-                <div className="space-y-5">
-                  {accessState?.canUseAi && accessContext.isOwner ? (
-                    <AiCreditRechargePanel
-                      menuSiteId={site.id}
-                      menuName={site.name}
-                      userId={user.id}
-                      userEmail={user.email}
-                      storeId={portOneConfig.storeId ?? undefined}
-                      channelKey={portOneConfig.channelKey ?? undefined}
-                      initialBalance={aiCreditBalance}
-                    />
-                  ) : accessState?.canUseAi ? (
-                    <div className="site-notice site-notice-info p-4">
-                      AI 기능은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
-                    </div>
-                  ) : (
-                    <div className="site-notice site-notice-warning p-4">
-                      현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
+                <div className={useBasicEditorLayout ? "site-basic-menu-management" : "space-y-5"}>
+                  {!useBasicEditorLayout && menuEditorCreditSummary}
+                  {!useBasicEditorLayout && (
+                    <div className="site-card site-editor-panel site-card-compact p-4 text-support font-medium leading-relaxed text-zinc-500">
+                      메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
                     </div>
                   )}
-                  <div className="site-card site-editor-panel site-card-compact p-4 text-support font-medium leading-relaxed text-zinc-500">
-                    메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
-                  </div>
                   <MenuManagementSection
                     key={site.id}
                     menuId={site.id}
                     templateKey={site.template_key}
+                    basicEditor={useBasicEditorLayout}
                     menuPages={menuPages}
                     categories={categories}
                     items={items}
@@ -2459,6 +2464,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     finalSaveMessage={bannerMessage}
                     finalSaveError={finalSaveError}
                   />
+                  {useBasicEditorLayout && <div className="site-menu-editor-credit-summary">{menuEditorCreditSummary}</div>}
                 </div>
               )
             )}
