@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useEffect, useId, useState, useTransition, type ReactNode } from "react";
+import { Fragment, useEffect, useId, useState, useTransition, type ReactNode } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/app/components/ui/alert-dialog";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -218,7 +218,7 @@ export default function KitchenDashboard({
                   <TabsTrigger value="list" aria-controls={boardId}>리스트 뷰</TabsTrigger>
                 </TabsList>
               </Tabs>
-              {receptionControl}
+              <Fragment key="reception-control">{receptionControl}</Fragment>
             </div>
           </div>
           <div className={styles.toolbar}>
