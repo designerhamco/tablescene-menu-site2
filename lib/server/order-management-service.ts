@@ -1,5 +1,5 @@
 import "server-only";
-import {defaultOrderHistoryFilters, normalizeOrderHistory, orderHistoryBounds, orderCursorPredicate, encodeOrderCursor, ORDER_HISTORY_PAGE_SIZE, OrderHistoryInputError, type OrderHistoryFilters, type OrderHistorySearch, type OrderCursor} from "@/lib/order-history-query";
+import {defaultOrderHistoryFilters, normalizeOrderHistory, orderHistoryBounds, orderCursorPredicate, encodeOrderCursor, isCurrentOrder, ORDER_HISTORY_PAGE_SIZE, OrderHistoryInputError, type OrderHistoryFilters, type OrderHistorySearch, type OrderCursor} from "@/lib/order-history-query";
 import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import {
@@ -13,6 +13,7 @@ import {
   normalizeManualPaymentMethod,
   normalizeOrderManagementId,
   OrderManagementInputError,
+  ORDER_PAID_PAYMENT_STATUSES,
   type ManualPaymentMethod,
   type OrderStatus,
 } from "@/lib/order-management";
@@ -245,7 +246,10 @@ export async function listOrderDashboard(
   menuSiteIdValue: unknown,
   search: OrderHistorySearch = {},
   scope: "hall" | "kitchen" = "hall",
-  { includeTableDetail = false }: { includeTableDetail?: boolean } = {},
+  { includeTableDetail = false, includeCompletedToday = false }: {
+    includeTableDetail?: boolean;
+    includeCompletedToday?: boolean;
+  } = {},
 ): Promise<OrderDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const context = await requireMenuSitePermission(menuSiteId, "order.read");
@@ -301,27 +305,29 @@ export async function listOrderDashboard(
       }
     }
   } else {
-    // Stable keyset batches include every outstanding order, regardless of age.
+    // Outstanding orders have no age limit. The hall list can also include orders whose final step finished today.
     const asOf = new Date();
     const through = asOf.toISOString();
-    const servedSince = orderHistoryBounds(defaultOrderHistoryFilters(asOf)).from;
-    const kitchenStatuses = `status.in.(${KITCHEN_ACTIVE_STATUSES.join(",")}),and(status.eq.served,served_at.gte.${servedSince},served_at.lte.${through})`;
+    const today = orderHistoryBounds(defaultOrderHistoryFilters(asOf)).from;
+    const kitchenStatuses = `status.in.(${KITCHEN_ACTIVE_STATUSES.join(",")}),and(status.eq.served,served_at.gte.${today},served_at.lte.${through})`;
+    const hallStatuses = ["status.neq.served", "payment_status.eq.unpaid"];
+    if (includeCompletedToday && scope === "hall") {
+      hallStatuses.push(`and(status.eq.served,payment_status.in.(${ORDER_PAID_PAYMENT_STATUSES.join(",")}),served_at.lte.${through},payment_completed_at.lte.${through},or(served_at.gte.${today},payment_completed_at.gte.${today}))`);
+    }
+    const statuses = scope === "kitchen" ? kitchenStatuses : hallStatuses.join(",");
     let cursor:OrderCursor|null=null;
     for(;;){
       let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",through);
-      if (scope === "kitchen") {
-        query = query.or(cursor ? `and(or(${kitchenStatuses}),or(${orderCursorPredicate(cursor, "newer")}))` : kitchenStatuses);
-      } else {
-        const active="or(status.neq.served,payment_status.eq.unpaid)";
-        query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
-      }
+      query = query.or(cursor ? `and(or(${statuses}),or(${orderCursorPredicate(cursor, "newer")}))` : statuses);
       const result=await query.order("created_at",{ascending:true}).order("id",{ascending:true}).limit(200);
       if(result.error)mapReadError(result.error);
       const batch=(result.data??[]) as unknown as OrderRow[];orders.push(...batch);
       if(batch.length<200)break;
       const last=batch[batch.length-1];cursor={createdAt:last.created_at,id:last.id};
     }
-    view.totalCount=orders.length;
+    view.totalCount = includeCompletedToday && scope === "hall"
+      ? orders.filter(order => isCurrentOrder({ status: order.status, paymentStatus: order.payment_status })).length
+      : orders.length;
   }
   const orderIds = orders.map((order) => order.id);
   const tableIds = [...new Set(orders.map((order) => order.menu_table_id))];

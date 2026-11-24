@@ -301,7 +301,7 @@ export default function OrderDashboard({
           arrivalGroups={arrivalGroups}
           kind="orders"
           arrivalIds={orders
-            .filter((order) => order.status !== "cancelled")
+            .filter(order => isCurrentOrder(order))
             .map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         /> : null}

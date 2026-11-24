@@ -8,6 +8,7 @@ export const ORDER_STATUSES = [
 ] as const;
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
+export const ORDER_PAID_PAYMENT_STATUSES = ["manual_paid", "paid"] as const;
 export type ManualPaymentMethod = "manual_card" | "manual_cash";
 
 const ORDER_STATUS_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> = {

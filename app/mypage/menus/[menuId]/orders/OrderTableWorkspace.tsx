@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import OrderCardSummary, { DEFAULT_ORDER_CARD_FIELDS, ORDER_CARD_FIELDS, type OrderCardField } from "@/components/mypage/OrderCardSummary";
 import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO, floorMemberships, readableFloorDocument } from "@/lib/menu-floor-plan";
+import { isCurrentOrder } from "@/lib/order-history-query";
 import { getHistoryPlacements, groupOperationHistory, representativeOperationOrder, type OperationHistoryRecord, type OperationsFloorPlan } from "@/lib/operations-history";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import OrderManagementList from "./OrderManagementList";
@@ -80,12 +81,13 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     return placement.roomId === room?.id && point ? [{ placement, point }] : [];
   });
   const placed = new Set(placements.map(placement => placement.pointId));
-  const groups = groupOperationHistory(records);
+  const activeOrders = orders.filter(isCurrentOrder);
+  const groups = groupOperationHistory(records.filter(record => record.attention));
   const unplaced = [...groups].filter(([id]) => !placed.has(id));
   const availableIds = roomPoints.filter(({ point }) => point.status === "active").map(({ point }) => point.id);
   const selectedPointIds = new Set(availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id)));
   const allChecked = selection?.kind === "checked" && availableIds.length > 0 && availableIds.length === selectedPointIds.size;
-  const selectedOrders = orders.filter(order => selectedPointIds.has(order.tableId));
+  const selectedOrders = activeOrders.filter(order => selectedPointIds.has(order.tableId));
   const cancelOrder = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const canPrintSelection = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
   const ordersById = new Map(orders.map(order => [order.id, order]));
@@ -298,7 +300,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       <Dialog open={detail !== undefined} onOpenChange={open => { if (!open) setDetail(undefined); }}>
         <DialogContent scrollable data-order-point-detail className="print:hidden" aria-describedby={undefined} onCloseAutoFocus={restoreFocus}>
           {detail && <OrderPointDetail key={detail.id} pointLabel={detail.label} menuSiteId={menuSiteId}
-            orders={orders.filter(order => order.tableId === detail.id && (!detail.orderId || order.id === detail.orderId))} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
+            orders={detail.orderId ? orders.filter(order => order.id === detail.orderId) : activeOrders.filter(order => order.tableId === detail.id)} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
         </DialogContent>
       </Dialog>
       {operation && <OrderPointOperationDialog key={operation.orderId} operation={operation} order={ordersById.get(operation.orderId)}

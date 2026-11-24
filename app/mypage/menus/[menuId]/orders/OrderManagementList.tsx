@@ -15,7 +15,7 @@ import OrderStage from "@/components/mypage/OrderStage";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { KITCHEN_STAGE_LABELS, getKitchenOptionLabels } from "@/lib/kitchen-order";
 import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } from "@/lib/korean-date-time";
-import { getOrderListGroups, type OrderListSearchField, type OrderListStatus } from "@/lib/order-management-list";
+import { getOrderListGroups, getOrderListPaymentFilter, type OrderListSearchField, type OrderListStatus } from "@/lib/order-management-list";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperation } from "./OrderPointOperationDialog";
 
@@ -88,8 +88,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   const print = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
   const menuOptions = [...new Set(orders.flatMap(order => order.items.map(item => item.name)))]
     .sort((a, b) => a.localeCompare(b, "ko")).map(name => ({ id: name, label: name }));
-  const paymentOptions = [...new Set(orders.map(order => order.paymentStatus))]
-    .map(value => ({ id: value, label: PAYMENT_LABELS[value] ?? value }));
+  const paymentOptions = [...new Set(["unpaid", "completed", ...orders.map(order => getOrderListPaymentFilter(order.paymentStatus))])]
+    .map(value => ({ id: value, label: value === "completed" ? "결제 완료" : (PAYMENT_LABELS[value] ?? value) }));
 
   function clearSelection() {
     setSelection(new Set());
@@ -170,11 +170,13 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
           </TableRow>
         </TableHeader>
         {groups.map(group => {
-          const pointLabel = group.orders[0].order.tableLabel;
+          const first = group.orders[0].order;
+          const pointLabel = first.tableLabel;
+          const selectionLabel = group.completed ? `완료 주문 #${first.orderNumber} 선택` : `${pointLabel} 주문 선택`;
           const groupCount = group.orders.filter(({ order }) => selection.has(order.id)).length;
           const groupChecked = groupCount === group.orders.length;
           return (
-            <TableBody key={group.pointId} data-hall-order-group>
+            <TableBody key={group.key} data-hall-order-group>
               {group.orders.map(({ order, items }, orderIndex) => {
                 const clock = formatKoreanClockTime(order.createdAt);
                 const elapsed = order.status === "served" ? null : formatElapsedMinutes(order.createdAt, now);
@@ -189,7 +191,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
                         <TableRow key={item?.id ?? order.id} data-first-order-row={!index || undefined}>
                           {orderIndex === 0 && index === 0 && <>
                             <TableCell rowSpan={group.rowCount} align="center">
-                              <Checkbox shape="circle" aria-label={`${pointLabel} 주문 선택`} disabled={pending}
+                              <Checkbox shape="circle" aria-label={selectionLabel} disabled={pending}
                                 checked={groupChecked || (groupCount ? "indeterminate" : false)}
                                 onCheckedChange={() => setSelection(previous => {
                                   const next = new Set(previous);
