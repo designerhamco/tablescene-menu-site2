@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
+import * as orderCustomization from "./menu-order-customization";
 
 function fixture({ enabled = true, failed = false } = {}) {
   const scopes: [string, unknown][] = [];
@@ -10,6 +11,7 @@ function fixture({ enabled = true, failed = false } = {}) {
   const output = ts.transpileModule(readFileSync(new URL("./server/postpay-order-catalog-service.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const dependencies: Record<string, unknown> = {
     "server-only": {},
+    "@/lib/menu-order-customization": orderCustomization,
     "@/lib/server/table-operations-eligibility-service": { hasPaidTableOperationsAccess: async () => true }, "node:crypto": {},
     "@/lib/menu-time-sale-display": { isMenuTimeSaleActive: () => true },
     "@/lib/postpay-order-runtime": { isPostpayOrderRuntimeEnabledForSite: () => enabled },
