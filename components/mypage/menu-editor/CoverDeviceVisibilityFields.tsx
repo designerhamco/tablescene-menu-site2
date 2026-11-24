@@ -49,25 +49,27 @@ export default function CoverDeviceVisibilityFields({
     ] as const;
 
     return (
-      <ContentPanel surface="muted" density="compact">
-        <input type="hidden" name="menu_cover_device_visibility_present" value="true" />
+      <section className="site-stack-copy">
         <h3 className="type-label">기기별 사용 여부</h3>
-        <div className="site-cover-device-list">
-          {devices.map(({ key, label }) => (
-            <div className="site-field-stack" key={key}>
-              <SwitchField
-                key={resetVersion}
-                compact
-                name={`menu_cover_visible_${key}`}
-                label={label}
-                defaultChecked={visibility[key]}
-                onCheckedChange={(checked) => setVisibility((current) => ({ ...current, [key]: checked }))}
-              />
-              <div className="site-cover-device-sketch" data-device={key} data-visible={visibility[key]} aria-hidden="true"><i /></div>
-            </div>
-          ))}
-        </div>
-      </ContentPanel>
+        <ContentPanel surface="muted" density="compact">
+          <input type="hidden" name="menu_cover_device_visibility_present" value="true" />
+          <div className="site-cover-device-list">
+            {devices.map(({ key, label }) => (
+              <div key={key}>
+                <SwitchField
+                  key={resetVersion}
+                  compact
+                  name={`menu_cover_visible_${key}`}
+                  label={label}
+                  defaultChecked={visibility[key]}
+                  onCheckedChange={(checked) => setVisibility((current) => ({ ...current, [key]: checked }))}
+                />
+                <div className="site-cover-device-sketch" data-device={key} data-visible={visibility[key]} aria-hidden="true"><i /></div>
+              </div>
+            ))}
+          </div>
+        </ContentPanel>
+      </section>
     );
   }
 

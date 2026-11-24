@@ -28,6 +28,7 @@ type CafeAStarterCoverTextAreaProps = {
 };
 
 type CafeAStarterFeaturedEnabledSwitchProps = {
+  compact?: boolean;
   defaultChecked: boolean;
   formId?: string;
   label?: ReactNode;
@@ -143,6 +144,7 @@ export function CafeAStarterCoverTextArea({
 }
 
 export function CafeAStarterFeaturedEnabledSwitch({
+  compact = false,
   defaultChecked,
   formId,
   label = "대표 영역 사용",
@@ -177,6 +179,7 @@ export function CafeAStarterFeaturedEnabledSwitch({
     <SwitchField
       key={resetVersion}
       name="featured_item_enabled"
+      compact={compact}
       label={label}
       defaultChecked={checked}
       onText="사용 중"

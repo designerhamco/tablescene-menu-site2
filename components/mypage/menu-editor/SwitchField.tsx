@@ -61,6 +61,7 @@ export default function SwitchField({
       </span>
       <Switch
         surface="light"
+        size={compact ? "sm" : "md"}
         id={id}
         name={name}
         form={form}

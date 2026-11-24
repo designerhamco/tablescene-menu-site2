@@ -57,7 +57,7 @@ export default function CoverDraftToggleSection({
           key={resetVersion}
           compact={basic}
           name={name}
-          label={label}
+          label={basic ? "사용 여부" : label}
           defaultChecked={enabled}
           onText="사용 중"
           offText="사용 안 함"
@@ -69,10 +69,15 @@ export default function CoverDraftToggleSection({
     return (
       <div className="site-stack-group md:col-span-2">
         <div className="site-basic-editor-cover-grid">
-          <ContentPanel surface="muted" density="compact">
-            {toggle}
-            <div className="site-cover-device-sketch" data-device="pc" data-visible={enabled} aria-hidden="true"><i /></div>
-          </ContentPanel>
+          <section className="site-stack-copy">
+            <h3 className="type-label">대표 영역 사용 여부</h3>
+            <ContentPanel surface="muted" density="compact">
+              <div className="site-cover-master-panel">
+                {toggle}
+                <div className="site-cover-device-sketch" data-device="pc" data-visible={enabled} aria-hidden="true"><i /></div>
+              </div>
+            </ContentPanel>
+          </section>
           {enabled && devices}
         </div>
         {hasDraftToggleChange && <p className="type-body-sm">최종 저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.</p>}

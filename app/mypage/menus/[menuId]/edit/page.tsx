@@ -1106,11 +1106,11 @@ function normalizeFinalSaveError(error?: string | null) {
 function SectionCard({ title, action, children, basic = false }: { title: string; action?: ReactNode; children: ReactNode; basic?: boolean }) {
   if (basic) {
     return (
-      <ContentPanel>
+      <section className="site-basic-editor-section site-stack-block">
         <h2 className="type-subsection-title">{title}</h2>
         {action}
-        <div className="site-content-divider">{children}</div>
-      </ContentPanel>
+        <div className="site-content-divider" data-density="compact">{children}</div>
+      </section>
     );
   }
   return (
@@ -1940,20 +1940,27 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     </div>
   );
 
+  const editorTemplateLabel = (
+    <div className="site-editor-template-label">
+      <span>{useBasicEditorLayout ? `선택한 템플릿: ${templateDisplayName}` : templateDisplayName}</span>
+      <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
+    </div>
+  );
+
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
+      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
-        <header className="site-card site-editor-panel mb-6 p-5 sm:p-6" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
-          <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
+        <header className={useBasicEditorLayout ? "site-basic-editor-header site-stack-copy" : "site-card site-editor-panel mb-6 p-5 sm:p-6"}>
+          <Link href="/mypage" className={useBasicEditorLayout ? "site-basic-editor-back type-body-sm" : "mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950"}>
             <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
-          <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-            <div className="min-w-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className={useBasicEditorLayout ? "site-basic-editor-summary" : "flex flex-col justify-between gap-5 lg:flex-row lg:items-end"}>
+            <div className={useBasicEditorLayout ? "site-stack-copy" : "min-w-0"}>
+              <div className="site-action-row site-editor-status">
                 <Badge>
                   {headerStatusLabel}
                 </Badge>
@@ -1961,17 +1968,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 {staffRoleLabel ? (
                   <Badge>직원 · {staffRoleLabel}</Badge>
                 ) : null}
-                <div className="site-editor-template-label">
-                  <span>{templateDisplayName}</span>
-                  <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
-                </div>
+                {!useBasicEditorLayout && editorTemplateLabel}
               </div>
+              {useBasicEditorLayout && editorTemplateLabel}
               <h1 className="type-page-title">{site.name}</h1>
               <p className="type-body-sm site-editor-public-address">
                 <span>{publicUrl}</span>
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
               </p>
-              {useBasicEditorLayout && accessContext.isOwner && accessState?.canUseAi && (
+            </div>
+            {useBasicEditorLayout && accessContext.isOwner && accessState?.canUseAi && (
+              <div className="site-basic-editor-credit">
                 <AiCreditRechargePanel
                   menuSiteId={site.id}
                   menuName={site.name}
@@ -1982,9 +1989,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   initialBalance={aiCreditBalance}
                   inline
                 />
-              )}
-            </div>
-            <div className="flex w-full flex-col items-stretch gap-2 sm:items-end lg:w-auto">
+              </div>
+            )}
+            <div className={useBasicEditorLayout ? "site-basic-editor-shortcuts" : "flex w-full flex-col items-stretch gap-2 sm:items-end lg:w-auto"}>
               <div className="site-editor-header-actions">
                 {accessContext.isOwner && site.status === "draft" && !isReadOnly ? (
                   <Link
@@ -2043,7 +2050,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </>
                 )}
               </div>
-              <p className="text-center text-support font-medium text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>
+              {!useBasicEditorLayout && <p className="text-center text-support font-medium text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>}
             </div>
           </div>
         </header>
@@ -2275,7 +2282,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "cover" && (
               <SectionCard
-                title={coverTabLabel ?? "커버 이미지"}
+                title={useBasicEditorLayout ? "사용 여부" : coverTabLabel ?? "커버 이미지"}
                 basic={useBasicEditorLayout}
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">

@@ -117,7 +117,7 @@ export default function AiCreditRechargePanel({
       <div className="site-stack-copy">
         <div className="site-action-row">
           <span className="type-body-sm">보유 AI 크레딧 <strong>{formatAiCredits(totalRemainingCredits)}</strong></span>
-          <button type="button" onClick={() => setIsOpen(true)} className="site-button site-button-outline" aria-label="AI 크레딧 충전">충전</button>
+          <button type="button" onClick={() => setIsOpen(true)} className="site-button site-button-outline site-button-compact" aria-label="AI 크레딧 충전">충전</button>
         </div>
         {message && <p className="type-body-sm" role="status">{message}</p>}
         {purchaseModal}
