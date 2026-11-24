@@ -13,9 +13,10 @@ import { Switch } from "@/app/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import OrderCardSummary, { DEFAULT_ORDER_CARD_FIELDS, ORDER_CARD_FIELDS, type OrderCardField } from "@/components/mypage/OrderCardSummary";
-import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO, readableFloorDocument } from "@/lib/menu-floor-plan";
+import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO, floorMemberships, readableFloorDocument } from "@/lib/menu-floor-plan";
 import { getHistoryPlacements, groupOperationHistory, representativeOperationOrder, type OperationHistoryRecord, type OperationsFloorPlan } from "@/lib/operations-history";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
+import OrderManagementList from "./OrderManagementList";
 import OrderPointDetail from "./OrderPointDetail";
 import type { OrderManagementActionState } from "./action-state";
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderMutation, type PointOrderOperation } from "./OrderPointOperationDialog";
@@ -24,7 +25,7 @@ type Point = { id: string; label: string };
 type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
-export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, onPrint, list }: {
+export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint }: {
   menuSiteId: string;
   floorPlan: OperationsFloorPlan;
   records: OperationHistoryRecord[];
@@ -34,21 +35,23 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   refreshControl: ReactNode;
   mutateAction: PointOrderMutation;
   onPrint: (orders: Order[]) => void;
-  list: ReactNode;
+  transitionAction: (form: FormData) => void;
+  pending: boolean;
 }) {
   const [view, setView] = useState("map");
   const [roomId, setRoomId] = useState("");
+  const [listRoomId, setListRoomId] = useState("all");
   const [selection, setSelection] = useState<TableSelection>();
   const [fields, setFields] = useState<ReadonlySet<OrderCardField>>(() => new Set(DEFAULT_ORDER_CARD_FIELDS));
   const [now, setNow] = useState<number | null>(null);
-  const [detail, setDetail] = useState<Point>();
+  const [detail, setDetail] = useState<Point & { orderId?: string }>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
   const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
   const trigger = useRef<HTMLButtonElement>(null);
   const mapTab = useRef<HTMLButtonElement>(null);
   const panelId = useId();
   const receptionHelp = useId();
-  const trackingElapsed = view === "map" && fields.has("elapsed");
+  const trackingElapsed = view === "list" || fields.has("elapsed");
 
   useEffect(() => {
     if (!trackingElapsed) return;
@@ -62,6 +65,14 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
 
   const floor = readableFloorDocument(floorPlan.document);
   const room = floor.rooms.find(room => room.id === roomId) ?? floor.rooms[0];
+  const activeListRoom = floorPlan.available && floor.rooms.some(room => room.id === listRoomId) ? listRoomId : "all";
+  const roomsById = new Map(floor.rooms.map(room => [room.id, room.name]));
+  const roomByPoint = new Map(floorPlan.available ? floorMemberships(floor).map(member => [member.pointId, member.roomId]) : []);
+  const listRoomNames = new Map([...roomByPoint].flatMap(([pointId, id]) => {
+    const name = roomsById.get(id);
+    return name ? [[pointId, name] as const] : [];
+  }));
+  const listOrders = activeListRoom === "all" ? orders : orders.filter(order => roomByPoint.get(order.tableId) === activeListRoom);
   const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const pointsById = new Map(floorPlan.points.map(point => [point.id, point]));
   const roomPoints = placements.flatMap(placement => {
@@ -99,9 +110,9 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     else mapTab.current?.focus();
   }
 
-  function openDetail(point: Point, button: HTMLButtonElement) {
+  function openDetail(point: Point, button: HTMLButtonElement, orderId?: string) {
     trigger.current = button;
-    setDetail(point);
+    setDetail({ ...point, orderId });
   }
 
   function openOperation(kind: PointOrderOperation["kind"], order: Order, point: Point, button: HTMLButtonElement) {
@@ -154,11 +165,17 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
               {refreshControl}
             </div>
           </div>
-        ) : <div className="site-action-row" data-distribution="end">{refreshControl}</div>}
+        ) : null}
       </div>
 
       <div id={panelId}>
-        {view === "list" ? <div className="site-floor-workspace-tools">{list}</div> : !floorPlan.available || !room ? (
+        {view === "list" ? (
+          <OrderManagementList key={activeListRoom} orders={listOrders} roomNames={listRoomNames} menuSiteId={menuSiteId}
+            permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
+            onPrint={onPrint}
+            openDetail={(order, button) => openDetail({ id: order.tableId, label: order.tableLabel }, button, order.id)}
+            openOperation={(kind, order, button) => openOperation(kind, order, { id: order.tableId, label: order.tableLabel }, button)} />
+        ) : !floorPlan.available || !room ? (
           <div className="site-floor-workspace-tools">
             <p role="status" className="type-body-sm">{floorPlan.available ? "저장된 룸 배치도가 없습니다." : floorPlan.unavailableMessage}</p>
           </div>
@@ -251,14 +268,19 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     <section className="site-stack-copy" aria-label="주문 테이블·리스트 보기">
       <ActionFeedbackToast message={feedback?.message} tone="success" eventKey={feedback} />
       {room && floorPlan.available ? (
-        <Tabs purpose="section" appearance="rooms" value={room.id} onValueChange={id => {
+        <Tabs purpose="section" appearance="rooms" value={view === "list" ? activeListRoom : room.id} onValueChange={id => {
+          if (view === "list") {
+            setListRoomId(id);
+            return;
+          }
           setRoomId(id);
           setSelection(undefined);
         }}>
-          {view === "map" && <TabsList size="sm" data-active-tone="solid" aria-label="주문 내역 룸">
+          <TabsList size="sm" data-active-tone="solid" aria-label="주문 내역 룸">
+            {view === "list" && <TabsTrigger value="all">모든 룸</TabsTrigger>}
             {floor.rooms.map(room => <TabsTrigger key={room.id} value={room.id}><RoomLabel name={room.name} emoji={room.emoji} /></TabsTrigger>)}
-          </TabsList>}
-          <TabsContent value={room.id}>{shell}</TabsContent>
+          </TabsList>
+          <TabsContent value={view === "list" ? activeListRoom : room.id}>{shell}</TabsContent>
         </Tabs>
       ) : shell}
       {view === "map" && unplaced.length > 0 && (
@@ -276,7 +298,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       <Dialog open={detail !== undefined} onOpenChange={open => { if (!open) setDetail(undefined); }}>
         <DialogContent scrollable data-order-point-detail className="print:hidden" aria-describedby={undefined} onCloseAutoFocus={restoreFocus}>
           {detail && <OrderPointDetail key={detail.id} pointLabel={detail.label} menuSiteId={menuSiteId}
-            orders={orders.filter(order => order.tableId === detail.id)} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
+            orders={orders.filter(order => order.tableId === detail.id && (!detail.orderId || order.id === detail.orderId))} permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
         </DialogContent>
       </Dialog>
       {operation && <OrderPointOperationDialog key={operation.orderId} operation={operation} order={ordersById.get(operation.orderId)}

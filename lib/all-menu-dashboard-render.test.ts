@@ -16,7 +16,7 @@ function dashboard(kind: "orders" | "calls") {
   const dependencies: Record<string, unknown> = {
     "react/jsx-runtime": jsxRuntime,
     "react-dom": { createPortal: stub },
-    "./OrderTableWorkspace": { default: ({ list }: { list: React.ReactNode }) => list },
+    "./OrderTableWorkspace": { default: stub },
     react: { ...React, useState: (initial: unknown) => [initial, stub], useId: () => "qa", useMemo: (fn: () => unknown) => fn(), useEffect: stub, useTransition: () => [false, stub], useActionState: () => [{ status: "idle", message: "" }, "/qa-inert-action", false] },
     "next/navigation": { useRouter: () => ({ refresh: stub }) }, "next/link": { default: stub },
     "@/app/components/ui/button": { Button: stub }, "@/app/components/ui/content-panel": { ContentPanel: panel },
@@ -57,7 +57,8 @@ test("통합 주문 상세는 해당 메뉴판의 폼 대상과 권한만 사용
   assert.match(articles[1], /디너 메뉴판/);
   assert.doesNotMatch(articles[1], /name="menuSiteId"|상태 변경|결제 완료 기록|주문 취소/);
   assert.doesNotMatch(html, /name="menuSiteId" value="all"/);
-  const individual = renderToStaticMarkup(React.createElement(Component, { menuSiteId: sourceA, menuSiteName: "런치 메뉴판", orders: records.slice(0, 1), permissions: writable }));
+  const individual = renderToStaticMarkup(React.createElement(Component, { menuSiteId: sourceA, menuSiteName: "런치 메뉴판", orders: records.slice(0, 1), permissions: writable,
+    view: { kind: "history", filters: { from: "2026-11-18", to: "2026-11-18" } } }));
   assert.doesNotMatch(individual, /런치 메뉴판/);
   assert.match(individual, new RegExp(`name="menuSiteId" value="${sourceA}"`));
 });

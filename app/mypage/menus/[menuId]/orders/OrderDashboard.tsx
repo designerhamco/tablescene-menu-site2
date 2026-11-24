@@ -328,7 +328,7 @@ export default function OrderDashboard({
         {!view?.error && (tableWorkspace ? (
           <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
             permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
-            onPrint={setPrintOrders} list={list}
+            transitionAction={action} pending={pending} onPrint={setPrintOrders}
             refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
               aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
         ) : list)}
