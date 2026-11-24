@@ -139,6 +139,7 @@ import {
   getTemplateEditorTabs,
   getTemplateType,
   getTemplateTypeLabel,
+  isTemplateSupportedForService,
 } from "@/lib/template-types";
 import {
   getCustomTypographySettings,
@@ -1725,6 +1726,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       })
     : [];
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
+  const useBasicEditorLayout =
+    !isAubeTable && editorServiceType !== "screen" && isTemplateSupportedForService(site.template_key, "basic");
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
@@ -1821,7 +1824,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
-        <header className="site-card site-editor-panel mb-6 p-5 sm:p-6">
+        <header className="site-card site-editor-panel mb-6 p-5 sm:p-6" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
           <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
@@ -1831,7 +1834,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <Badge>
                   {headerStatusLabel}
                 </Badge>
-                <Badge>{templateTypeLabel}</Badge>
+                <Badge>{useBasicEditorLayout ? "베이직" : templateTypeLabel}</Badge>
                 {staffRoleLabel ? (
                   <Badge>직원 · {staffRoleLabel}</Badge>
                 ) : null}
@@ -1941,9 +1944,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         )}
 
         <CafeAStarterResetProvider menuId={site.id}>
-        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
+        <div className="site-editor-sections" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
+        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} sidebar={useBasicEditorLayout} />
 
-        <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
+        <div className={`site-editor-section-content space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
               <>
                 <SectionCard title="기본 정보">
@@ -2735,6 +2739,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 </form>
               </SectionCard>
             )}
+        </div>
         </div>
         </CafeAStarterResetProvider>
         </div>

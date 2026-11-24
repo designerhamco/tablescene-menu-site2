@@ -8863,7 +8863,7 @@ export default function MenuManagementSection({
           </nav>
         ) : null}
 
-        <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
+        <div className="site-editor-menu-grid grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
           <aside className="site-editor-panel min-w-0 p-4 lg:sticky lg:top-24">
             <div className="mb-4 min-w-0">
               <h3 className="type-content-title mt-1 flex min-w-0 items-center gap-2 text-zinc-950">
