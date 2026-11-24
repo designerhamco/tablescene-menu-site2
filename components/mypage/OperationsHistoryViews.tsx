@@ -7,7 +7,7 @@ import {SectionHeader} from "@/app/components/ui/section-header";
 import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import {RoomLabel} from "@/app/components/ui/room-label";
 import {useOperationsView} from "./OperationsViewLayout";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Armchair, Monitor } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
@@ -39,7 +39,7 @@ export default function OperationsHistoryViews({
   records,
   floorPlan,
   renderList,
-  renderDetail, listOnly = false,
+  renderDetail, renderPointDetail, listOnly = false,
 }: {
   noun: "주문" | "호출";
   listOnly?: boolean;
@@ -47,6 +47,7 @@ export default function OperationsHistoryViews({
   floorPlan: OperationsFloorPlan;
   renderList: (open: (recordId: string) => void) => ReactNode;
   renderDetail: (recordIds: string[]) => ReactNode;
+  renderPointDetail?: (point: { id: string; label: string }, recordIds: string[]) => ReactNode;
 }) {
   const sharedView=useOperationsView();
   const [localView, setLocalView] = useState("map"),
@@ -67,31 +68,45 @@ export default function OperationsHistoryViews({
       ? (groups.get(selection.pointId) ?? [])
       : records.filter((item) => item.id === selection.recordId)
     : [];
-  const openPoint = (pointId: string) => setSelection({ pointId, label: floorPlan.points.find(point=>point.id===pointId)?.label ?? groups.get(pointId)?.[0]?.pointLabel ?? "테이블·키오스크" });
-  const openRecord = (recordId: string) => setSelection({recordId,label:records.find(record=>record.id===recordId)?.pointLabel ?? "테이블·키오스크"});
+  const pointTrigger = useRef<HTMLElement | null>(null);
+  const openPoint = (pointId: string, trigger: HTMLElement) => {
+    pointTrigger.current = trigger;
+    setSelection({
+      pointId,
+      label: floorPlan.points.find(point => point.id === pointId)?.label ?? groups.get(pointId)?.[0]?.pointLabel ?? "테이블·키오스크",
+    });
+  };
+  const openRecord = (recordId: string) => {
+    setSelection({ recordId, label: records.find(record => record.id === recordId)?.pointLabel ?? "테이블·키오스크" });
+  };
+  const pointDetail = renderPointDetail && selection && "pointId" in selection ? selection : null;
+  const recordIds = selected.map(item => item.id);
   const detailDialog = (
-      <Dialog
-        open={selection !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelection(null);
-        }}
-      >
-        <DialogContent scrollable className="print:hidden" aria-describedby={undefined}>
-          <DialogHeader reserveCloseButton>
-            <div className="site-action-row">
-              <DialogTitle>{selected[0]?.pointLabel ?? selection?.label ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
-              <InfoTooltip label="내역 갱신 안내"><p>{listOnly ? "현재 조회 조건의 내역을 표시합니다. 새 내역은 다시 조회하면 반영됩니다." : "현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다."}</p></InfoTooltip>
-            </div>
-          </DialogHeader>
-          {selected.length ? (
-            renderDetail(selected.map((item) => item.id))
-          ) : (
-            <p className="type-body-sm site-copy-muted">
-              현재 조건에 맞는 내역이 없습니다.
-            </p>
-          )}
-        </DialogContent>
-      </Dialog>
+    <Dialog open={selection !== null} onOpenChange={open => { if (!open) setSelection(null); }}>
+      <DialogContent scrollable data-order-point-detail={Boolean(pointDetail) || undefined} className="print:hidden"
+        aria-describedby={undefined} onCloseAutoFocus={event => {
+          const trigger = pointTrigger.current;
+          pointTrigger.current = null;
+          if (trigger?.isConnected) {
+            event.preventDefault();
+            trigger.focus();
+          }
+        }}>
+        {pointDetail && renderPointDetail
+          ? renderPointDetail({ id: pointDetail.pointId, label: pointDetail.label }, recordIds)
+          : <>
+              <DialogHeader reserveCloseButton>
+                <div className="site-action-row">
+                  <DialogTitle>{selected[0]?.pointLabel ?? selection?.label ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
+                  <InfoTooltip label="내역 갱신 안내"><p>{listOnly ? "현재 조회 조건의 내역을 표시합니다. 새 내역은 다시 조회하면 반영됩니다." : "현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다."}</p></InfoTooltip>
+                </div>
+              </DialogHeader>
+              {selected.length ? renderDetail(recordIds) : (
+                <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
+              )}
+            </>}
+      </DialogContent>
+    </Dialog>
   );
   if(listOnly)return <div className="site-stack-group">{renderList(openRecord)}{detailDialog}</div>;
   return (
@@ -195,14 +210,14 @@ export default function OperationsHistoryViews({
                                   selection.pointId === point.id,
                               )}
                               summary={summary}
-                              onClick={() => openPoint(point.id)}
+                              onClick={event => openPoint(point.id, event.currentTarget)}
                               onKeyDown={(event) => {
                                 if (
                                   event.key === "Enter" ||
                                   event.key === " "
                                 ) {
                                   event.preventDefault();
-                                  openPoint(point.id);
+                                  openPoint(point.id, event.currentTarget);
                                 }
                               }}
                             />
@@ -233,7 +248,7 @@ export default function OperationsHistoryViews({
                       type="button"
                       key={pointId}
                       className="site-button site-button-outline"
-                      onClick={() => openPoint(pointId)}
+                      onClick={event => openPoint(pointId, event.currentTarget)}
                     >
                       {history[0].pointLabel} · {history.length}건
                     </button>

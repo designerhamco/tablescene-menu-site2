@@ -34,6 +34,7 @@ export async function mutateOrderAction(
   const menuSiteId = formString(formData, "menuSiteId");
   const orderId = formString(formData, "orderId");
   const intent = formString(formData, "intent");
+  const fromTableDetail = formString(formData, "source") === "table-detail";
 
   try {
     if (intent === "transition") {
@@ -47,12 +48,14 @@ export async function mutateOrderAction(
         menuSiteId,
         orderId,
         reason: formString(formData, "reason"),
+        fromTableDetail,
       });
     } else if (intent === "manual-payment") {
       await markOrderManualPayment({
         menuSiteId,
         orderId,
         method: formString(formData, "method"),
+        fromTableDetail,
       });
     } else {
       return { status: "error", message: "올바른 주문 작업을 선택해 주세요.", orderId };

@@ -71,6 +71,14 @@ export function canMarkManualPayment(status: unknown, paymentStatus: unknown) {
   return isOrderStatus(status) && status !== "cancelled" && paymentStatus === "unpaid";
 }
 
+export function canCancelTableOrder(status: unknown, paymentStatus: unknown) {
+  return (status === "received" || status === "accepted") && canCancelUnpaidOrder(status, paymentStatus);
+}
+
+export function canRecordTableOrderPayment(status: unknown, paymentStatus: unknown) {
+  return status === "served" && canMarkManualPayment(status, paymentStatus);
+}
+
 export function getNextOrderStatus(status: unknown): OrderStatus | null {
   if (!isOrderStatus(status)) return null;
   return ORDER_STATUS_TRANSITIONS[status][0] ?? null;

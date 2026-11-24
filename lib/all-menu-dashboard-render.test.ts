@@ -15,6 +15,8 @@ function dashboard(kind: "orders" | "calls") {
   const panel = ({ as = "div", children }: { as?: string; children: React.ReactNode }) => React.createElement(as, null, children);
   const dependencies: Record<string, unknown> = {
     "react/jsx-runtime": jsxRuntime,
+    "react-dom": { createPortal: stub },
+    "./OrderPointDetail": { default: stub },
     react: { ...React, useState: (initial: unknown) => [initial, stub], useId: () => "qa", useMemo: (fn: () => unknown) => fn(), useEffect: stub, useTransition: () => [false, stub], useActionState: () => [{ status: "idle", message: "" }, "/qa-inert-action", false] },
     "next/navigation": { useRouter: () => ({ refresh: stub }) }, "next/link": { default: stub },
     "@/app/components/ui/button": { Button: stub }, "@/app/components/ui/content-panel": { ContentPanel: panel },

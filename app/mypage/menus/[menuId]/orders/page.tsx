@@ -38,7 +38,7 @@ export default async function OrderDashboardPage({
   let data;
 
   try {
-    data = await listOrderDashboard(menuId,query);
+    data = await listOrderDashboard(menuId, query, "hall", { includeTableDetail: true });
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       if (error.code === "AUTH_REQUIRED") {

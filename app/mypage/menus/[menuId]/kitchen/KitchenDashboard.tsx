@@ -17,7 +17,7 @@ import {
   type KitchenMutation, type KitchenOrder, type KitchenStage, type KitchenStageAction,
 } from "@/lib/kitchen-order";
 import { mutateKitchenOrderAction } from "./actions";
-import { KitchenFlag } from "./KitchenFlag";
+import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
 import KitchenMenuFilter from "./KitchenMenuFilter";
 import KitchenOrderCard, { kitchenActionVariants, type KitchenOrderControls } from "./KitchenOrderCard";
 import KitchenOrderList from "./KitchenOrderList";
@@ -49,8 +49,8 @@ function KitchenProgress({ orders, menuFilter, close }: { orders: KitchenOrder[]
           {[...totals].map(([name, count]) => (
             <div key={name} className={`${styles.progressRow} type-body-sm`} role="row">
               <span className="min-w-0 break-words" role="cell">{name} × {count.incomplete + count.complete}</span>
-              <span className={styles.progressCount} role="cell"><KitchenFlag done={false} />{count.incomplete}</span>
-              <span className={styles.progressCount} role="cell"><KitchenFlag done />{count.complete}</span>
+              <span className={styles.progressCount} role="cell"><OrderCookingFlag done={false} />{count.incomplete}</span>
+              <span className={styles.progressCount} role="cell"><OrderCookingFlag done />{count.complete}</span>
             </div>
           ))}
         </div>

@@ -784,6 +784,15 @@ textarea.site-field,
   overscroll-behavior: contain;
 }
 
+.site-dialog[data-order-point-detail] {
+  max-inline-size: min(36rem, calc(100% - var(--site-space-content)));
+  background: var(--ui-surface-soft) !important;
+}
+
+@media print {
+  body:has(> [data-order-receipt-print]) > :not([data-order-receipt-print]) { display: none !important; }
+}
+
 .site-dialog-sheet {
   border-radius: var(--ui-radius-surface) var(--ui-radius-surface) 0 0;
 }

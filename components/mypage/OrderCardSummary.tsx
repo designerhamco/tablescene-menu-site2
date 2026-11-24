@@ -11,6 +11,6 @@ export default function OrderCardSummary({order,records}:{order:OperationHistory
     <span data-order-card="products" className="type-body-sm">{order.summary||"상품 정보 없음"}</span>
     {order.options?<span data-order-card="options">옵션: {order.options}</span>:null}
     <span data-order-card="amount">대표 주문 금액 <strong className="type-label">{order.amount}</strong></span>
-    <span data-order-card="detail">자세히 보기 · 주문 {records.length}건</span>
+    <span data-order-card="detail">열기 · 주문 {records.length}건</span>
   </>;
 }

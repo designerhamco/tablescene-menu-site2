@@ -114,6 +114,25 @@ test("주방은 상품 선택과 직접 입력을 같은 칸에 넣고 가격 �
   ]), { product: "덜 맵게", price: "" });
 });
 
+test("주문 테이블 팝업에 조리 완료 여부와 상품옵션 형식을 전달한다", async () => {
+  const f = fixture([row(1, "cooking")], {
+    items: 2, optionsPerItem: 22, doneItems: 1,
+    menuSources: [
+      { id: "same-item", menu_site_id: site, price_note: "ICE ONLY" },
+      { id: "other-item", menu_site_id: "other-site", price_note: "다른 메뉴판 문구" },
+    ],
+  });
+  const { orders } = await f.service.listOrderDashboard(site, {}, "hall", { includeTableDetail: true });
+  const [first, second] = orders[0].items;
+  assert.equal(first.cookingDone, true);
+  assert.equal(second.cookingDone, false);
+  assert.equal(first.priceNote, "ICE ONLY");
+  assert.equal(second.priceNote, undefined);
+  assert.equal(first.options.find(option => option.valueName === "값 20")?.kind, "product");
+  assert.equal(first.options.find(option => option.valueName === "값 21")?.kind, "request");
+  assert.match(f.calls.find(call => call.table === "menu_customer_order_items")!.columns!, /cooking_completed_at.*price_note/);
+});
+
 test("주방 메뉴 필터는 메뉴판의 등록 순서를 쓰고 연결이 끊긴 기존 주문도 조회한다", async () => {
   const category = (id: string, name: string, sort_order: number, menu_site_id = site) =>
     ({ id, name, sort_order, menu_site_id });

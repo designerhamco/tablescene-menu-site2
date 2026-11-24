@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { createPortal } from "react-dom";
+import OrderPointDetail from "./OrderPointDetail";
 import { Button } from "@/app/components/ui/button";
 import OrderHistoryFilters from "@/components/mypage/OrderHistoryFilters";
 import {orderHistoryHref,isCurrentOrder} from "@/lib/order-history-query";
@@ -51,8 +53,9 @@ export default function OrderDashboard({
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
-  recordSources, arrivalGroups, historyPath,
+  recordSources, arrivalGroups, historyPath, mutationAction = mutateOrderAction,
 }: {
+  mutationAction?: typeof mutateOrderAction;
   recordSources?: OperationRecordSources;
   arrivalGroups?: OperationArrivalGroup[];
   historyPath?: string;
@@ -70,13 +73,12 @@ export default function OrderDashboard({
   const router = useRouter();
   const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(
-    mutateOrderAction,
+    mutationAction,
     initialOrderManagementActionState,
   );
-  const [printOrderId, setPrintOrderId] = useState<string | null>(null);
+  const [printOrders, setPrintOrders] = useState<Order[]>([]);
   const [backgroundPollingEnabled, setBackgroundPollingEnabled] =
     useState(false);
-  const printOrder = orders.find((order) => order.id === printOrderId) ?? null;
   useEffect(() => {
     if(history||!autoRefresh)return;
     const timer = window.setInterval(() => {
@@ -92,15 +94,15 @@ export default function OrderDashboard({
     return () => window.clearInterval(timer);
   }, [backgroundPollingEnabled, pending, router, history, autoRefresh]);
   useEffect(() => {
-    if (!printOrder) return;
-    const clear = () => setPrintOrderId(null);
+    if (!printOrders.length) return;
+    const clear = () => setPrintOrders([]);
     window.addEventListener("afterprint", clear, { once: true });
     const timer = window.setTimeout(() => window.print(), 0);
     return () => {
       window.clearTimeout(timer);
       window.removeEventListener("afterprint", clear);
     };
-  }, [printOrder]);
+  }, [printOrders]);
   function detail(order: Order) {
     const source = recordSources?.[order.id];
     const recordMenuSiteId = source?.menuSiteId ?? menuSiteId;
@@ -138,7 +140,7 @@ export default function OrderDashboard({
         ) : null}
         <button
           type="button"
-          onClick={() => setPrintOrderId(order.id)}
+          onClick={() => setPrintOrders([order])}
           className="site-button site-button-outline"
         >
           브라우저 영수증 인쇄
@@ -227,11 +229,17 @@ export default function OrderDashboard({
   }
   return (
     <>
-      {printOrder ? (
-        <div className="hidden print:block">
-          <OrderReceipt order={printOrder} menuSiteName={recordSources?.[printOrder.id]?.menuSiteName ?? menuSiteName} />
-        </div>
-      ) : null}
+      {printOrders.length > 0 && createPortal(
+        <div className="hidden print:block" data-order-receipt-print>
+          {printOrders.map(order => (
+            <OrderReceipt key={order.id} order={order} menuSiteName={recordSources?.[order.id]?.menuSiteName ?? menuSiteName} />
+          ))}
+          {printOrders.length > 1 && (
+            <p className="type-label text-center">총 합계 {formatAmount(printOrders.reduce((sum, order) => sum + order.totalAmount, 0))}</p>
+          )}
+        </div>,
+        document.body,
+      )}
       <div className="site-stack-group print:hidden">
         <ActionFeedbackToast
           message={state.message}
@@ -328,6 +336,11 @@ export default function OrderDashboard({
                           </button>
                         </TableCell>
           </>} />}
+          renderPointDetail={(point, ids) => (
+            <OrderPointDetail key={point.id} pointLabel={point.label} menuSiteId={menuSiteId}
+              orders={orders.filter(order => ids.includes(order.id))} permissions={permissions}
+              onPrint={setPrintOrders} mutateAction={mutationAction} />
+          )}
           renderDetail={(ids) => (
             <div className="site-stack-group">
               {orders.filter((order) => ids.includes(order.id)).map(detail)}

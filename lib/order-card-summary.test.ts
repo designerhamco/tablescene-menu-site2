@@ -9,7 +9,7 @@ test("대표 주문은 가장 오래된 진행 주문·미결제·최근 이력 
  const paid=row("1","2020-01-01T00:00:00Z"),unpaid=row("2","2020-01-02T00:00:00Z",false,true),progress=row("3","2020-01-03T00:00:00Z",true),newer=row("4","2020-01-04T00:00:00Z",true,true);
  assert.equal(representativeOperationOrder([newer,paid,unpaid,progress])?.id,"3");assert.equal(representativeOperationOrder([paid,unpaid])?.id,"2");assert.equal(representativeOperationOrder([paid,{...unpaid,unpaid:false}])?.id,"2");
  const html=renderToStaticMarkup(h(Summary,{order:progress,records:[paid,unpaid,progress,newer]}));
- for(const value of ["진행 중 2건 · 미결제 2건","대표 주문 #3","상품 3","상태 3","3,000원","자세히 보기"])assert.ok(html.includes(value),value);
+ for(const value of ["진행 중 2건 · 미결제 2건","대표 주문 #3","상품 3","상태 3","3,000원","열기 · 주문 4건"])assert.ok(html.includes(value),value);
  assert.doesNotMatch(html,/상품 4|대표 주문 금액 4,000원/);
 });
 
