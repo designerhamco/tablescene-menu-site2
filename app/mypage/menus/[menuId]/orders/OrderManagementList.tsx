@@ -3,6 +3,7 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { SearchField } from "@/app/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
@@ -114,10 +115,6 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
           </div>
           <div className="site-action-row">
             {refreshControl}
-            <Select value={status} onValueChange={value => { setStatus(value as OrderListStatus); clearSelection(); }}>
-              <SelectTrigger size="sm" className="w-auto" aria-label="주문 상태 필터"><SelectValue /></SelectTrigger>
-              <SelectContent>{Object.entries(statusLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
-            </Select>
             <Select value={oldestFirst ? "oldest" : "latest"} onValueChange={value => setOldestFirst(value === "oldest")}>
               <SelectTrigger size="sm" className="w-auto" aria-label="주문 정렬"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="latest">최근 주문순</SelectItem><SelectItem value="oldest">오래된 주문순</SelectItem></SelectContent>
@@ -144,7 +141,29 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
             <TableHead align="center" data-nowrap>수량</TableHead>
             <TableHead align="end">가격</TableHead>
             <TableHead align="end">합계</TableHead>
-            <TableHead>상태</TableHead>
+            <TableHead>
+              <div className="site-action-row" data-wrap="nowrap">
+                상태
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="ghost" size="icon" iconSize="compact" aria-label="주문 상태 필터"
+                      data-order-list-filter-active={status !== "all" || undefined}>
+                      <FilterFill aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" aria-label="주문 상태 필터">
+                    <DropdownMenuRadioGroup value={status} onValueChange={value => {
+                      setStatus(value as OrderListStatus);
+                      clearSelection();
+                    }}>
+                      {Object.entries(statusLabels).map(([value, label]) => (
+                        <DropdownMenuRadioItem key={value} value={value}>{label}</DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TableHead>
             <TableHead><div className="site-action-row" data-wrap="nowrap"><span className="whitespace-nowrap">알림톡</span> <InfoTooltip label="알림톡 안내"><p>알림톡은 연동 준비 중입니다.</p></InfoTooltip></div></TableHead>
             <TableHead><div className="site-action-row" data-wrap="nowrap">결제여부 <ColumnFilter label="결제 필터" options={paymentOptions} selected={payments}
               change={next => { setPayments(next); clearSelection(); }} /></div></TableHead>
