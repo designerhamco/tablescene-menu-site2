@@ -8,11 +8,13 @@ import { cn } from "./utils";
 
 function Checkbox({
   className,
+  shape,
   ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+}: React.ComponentProps<typeof CheckboxPrimitive.Root> & { shape?: "circle" }) {
   return (
     <CheckboxPrimitive.Root
       data-slot="checkbox"
+      data-shape={shape}
       className={cn(
         "peer site-checkbox",
         className,

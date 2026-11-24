@@ -6,7 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
-import { canChangeKitchenStage, getKitchenStage, KITCHEN_ACTION_LABELS, type KitchenOrder, type KitchenStageAction } from "@/lib/kitchen-order";
+import { canChangeKitchenStage, getKitchenStage, kitchenMenuKey, KITCHEN_ACTION_LABELS, type KitchenOrder, type KitchenStageAction } from "@/lib/kitchen-order";
 import styles from "./KitchenDashboard.module.css";
 
 export const kitchenActionVariants = { return: "destructive", start: "warning", finish: "success" } as const;
@@ -63,16 +63,17 @@ export function KitchenOrderTime({ order, now, compact = false }: { order: Kitch
   );
 }
 
-export function KitchenOrderItems({ order, canManage, busy, check, compact = false }: Pick<KitchenOrderControls, "order" | "canManage" | "busy" | "check"> & { compact?: boolean }) {
+export function KitchenOrderItems({ order, canManage, busy, check, menuFilter, compact = false }:
+  Pick<KitchenOrderControls, "order" | "canManage" | "busy" | "check"> & { menuFilter: ReadonlySet<string> | null; compact?: boolean }) {
   const id = useId();
   return (
     <div className="site-stack-copy">
       <ul className="site-stack-copy">
-        {order.items.map(item => (
+        {order.items.map((item, index) => menuFilter && !menuFilter.has(kitchenMenuKey(item)) ? null : (
           <li key={item.id} className={compact ? styles.cardItem : undefined}>
             <div className="site-action-row" data-wrap="nowrap" data-distribution={compact ? "between" : undefined}>
               <div className="site-stack-detail min-w-0">
-                <p className="type-label break-words">{item.name} × {item.quantity}</p>
+                <p className="type-label break-words">{menuFilter ? `${index + 1}) ` : null}{item.name} × {item.quantity}</p>
                 {item.options.map(({ groupName, valueName }, index) => (
                   <p key={index} className="type-caption site-copy-muted break-words">{groupName} · {valueName}</p>
                 ))}
@@ -109,13 +110,14 @@ export function KitchenOrderActions({ order, canManage, busy, move, compact = fa
   );
 }
 
-export default function KitchenOrderCard({ controls, now, roomName, onDrag, onDragEnd, selectionFull }: {
+export default function KitchenOrderCard({ controls, now, roomName, onDrag, onDragEnd, selectionFull, menuFilter }: {
   controls: KitchenOrderControls;
   now: number | null;
   roomName?: string;
   onDrag: (orderId: string) => void;
   onDragEnd: () => void;
   selectionFull: boolean;
+  menuFilter: ReadonlySet<string> | null;
 }) {
   const { order, selected, select, canManage, busy } = controls;
   const draggable = canManage && !busy && getKitchenStage(order.status) !== "ready";
@@ -139,7 +141,7 @@ export default function KitchenOrderCard({ controls, now, roomName, onDrag, onDr
         </div>
         <div className="site-content-divider site-stack-copy">
           <p className="type-label">주문내역 ({order.items.length})</p>
-          <KitchenOrderItems {...controls} compact />
+          <KitchenOrderItems {...controls} menuFilter={menuFilter} compact />
         </div>
         <KitchenOrderActions {...controls} compact />
       </div>

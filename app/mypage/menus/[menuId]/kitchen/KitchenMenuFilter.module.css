@@ -1,0 +1,68 @@
+.popup[data-slot="popover-content"][data-state] {
+  width: min(15.5rem, var(--radix-popover-content-available-width));
+  max-height: var(--radix-popover-content-available-height);
+  overflow-y: auto;
+  padding: var(--site-space-title-copy);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius-card);
+  box-shadow: none;
+}
+
+.title,
+.option,
+.categoryTrigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--ui-menu-row-height);
+  align-items: center;
+  gap: var(--site-space-copy);
+}
+
+.title {
+  margin-bottom: var(--site-space-detail);
+  font-weight: var(--font-weight-semibold);
+}
+
+.option,
+.categoryTrigger {
+  cursor: pointer;
+}
+
+.option > span,
+.categoryTrigger > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.category {
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.categoryTrigger {
+  justify-content: space-between;
+  text-align: start;
+  font-weight: var(--font-weight-semibold);
+}
+
+.categoryTrigger svg {
+  flex: none;
+}
+
+.categoryTrigger[data-state="open"] svg {
+  transform: rotate(180deg);
+}
+
+.categoryTrigger:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: -2px;
+}
+
+.categoryItems {
+  border-top: 1px solid var(--ui-border);
+}
+
+.option:hover,
+.categoryTrigger:hover {
+  background: var(--ui-surface-muted);
+}

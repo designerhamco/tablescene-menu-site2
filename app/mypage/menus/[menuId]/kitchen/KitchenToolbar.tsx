@@ -2,10 +2,13 @@
 
 import { Button } from "@/app/components/ui/button";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
+import { FilterFill } from "@/app/components/ui/site-icon";
 import { SearchField } from "@/app/components/ui/search-field";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import { KITCHEN_STAGES, KITCHEN_STAGE_LABELS, type KitchenStage } from "@/lib/kitchen-order";
+import { KITCHEN_STAGES, KITCHEN_STAGE_LABELS, type KitchenMenuGroup, type KitchenStage } from "@/lib/kitchen-order";
+
+import KitchenMenuFilter from "./KitchenMenuFilter";
 
 export type KitchenSearchField = "order" | "table";
 
@@ -20,7 +23,7 @@ function FilterMenu<T extends string>({ label, choices, selected, onChange }: {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="compact" disabled={choices.length === 0}>{label}{selected.length ? ` ${selected.length}` : ""}</Button>
+        <Button variant="outline" size="compact" disabled={choices.length === 0}>{label}{selected.length ? ` ${selected.length}` : ""} <FilterFill /></Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         <DropdownMenuCheckboxItem checked={selected.length === 0} onCheckedChange={() => onChange([])}>전체</DropdownMenuCheckboxItem>
@@ -37,7 +40,7 @@ function FilterMenu<T extends string>({ label, choices, selected, onChange }: {
   );
 }
 
-export default function KitchenToolbar({ query, setQuery, searchField, setSearchField, sort, setSort, stages, setStages, menus, setMenus, menuChoices, refreshing, onRefresh }: {
+export default function KitchenToolbar({ query, setQuery, searchField, setSearchField, sort, setSort, stages, setStages, menus, setMenus, menuGroups, refreshing, onRefresh }: {
   query: string;
   setQuery: (query: string) => void;
   searchField: KitchenSearchField;
@@ -46,9 +49,9 @@ export default function KitchenToolbar({ query, setQuery, searchField, setSearch
   setSort: (sort: string) => void;
   stages: KitchenStage[];
   setStages: (stages: KitchenStage[]) => void;
-  menus: string[];
-  setMenus: (menus: string[]) => void;
-  menuChoices: string[];
+  menus: ReadonlySet<string> | null;
+  setMenus: (menus: string[] | null) => void;
+  menuGroups: KitchenMenuGroup[];
   refreshing: boolean;
   onRefresh: () => void;
 }) {
@@ -70,7 +73,7 @@ export default function KitchenToolbar({ query, setQuery, searchField, setSearch
           <SelectContent><SelectItem value="latest">최근 주문순</SelectItem><SelectItem value="oldest">오래된 주문순</SelectItem></SelectContent>
         </Select>
         <FilterMenu label="상태 필터" selected={stages} choices={stageChoices} onChange={setStages} />
-        <FilterMenu label="메뉴 필터" selected={menus} choices={menuChoices.map(name => ({ label: name, value: name }))} onChange={setMenus} />
+        <KitchenMenuFilter groups={menuGroups} selection={menus} onChange={setMenus} />
         <RefreshButton loading={refreshing} onClick={onRefresh} />
       </div>
     </div>

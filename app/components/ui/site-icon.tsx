@@ -20,6 +20,7 @@ function icon(name: string, outline: ReactNode, solid?: ReactNode) {
   return SiteIcon;
 }
 
+export const FilterFill = /* @__PURE__ */ icon("filter-fill", <><path fill="currentColor" d="M21 4v2h-1l-6 9v7h-4v-7L4 6H3V4z"/></>);
 export const AlertCircle = /* @__PURE__ */ icon("error-warning-line", <><path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10m0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16m-1-5h2v2h-2zm0-8h2v6h-2z"/></>);
 export const AlertTriangle = /* @__PURE__ */ icon("alert-line", <><path fill="currentColor" d="m12.866 3l9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0m-8.66 16h15.588L12 5.5zM11 16h2v2h-2zm0-7h2v5h-2z"/></>);
 export const Armchair = /* @__PURE__ */ icon("armchair-line", <><path fill="currentColor" d="M8 3a4 4 0 0 0-4 4v2.126a4.002 4.002 0 0 0-1 7.339V21h2v-1h14v1h2v-4.535a4.002 4.002 0 0 0-1-7.339V7a4 4 0 0 0-4-4zm10 6.126c-1.725.444-3 2.01-3 3.874H9a4 4 0 0 0-3-3.874V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2zM9 15h6v1h2v-3a2 2 0 1 1 2.667 1.886a1 1 0 0 0-.667.943V18H5v-2.17a1 1 0 0 0-.667-.944A2.001 2.001 0 0 1 5 11a2 2 0 0 1 2 2v3h2z"/></>);

@@ -2,6 +2,12 @@ export const KITCHEN_ORDER_STATUSES = ["received", "accepted", "cooking", "ready
 type KitchenStatus = (typeof KITCHEN_ORDER_STATUSES)[number];
 
 export type KitchenAction = "start" | "check" | "finish" | "return";
+export type KitchenMenuSource = {
+  id: string;
+  sortOrder: number;
+  category: { id: string; name: string; sortOrder: number } | null;
+};
+
 export type KitchenOrderItem = {
   id: string;
   name: string;
@@ -9,6 +15,7 @@ export type KitchenOrderItem = {
   options: { groupName: string; valueName: string }[];
   done: boolean;
   lineTotal: number;
+  menuSource?: KitchenMenuSource;
 };
 export type KitchenOrder = {
   id: string;
@@ -48,4 +55,43 @@ export function canChangeKitchenStage(order: KitchenOrder, action: KitchenStageA
   if (action === "finish") return canFinishKitchenOrder(order);
   if (action === "return") return order.status === "cooking" && order.items.every(item => !item.done);
   return getKitchenStage(order.status) === "before";
+}
+
+export type KitchenMenuGroup = {
+  id: string;
+  name: string;
+  items: { key: string; name: string }[];
+};
+
+export function kitchenMenuKey(item: Pick<KitchenOrderItem, "name" | "menuSource">) {
+  return item.menuSource ? `menu:${item.menuSource.id}` : `name:${item.name}`;
+}
+
+export function getKitchenMenuGroups(orders: readonly KitchenOrder[]): KitchenMenuGroup[] {
+  const groups = new Map<string, {
+    id: string;
+    name: string;
+    sortOrder: number;
+    items: Map<string, { key: string; name: string; sortOrder: number }>;
+  }>();
+  for (const order of orders) {
+    for (const item of order.items) {
+      const category = item.menuSource?.category;
+      const id = category?.id ?? "uncategorized";
+      let group = groups.get(id);
+      if (!group) {
+        group = { id, name: category?.name ?? "분류 없음", sortOrder: category?.sortOrder ?? Infinity, items: new Map() };
+        groups.set(id, group);
+      }
+      const key = kitchenMenuKey(item);
+      if (!group.items.has(key)) group.items.set(key, { key, name: item.name, sortOrder: item.menuSource?.sortOrder ?? Infinity });
+    }
+  }
+  const compare = (a: {sortOrder: number; name: string}, b: {sortOrder: number; name: string}) =>
+    (a.sortOrder - b.sortOrder) || a.name.localeCompare(b.name, "ko");
+  return [...groups.values()].sort(compare).map(group => ({
+    id: group.id,
+    name: group.name,
+    items: [...group.items.values()].sort(compare).map(({ key, name }) => ({ key, name })),
+  }));
 }

@@ -8,13 +8,13 @@ import * as kitchen from "./kitchen-order";
 const site="11111111-1111-4111-8111-111111111111",table="22222222-2222-4222-8222-222222222222";
 const uuid=(n:number)=>`33333333-3333-4333-8333-${String(n).padStart(12,"0")}`;
 function row(n:number,status="received",payment="unpaid") {return{id:uuid(n),menu_site_id:site,menu_table_id:table,order_number:n,status,payment_status:payment,created_at:`2020-01-${String(1+Math.floor((n-1)/24)).padStart(2,"0")}T${String((n-1)%24).padStart(2,"0")}:00:00.000000+00:00`,updated_at:"2020-01-01T00:00:00Z",total_amount:1000,currency:"KRW"};}
-function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?:boolean;fail?:boolean;items?:number;optionsPerItem?:number;doneItems?:number}={}){
- const calls:{table:string;filters:Record<string,unknown>;or?:string}[]=[];let gates=0;
- const itemRows=Array.from({length:options.items??0},(_,i)=>({id:uuid(i+5000),order_id:rows[0]?.id,menu_site_id:site,item_name_snapshot:`상품 ${i}`,base_price_snapshot:1000,option_price_snapshot:0,unit_price_snapshot:1000,quantity:1,line_total_snapshot:1000,display_order:i,cooking_completed_at:i<(options.doneItems??0)?"2020-01-01T00:00:00Z":null}));
+function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?:boolean;fail?:boolean;items?:number;optionsPerItem?:number;doneItems?:number;menuSources?:unknown[]}={}){
+ const calls:{table:string;filters:Record<string,unknown>;or?:string;columns?:string}[]=[];let gates=0;
+ const itemRows=Array.from({length:options.items??0},(_,i)=>({id:uuid(i+5000),order_id:rows[0]?.id,menu_site_id:site,item_name_snapshot:`상품 ${i}`,base_price_snapshot:1000,option_price_snapshot:0,unit_price_snapshot:1000,quantity:1,line_total_snapshot:1000,display_order:i,cooking_completed_at:i<(options.doneItems??0)?"2020-01-01T00:00:00Z":null,menu_item:options.menuSources?.[i]}));
  const optionRows=itemRows.flatMap((item,i)=>Array.from({length:options.optionsPerItem??0},(_,j)=>({id:uuid(10000+i*10+j),menu_site_id:site,order_item_id:item.id,group_name_snapshot:"옵션",value_name_snapshot:`값 ${j}`,price_delta_snapshot:0,display_order:j})));
- const db={from(name:string){const filters:Record<string,unknown>={},orders:{key:string;ascending:boolean}[]=[];let or="",limit=Infinity,offset=0,count=false;
- const query={select(_columns:string,args?:{count?:string}){count=Boolean(args?.count);return query;},eq(key:string,value:unknown){filters[key]=value;return query;},neq(key:string,value:unknown){filters[`neq:${key}`]=value;return query;},in(key:string,value:unknown){filters[`in:${key}`]=value;return query;},gte(key:string,value:unknown){filters[`gte:${key}`]=value;return query;},lte(key:string,value:unknown){filters[`lte:${key}`]=value;return query;},lt(key:string,value:unknown){filters[`lt:${key}`]=value;return query;},or(value:string){or=value;return query;},order(key:string,value:{ascending:boolean}){orders.push({key,ascending:value.ascending});return query;},limit(value:number){limit=value;return query;},range(from:number,to:number){offset=from;limit=to-from+1;return query;},async maybeSingle(){calls.push({table:name,filters});assert.equal(name,"menu_sites");return{data:{id:site,name:"예시"},error:null};},then(resolve:(value:unknown)=>void){
-  calls.push({table:name,filters,or});assert.equal(filters.menu_site_id,site);
+ const db={from(name:string){const filters:Record<string,unknown>={},orders:{key:string;ascending:boolean}[]=[];let or="",limit=Infinity,offset=0,count=false,columns="";
+ const query={select(projection:string,args?:{count?:string}){columns=projection;count=Boolean(args?.count);return query;},eq(key:string,value:unknown){filters[key]=value;return query;},neq(key:string,value:unknown){filters[`neq:${key}`]=value;return query;},in(key:string,value:unknown){filters[`in:${key}`]=value;return query;},gte(key:string,value:unknown){filters[`gte:${key}`]=value;return query;},lte(key:string,value:unknown){filters[`lte:${key}`]=value;return query;},lt(key:string,value:unknown){filters[`lt:${key}`]=value;return query;},or(value:string){or=value;return query;},order(key:string,value:{ascending:boolean}){orders.push({key,ascending:value.ascending});return query;},limit(value:number){limit=value;return query;},range(from:number,to:number){offset=from;limit=to-from+1;return query;},async maybeSingle(){calls.push({table:name,filters});assert.equal(name,"menu_sites");return{data:{id:site,name:"예시"},error:null};},then(resolve:(value:unknown)=>void){
+  calls.push({table:name,filters,or,columns});assert.equal(filters.menu_site_id,site);
   let result:Record<string,unknown>[]= name==="menu_customer_orders"?rows:name==="menu_customer_order_items"?itemRows:name==="menu_customer_order_item_options"?optionRows:[{id:table,label:"테이블 1",point_kind:"table",status:"archived",menu_site_id:site}];
   result=result.filter(item=>Object.entries(filters).every(([key,value])=>{const [op,field]=key.includes(":")?key.split(":"):["eq",key];const actual=item[field];return op==="neq"?actual!==value:op==="in"?(value as unknown[]).includes(actual):op==="gte"?String(actual)>=String(value):op==="lte"?String(actual)<=String(value):op==="lt"?String(actual)<String(value):actual===value;}));
   if(or.includes("status.neq.served"))result=result.filter(item=>item.status!=="served"||item.payment_status==="unpaid");
@@ -83,4 +83,30 @@ test("주방에 조리 대상만 표시하고 모든 메뉴를 체크한 주문�
   const hall = await fixture(orders).service.listOrderDashboard(site);
   assert.equal(hall.orders.find(order => order.status === "cooking")?.nextStatus, null);
   assert.equal(hall.orders.find(order => order.status === "ready")?.nextStatus, "served");
+});
+
+test("주방 메뉴 필터는 메뉴판의 등록 순서를 쓰고 연결이 끊긴 기존 주문도 조회한다", async () => {
+  const category = (id: string, name: string, sort_order: number, menu_site_id = site) =>
+    ({ id, name, sort_order, menu_site_id });
+  const source = (id: string, sort_order: number, group: ReturnType<typeof category>, menu_site_id = site) =>
+    ({ id, sort_order, category: group, menu_site_id });
+  const fixtureData = fixture([row(1, "cooking")], {
+    items: 5,
+    menuSources: [
+      source("drink", 0, category("beverage", "Beverage", 2)),
+      source("main-2", 2, category("main", "Main", 0)),
+      source("main-1", 1, category("main", "Main", 0)),
+      source("foreign-item", 0, category("foreign", "Foreign", 0), "other-site"),
+      source("same-site", 0, category("foreign", "Foreign", 0, "other-site")),
+    ],
+  });
+  const { orders } = await fixtureData.service.listKitchenDashboard(site);
+  const groups = kitchen.getKitchenMenuGroups(orders);
+  assert.deepEqual(groups.map(group => group.name), ["Main", "Beverage", "분류 없음"]);
+  assert.deepEqual(groups[0].items.map(item => item.key), ["menu:main-1", "menu:main-2"]);
+  assert.deepEqual(groups[2].items.map(item => item.key), ["menu:same-site", "name:상품 3"]);
+  assert.match(fixtureData.calls.find(call => call.table === "menu_customer_order_items")!.columns!, /menu_item:menu_items!.*category:menu_categories!/);
+  const hall = await fixtureData.service.listOrderDashboard(site);
+  assert.ok(hall.orders[0].items.every(item => item.menuSource === undefined));
+  assert.doesNotMatch(fixtureData.calls.filter(call => call.table === "menu_customer_order_items").at(-1)!.columns!, /menu_item:/);
 });

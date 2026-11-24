@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import OrderReceipt from "@/components/mypage/OrderReceipt";
 import {
-  canChangeKitchenStage, getKitchenStage, KITCHEN_ACTION_LABELS, KITCHEN_SELECTION_LIMIT,
+  canChangeKitchenStage, getKitchenMenuGroups, getKitchenStage, kitchenMenuKey, KITCHEN_ACTION_LABELS, KITCHEN_SELECTION_LIMIT,
   KITCHEN_STAGE_ACTIONS, KITCHEN_STAGE_LABELS, KITCHEN_STAGES,
   type KitchenMutation, type KitchenOrder, type KitchenStage, type KitchenStageAction,
 } from "@/lib/kitchen-order";
@@ -25,10 +25,11 @@ import styles from "./KitchenDashboard.module.css";
 
 const stageTones = { before: "error", cooking: "pending", ready: "active" } as const;
 
-function KitchenProgress({ orders, close }: { orders: KitchenOrder[]; close: () => void }) {
+function KitchenProgress({ orders, menuFilter, close }: { orders: KitchenOrder[]; menuFilter: ReadonlySet<string> | null; close: () => void }) {
   const totals = new Map<string, { incomplete: number; complete: number }>();
   for (const order of orders) {
     for (const item of order.items) {
+      if (menuFilter && !menuFilter.has(kitchenMenuKey(item))) continue;
       const total = totals.get(item.name) ?? { incomplete: 0, complete: 0 };
       total[item.done ? "complete" : "incomplete"] += item.quantity;
       totals.set(item.name, total);
@@ -77,7 +78,7 @@ export default function KitchenDashboard({
   const [view, setView] = useState("board");
   const [stage, setStage] = useState<KitchenStage>("before");
   const [stageFilter, setStageFilter] = useState<KitchenStage[]>([]);
-  const [menuFilter, setMenuFilter] = useState<string[]>([]);
+  const [menuFilter, setMenuFilter] = useState<string[] | null>(null);
   const [sort, setSort] = useState("latest");
   const [query, setQuery] = useState("");
   const [searchField, setSearchField] = useState<KitchenSearchField>("order");
@@ -115,14 +116,14 @@ export default function KitchenDashboard({
   const roomNames = new Map(rooms.map(room => [room.id, room.name]));
   const roomName = (order: KitchenOrder) => roomNames.get(roomIdByTable[order.tableId]);
   const roomOrders = orders.filter(order => activeRoom === "all" || roomIdByTable[order.tableId] === activeRoom);
-  const menuChoices = [...new Set(roomOrders.flatMap(order => order.items.map(item => item.name)))].sort((a, b) => a.localeCompare(b, "ko"));
-  const activeMenus = menuFilter.filter(name => menuChoices.includes(name));
+  const menuGroups = getKitchenMenuGroups(roomOrders);
+  const selectedMenus = menuFilter ? new Set(menuFilter) : null;
   const visibleStages = stageFilter.length ? stageFilter : KITCHEN_STAGES;
   const mobileStage = visibleStages.includes(stage) ? stage : visibleStages[0];
   const search = query.trim().replace(/^#/, "").toLocaleLowerCase("ko");
   const visibleOrders = roomOrders.filter(order =>
     visibleStages.includes(getKitchenStage(order.status))
-    && (!activeMenus.length || order.items.some(item => activeMenus.includes(item.name)))
+    && (!selectedMenus || order.items.some(item => selectedMenus.has(kitchenMenuKey(item))))
     && (!search || (searchField === "order" ? String(order.orderNumber) : order.tableLabel.toLocaleLowerCase("ko")).includes(search))
   ).sort((a, b) => (Date.parse(b.createdAt) - Date.parse(a.createdAt) || b.orderNumber - a.orderNumber) * (sort === "latest" ? 1 : -1));
   const selectedOrders = visibleOrders.filter(order => selection.includes(order.id));
@@ -195,7 +196,7 @@ export default function KitchenDashboard({
         {rooms.length > 0 && (
           <Tabs purpose="section" appearance="rooms" value={activeRoom} onValueChange={value => {
             setRoomFilter(value);
-            setMenuFilter([]);
+            setMenuFilter(null);
             setSelection([]);
           }}>
             <TabsList aria-label="룸 선택">
@@ -219,7 +220,7 @@ export default function KitchenDashboard({
           <div className={styles.toolbar}>
             <KitchenToolbar query={query} setQuery={setQuery} searchField={searchField} setSearchField={setSearchField}
               sort={sort} setSort={setSort} stages={stageFilter} setStages={setStageFilter}
-              menus={activeMenus} setMenus={setMenuFilter} menuChoices={menuChoices} refreshing={refreshing}
+              menus={selectedMenus} setMenus={setMenuFilter} menuGroups={menuGroups} refreshing={refreshing}
               onRefresh={() => { setError(undefined); refresh(() => router.refresh()); }} />
           </div>
           {error && <p role="alert" className={`${styles.error} type-body-sm text-destructive`}>{error}</p>}
@@ -290,14 +291,14 @@ export default function KitchenDashboard({
                           <div className={styles.orderArea}>
                             {stageOrders.length ? (
                               <div className={styles.orderGrid}>{stageOrders.map(order => (
-                                <KitchenOrderCard key={order.id} controls={controls(order)} now={now} roomName={roomName(order)}
+                                <KitchenOrderCard key={order.id} controls={controls(order)} now={now} roomName={roomName(order)} menuFilter={selectedMenus}
                                   onDrag={setDraggedId} onDragEnd={clearDrag} selectionFull={selectionFull} />
                               ))}</div>
                             ) : <p className="type-body-sm site-copy-muted">주문이 없습니다.</p>}
                           </div>
                           {value === "cooking" && showProgress && (
                             <div className="hidden lg:contents">
-                              <KitchenProgress orders={stageOrders} close={() => setProgressOpen(false)} />
+                              <KitchenProgress menuFilter={selectedMenus} orders={stageOrders} close={() => setProgressOpen(false)} />
                             </div>
                           )}
                         </div>
@@ -306,7 +307,7 @@ export default function KitchenDashboard({
                   })}
                 </div>
                 {showProgress && <div className="lg:hidden">
-                  <KitchenProgress orders={ordersByStage.cooking} close={() => setProgressOpen(false)} />
+                  <KitchenProgress menuFilter={selectedMenus} orders={ordersByStage.cooking} close={() => setProgressOpen(false)} />
                 </div>}
               </>
             ) : (
@@ -314,7 +315,7 @@ export default function KitchenDashboard({
                 <div className="site-action-row" data-distribution="end">
                   <Button variant="outline" size="compact" aria-expanded={progressOpen} onClick={() => setProgressOpen(value => !value)}>조리 진척도</Button>
                 </div>
-                {progressOpen && <KitchenProgress orders={ordersByStage.cooking} close={() => setProgressOpen(false)} />}
+                {progressOpen && <KitchenProgress menuFilter={selectedMenus} orders={ordersByStage.cooking} close={() => setProgressOpen(false)} />}
                 <Table variant="management" label="주방 주문 리스트" columns={["control", "text", "text", "detail", "actions"]}>
                   <TableHeader><TableRow>
                     <TableHead scope="col">주문번호</TableHead><TableHead scope="col">룸·테이블</TableHead>
@@ -329,7 +330,7 @@ export default function KitchenDashboard({
                         <TableCell><KitchenOrderNumber order={order} selected={actions.selected} select={actions.select} disabled={pending || (selectionFull && !actions.selected)} /></TableCell>
                         <TableCell>{[roomName(order), order.tableLabel].filter(Boolean).join(" · ")}</TableCell>
                         <TableCell><KitchenOrderTime order={order} now={now} /></TableCell>
-                        <TableCell><KitchenOrderItems {...actions} /></TableCell>
+                        <TableCell><KitchenOrderItems {...actions} menuFilter={selectedMenus} /></TableCell>
                         <TableCell><div className="site-stack-copy"><span><Badge tone={stageTones[orderStage]}>{KITCHEN_STAGE_LABELS[orderStage]}</Badge></span><KitchenOrderActions {...actions} /></div></TableCell>
                       </TableRow>;
                     })}

@@ -1629,6 +1629,7 @@ svg.site-edit-icon {
 /* Radix and native choices share the compact16px visual geometry. */
 .site-checkbox, .site-radio { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ui-choice-size); height: var(--ui-choice-size); padding: 0; border: 1px solid var(--ui-border-strong); background: var(--ui-surface); color: var(--ui-text); box-shadow: none; cursor: pointer; }
 .site-checkbox { border-radius: .25rem; }
+.site-checkbox[data-shape="circle"] { border-radius: 50%; }
 .site-radio { border-radius: var(--ui-radius-control); }
 .site-checkbox[data-state="checked"], .site-checkbox[data-state="indeterminate"] { border-color: transparent; background: var(--ui-text); color: var(--ui-surface); }
 .site-radio[data-state="checked"] { border-color: var(--ui-text); }
