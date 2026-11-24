@@ -8,8 +8,13 @@ import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/Me
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { getImageUploadPolicy, validateImageUploadFile, type ImageUploadTarget } from "@/lib/image-upload-policy";
 
+import HelpTooltip from "@/components/ui/HelpTooltip";
+
 type ImageUploadFieldProps = {
   label: string;
+  editorLayout?: boolean;
+  labelAction?: ReactNode;
+  hidePreview?: boolean;
   menuId: string;
   target: ImageUploadTarget;
   recordId?: string;
@@ -49,6 +54,9 @@ function getStateClassName(type: UploadState["type"]) {
 
 export default function ImageUploadField({
   label,
+  editorLayout = false,
+  labelAction,
+  hidePreview = false,
   menuId,
   target,
   recordId,
@@ -207,12 +215,12 @@ export default function ImageUploadField({
   }
 
   return (
-    <div className="site-section site-editor-subpanel p-4">
+    <div className={editorLayout ? "site-stack-copy" : "site-section site-editor-subpanel p-4"}>
       {deferredDeleteName && isMarkedForDeferredDelete && <input type="hidden" name={deferredDeleteName} value="on" />}
       {draftImageUrlInputName && draftImageUrl && <input type="hidden" name={draftImageUrlInputName} value={draftImageUrl} />}
       {draftImagePathInputName && draftImagePath && <input type="hidden" name={draftImagePathInputName} value={draftImagePath} />}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40">
+      <div className={editorLayout ? "site-editor-image-upload" : "flex flex-col gap-4 sm:flex-row sm:items-start"}>
+        {!hidePreview && <div className={editorLayout ? "site-editor-image-preview" : "flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40"}>
           {previewUrl ? (
             // TODO: 이미지 업로드 시 WebP 변환/압축을 서버 또는 브라우저에서 추가할 수 있습니다.
             // eslint-disable-next-line @next/next/no-img-element
@@ -220,18 +228,28 @@ export default function ImageUploadField({
           ) : (
             emptyPreview ?? <span className="text-support font-medium text-zinc-600">이미지 없음</span>
           )}
-        </div>
+        </div>}
 
         <div className="min-w-0 flex-1">
-          <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
+          {editorLayout ? (
+            <div className="site-content-heading-row">
+              <div className="site-action-row">
+                <p className="type-label">{label}</p>
+                <HelpTooltip label={`${label} 업로드 주의사항`} hover>
+                  본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해 주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+                </HelpTooltip>
+              </div>
+              {labelAction}
+            </div>
+          ) : <p className="text-support font-medium uppercase text-zinc-600">{label}</p>}
           {description && <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</p>}
           <div className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{fileGuidance ?? uploadPolicy.label}</div>
           {optimizationGuidance ? (
             <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">{optimizationGuidance}</p>
           ) : null}
-          <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
+          {!editorLayout && <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
             본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
-          </p>
+          </p>}
 
           <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
             <input

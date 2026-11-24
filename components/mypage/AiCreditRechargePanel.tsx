@@ -16,6 +16,7 @@ type AiCreditRechargePanelProps = {
   channelKey?: string;
   initialBalance: AiCreditBalance | null;
   compact?: boolean;
+  inline?: boolean;
   accountSummaryOnly?: boolean;
 };
 
@@ -35,6 +36,7 @@ export default function AiCreditRechargePanel({
   channelKey,
   initialBalance,
   compact = false,
+  inline = false,
   accountSummaryOnly = false,
 }: AiCreditRechargePanelProps) {
   const router = useRouter();
@@ -109,6 +111,19 @@ export default function AiCreditRechargePanel({
         }}
         onError={(nextMessage) => setMessage(nextMessage || null)}
       />);
+
+  if (inline) {
+    return (
+      <div className="site-stack-copy">
+        <div className="site-action-row">
+          <span className="type-body-sm">보유 AI 크레딧 <strong>{formatAiCredits(totalRemainingCredits)}</strong></span>
+          <button type="button" onClick={() => setIsOpen(true)} className="site-button site-button-outline" aria-label="AI 크레딧 충전">충전</button>
+        </div>
+        {message && <p className="type-body-sm" role="status">{message}</p>}
+        {purchaseModal}
+      </div>
+    );
+  }
 
   if (accountSummaryOnly) {
     return (

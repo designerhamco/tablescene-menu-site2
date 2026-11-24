@@ -28,6 +28,9 @@ import {
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import AiCreditRechargePanel from "@/components/mypage/AiCreditRechargePanel";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import BasicDesignWorkspace from "@/components/mypage/menu-editor/BasicDesignWorkspace";
+import { getTemplateCategoryLabel } from "@/lib/templates";
 import BackgroundColorSettingsForm from "@/components/mypage/menu-editor/BackgroundColorSettingsForm";
 import { CafeAStarterResetProvider } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import {
@@ -894,9 +897,9 @@ const menuSiteSelect = baseMenuSiteSelect
   .replace("restaurant_category", "restaurant_category, restaurant_type")
   .replace("menu_cover_title", "menu_cover_label, menu_cover_title");
 
-function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
+function FieldLabel({ children, required = false, htmlFor }: { children: ReactNode; required?: boolean; htmlFor?: string }) {
   return (
-    <label className="text-support font-medium uppercase tracking-[0.16em] text-zinc-400">
+    <label htmlFor={htmlFor} className="text-support font-medium uppercase tracking-[0.16em] text-zinc-400">
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
@@ -1100,7 +1103,16 @@ function normalizeFinalSaveError(error?: string | null) {
   return error;
 }
 
-function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+function SectionCard({ title, action, children, basic = false }: { title: string; action?: ReactNode; children: ReactNode; basic?: boolean }) {
+  if (basic) {
+    return (
+      <ContentPanel>
+        <h2 className="type-subsection-title">{title}</h2>
+        {action}
+        <div className="site-content-divider">{children}</div>
+      </ContentPanel>
+    );
+  }
   return (
     <section className="site-card site-editor-panel p-5 sm:p-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -1817,6 +1829,97 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     editorCapabilities.chefs && templateCapabilities.chefs ? { label: "셰프/인물 등록", ok: chefs.length > 0 } : null,
   ].filter((item): item is { label: string; ok: boolean } => Boolean(item));
 
+  const logoVisibilityField = supportsBrandLogoReplacesName && (
+    <div>
+      <input type="hidden" name="logo_replaces_name_present" value="1" />
+      <SwitchField
+        name="logo_replaces_name"
+        compact={useBasicEditorLayout}
+        label={useBasicEditorLayout ? "로고 사용" : logoReplacesNameLabel}
+        description={useBasicEditorLayout ? undefined : logoReplacesNameDescription}
+        defaultChecked={logoReplacesName}
+        onText="로고 표시"
+        offText="매장명 표시"
+      />
+    </div>
+  );
+  const brandLogoFields = (
+    <div className="space-y-4">
+      <ImageUploadField
+        label="매장 로고"
+        editorLayout={useBasicEditorLayout}
+        labelAction={useBasicEditorLayout ? logoVisibilityField : undefined}
+        menuId={site.id}
+        target="site-logo-draft"
+        currentUrl={site.logo_url}
+        description="공개 메뉴판에서는 템플릿별 안전 크기 안에서 비율에 맞춰 표시됩니다."
+        fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
+        deferredDeleteName="delete_logo_image"
+        draftImageUrlInputName="draft_logo_image_url"
+        draftImagePathInputName="draft_logo_image_path"
+        uploadSuccessMessage="새 로고 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+        deleteSuccessMessage="로고 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
+        deleteConfirmTitle="이 로고 이미지를 삭제할까요?"
+        deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
+      />
+      {!useBasicEditorLayout && logoVisibilityField}
+    </div>
+  );
+  const storeNoticeFields = (
+    <div className={useBasicEditorLayout ? "site-basic-editor-notices" : "grid gap-4 md:grid-cols-3"} data-editor-span={useBasicEditorLayout ? "full" : undefined}>
+      {usesTopRowCopyLimit && <p className="type-caption md:col-span-3" data-editor-span="full">PC·태블릿에서는 안내사항 1·2·3을 합쳐 최대 3줄까지 표시하며, 문구가 길면 …으로 표시될 수 있습니다. 짧고 간결하게 입력해주세요.</p>}
+      <div>
+        <FieldLabel htmlFor="editor-notice-1">안내사항 1</FieldLabel>
+        <TextArea
+          name="footer_notice_1"
+          id="editor-notice-1"
+          defaultValue={footerNotice1}
+          maxLength={templateContentLimits.footerNotice}
+          placeholder="예: 매일 10:00~22:00"
+          helperText={
+            <>
+              입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {basicFooterNotice1Error && <span className="mt-1 block text-red-600">{basicFooterNotice1Error}</span>}
+            </>
+          }
+        />
+      </div>
+      <div>
+        <FieldLabel htmlFor="editor-notice-2">안내사항 2</FieldLabel>
+        <TextArea
+          name="footer_notice_2"
+          id="editor-notice-2"
+          defaultValue={footerNotice2}
+          maxLength={templateContentLimits.footerNotice}
+          placeholder="예: 포장 가능 · 주차 가능"
+          helperText={
+            <>
+              업종에 맞는 짧은 안내를 입력하세요. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {basicFooterNotice2Error && <span className="mt-1 block text-red-600">{basicFooterNotice2Error}</span>}
+            </>
+          }
+        />
+      </div>
+      <div>
+        <FieldLabel htmlFor="editor-notice-3">안내사항 3</FieldLabel>
+        <TextArea
+          name="footer_notice_3"
+          id="editor-notice-3"
+          defaultValue={footerNotice3}
+          maxLength={templateContentLimits.footerNotice}
+          placeholder="예: Instagram @artimenu_official"
+          helperText={
+            <>
+              링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {basicFooterNotice3Error && <span className="mt-1 block text-red-600">{basicFooterNotice3Error}</span>}
+            </>
+          }
+        />
+      </div>
+    </div>
+  );
+
+
   const menuEditorCreditSummary = accessState?.canUseAi && accessContext.isOwner ? (
     <AiCreditRechargePanel
       menuSiteId={site.id}
@@ -1849,7 +1952,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-            <div>
+            <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <Badge>
                   {headerStatusLabel}
@@ -1864,10 +1967,22 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 </div>
               </div>
               <h1 className="type-page-title">{site.name}</h1>
-              <p className="type-body-sm mt-3 inline-flex items-center gap-2 font-medium text-zinc-400">
-                {publicUrl}
+              <p className="type-body-sm site-editor-public-address">
+                <span>{publicUrl}</span>
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
               </p>
+              {useBasicEditorLayout && accessContext.isOwner && accessState?.canUseAi && (
+                <AiCreditRechargePanel
+                  menuSiteId={site.id}
+                  menuName={site.name}
+                  userId={user.id}
+                  userEmail={user.email}
+                  storeId={portOneConfig.storeId ?? undefined}
+                  channelKey={portOneConfig.channelKey ?? undefined}
+                  initialBalance={aiCreditBalance}
+                  inline
+                />
+              )}
             </div>
             <div className="flex w-full flex-col items-stretch gap-2 sm:items-end lg:w-auto">
               <div className="site-editor-header-actions">
@@ -1878,6 +1993,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   >
                     메뉴 가져오기
                   </Link>
+                ) : useBasicEditorLayout && accessContext.isOwner ? (
+                  <button type="button" disabled className="site-button site-button-secondary" title="편집할 수 있는 작성 중 메뉴판에서 가져오기를 사용할 수 있습니다.">
+                    메뉴 가져오기
+                  </button>
                 ) : null}
                 {canPreview ? (
                   <Link
@@ -1901,7 +2020,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       rel="noopener noreferrer"
                       className="site-button site-button-outline"
                     >
-                      공개 페이지 보기
+                      공개 메뉴판 보기
                     </Link>
                     {canDownloadQr ? (
                       <a
@@ -1916,7 +2035,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 ) : (
                   <>
                     <button type="button" disabled title="공개 중인 활성 메뉴판에서만 사용할 수 있습니다." className="site-button site-button-outline">
-                      공개 페이지 보기
+                      공개 메뉴판 보기
                     </button>
                     <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="site-button site-button-outline">
                       QR 다운로드
@@ -1970,13 +2089,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <div className={`site-editor-section-content space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
               <>
-                <SectionCard title="기본 정보">
-                  <form id="basic-info-form" action={updateMenuSiteAction} className="grid gap-5 md:grid-cols-2">
+                <SectionCard title={useBasicEditorLayout ? "기본 정보 입력" : "기본 정보"} basic={useBasicEditorLayout}>
+                  <form id="basic-info-form" action={updateMenuSiteAction} className={useBasicEditorLayout ? "site-basic-editor-fields" : "grid gap-5 md:grid-cols-2"}>
                   <HiddenMenuId menuId={site.id} />
                   <div>
-                    <FieldLabel required>{templateEditorLabels.pageLabel} 관리용 이름</FieldLabel>
+                    <FieldLabel htmlFor="editor-menu-name" required>관리용 {templateEditorLabels.pageLabel} 이름</FieldLabel>
                     <TextInput
                       name="name"
+                      id="editor-menu-name"
                       defaultValue={site.name}
                       required
                       maxLength={MENU_FIELD_LIMITS.menuSites.name}
@@ -1989,9 +2109,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                   </div>
                   <div>
-                    <FieldLabel required>실제 매장명</FieldLabel>
+                    <FieldLabel htmlFor="editor-restaurant-name" required>실제 매장명</FieldLabel>
                     <TextInput
                       name="restaurant_name"
+                      id="editor-restaurant-name"
                       defaultValue={site.restaurant_name ?? ""}
                       required
                       maxLength={templateContentLimits.restaurantName}
@@ -2003,11 +2124,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       }
                     />
                   </div>
+                  {useBasicEditorLayout && supportsBrandLogo && brandLogoFields}
                   {supportsBasicBrandDescription && (
-                    <div className="md:col-span-2">
-                      <FieldLabel>매장 설명</FieldLabel>
+                    <div className={useBasicEditorLayout ? undefined : "md:col-span-2"}>
+                      <FieldLabel htmlFor="editor-brand-description">매장 소개</FieldLabel>
                       <TextArea
                         name="brand_description"
+                        id="editor-brand-description"
                         defaultValue={site.brand_description ?? ""}
                         maxLength={templateContentLimits.brandDescription}
                         placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
@@ -2021,6 +2144,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       />
                     </div>
                   )}
+                  {useBasicEditorLayout && supportsFooterStoreInfo && storeNoticeFields}
+                  {!useBasicEditorLayout && (
+                    <>
                   <div>
                     <FieldLabel>공개 메뉴판 주소</FieldLabel>
                     <TextInput
@@ -2053,94 +2179,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </p>
                       </div>
 
-                      {supportsBrandLogo && (
-                        <div className="space-y-4">
-                          <ImageUploadField
-                            label="로고 이미지"
-                            menuId={site.id}
-                            target="site-logo-draft"
-                            currentUrl={site.logo_url}
-                            description="공개 메뉴판에서는 템플릿별 안전 크기 안에서 비율에 맞춰 표시됩니다."
-                            fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
-                            deferredDeleteName="delete_logo_image"
-                            draftImageUrlInputName="draft_logo_image_url"
-                            draftImagePathInputName="draft_logo_image_path"
-                            uploadSuccessMessage="새 로고 이미지는 저장 후 공개 메뉴판에 반영됩니다."
-                            deleteSuccessMessage="로고 이미지가 임시 삭제되었습니다. 저장 후 공개 메뉴판에 반영됩니다."
-                            deleteConfirmTitle="이 로고 이미지를 삭제할까요?"
-                            deleteConfirmDescription="삭제해도 저장 전까지 공개 메뉴판에는 반영되지 않습니다."
-                          />
-                          {supportsBrandLogoReplacesName && (
-                            <div>
-                              <input type="hidden" name="logo_replaces_name_present" value="1" />
-                              <SwitchField
-                                name="logo_replaces_name"
-                                label={logoReplacesNameLabel}
-                                description={logoReplacesNameDescription}
-                                defaultChecked={logoReplacesName}
-                                onText="로고 표시"
-                                offText="매장명 표시"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {supportsFooterStoreInfo && (
-                        <div className="grid gap-4 md:grid-cols-3">
-                          {usesTopRowCopyLimit && <p className="type-caption md:col-span-3">PC·태블릿에서는 안내사항 1·2·3을 합쳐 최대 3줄까지 표시하며, 문구가 길면 …으로 표시될 수 있습니다. 짧고 간결하게 입력해주세요.</p>}
-                          <div>
-                            <FieldLabel>안내사항 1</FieldLabel>
-                            <TextArea
-                              name="footer_notice_1"
-                              defaultValue={footerNotice1}
-                              maxLength={templateContentLimits.footerNotice}
-                              placeholder="예: 매일 10:00~22:00"
-                              helperText={
-                                <>
-                                  입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
-                                  {basicFooterNotice1Error && <span className="mt-1 block text-red-600">{basicFooterNotice1Error}</span>}
-                                </>
-                              }
-                            />
-                          </div>
-                          <div>
-                            <FieldLabel>안내사항 2</FieldLabel>
-                            <TextArea
-                              name="footer_notice_2"
-                              defaultValue={footerNotice2}
-                              maxLength={templateContentLimits.footerNotice}
-                              placeholder="예: 포장 가능 · 주차 가능"
-                              helperText={
-                                <>
-                                  업종에 맞는 짧은 안내를 입력하세요. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
-                                  {basicFooterNotice2Error && <span className="mt-1 block text-red-600">{basicFooterNotice2Error}</span>}
-                                </>
-                              }
-                            />
-                          </div>
-                          <div>
-                            <FieldLabel>안내사항 3</FieldLabel>
-                            <TextArea
-                              name="footer_notice_3"
-                              defaultValue={footerNotice3}
-                              maxLength={templateContentLimits.footerNotice}
-                              placeholder="예: Instagram @artimenu_official"
-                              helperText={
-                                <>
-                                  링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
-                                  {basicFooterNotice3Error && <span className="mt-1 block text-red-600">{basicFooterNotice3Error}</span>}
-                                </>
-                              }
-                            />
-                          </div>
-                        </div>
-                      )}
+                      {supportsBrandLogo && brandLogoFields}
+                      {supportsFooterStoreInfo && storeNoticeFields}
                     </div>
                   )}
-                  <div className="md:col-span-2">
+                    </>
+                  )}
+                  <div data-editor-span="full" className={useBasicEditorLayout ? undefined : "md:col-span-2"}>
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -2153,8 +2200,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "advertising" && site.template_key !== "display_menu_a" ? (
-              <SectionCard title="광고">
-                <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} />
+              <SectionCard title={useBasicEditorLayout ? "광고 설정" : "광고"} basic={useBasicEditorLayout}>
+                <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} basic={useBasicEditorLayout} />
                 <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
               </SectionCard>
             ) : null}
@@ -2229,10 +2276,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "cover" && (
               <SectionCard
                 title={coverTabLabel ?? "커버 이미지"}
+                basic={useBasicEditorLayout}
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  <div className="site-section site-editor-subpanel md:col-span-2 p-5">
+                  {!useBasicEditorLayout && <div className="site-section site-editor-subpanel md:col-span-2 p-5">
                     <p className="break-keep text-copy font-medium leading-relaxed text-zinc-600">
                       {coverDescription ||
                         (usesStoreIdentityForCover
@@ -2241,14 +2289,23 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         ? "가격표 상단에 보여줄 대표 문구와 이미지를 설정합니다. 등록된 서비스 중 하나를 고르는 방식이 아니라, 가격표 전체를 소개하는 커버 내용을 직접 입력합니다."
                         : "메뉴판 첫 화면이나 상단 영역에 강조해서 보여줄 내용을 설정합니다. 대표 추천 메뉴를 선택하면 템플릿에 따라 상단 강조 영역에 표시될 수 있습니다.")}
                     </p>
-                  </div>
+                  </div>}
                   <CoverDraftToggleSection
                     name="menu_cover_enabled"
                     label={coverToggleLabel}
                     defaultChecked={menuCoverEnabled}
+                    basic={useBasicEditorLayout}
                     inactiveMessage={`${coverToggleLabel}을 켜면 아래 설정을 편집할 수 있습니다. 꺼도 기존 입력값은 삭제되지 않습니다.`}
+                    devices={useBasicEditorLayout && supportsMenuCoverDeviceVisibility ? (
+                      <CoverDeviceVisibilityFields
+                        basic
+                        defaultPcVisible={pageSettings.menu_cover_visible_pc !== false}
+                        defaultTabletVisible={pageSettings.menu_cover_visible_tablet !== false}
+                        defaultMobileVisible={pageSettings.menu_cover_visible_mobile !== false}
+                      />
+                    ) : undefined}
                   >
-                    {supportsMenuCoverDeviceVisibility && (
+                    {!useBasicEditorLayout && supportsMenuCoverDeviceVisibility && (
                       <CoverDeviceVisibilityFields
                         defaultPcVisible={pageSettings.menu_cover_visible_pc !== false}
                         defaultTabletVisible={pageSettings.menu_cover_visible_tablet !== false}
@@ -2339,6 +2396,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <div className="md:col-span-2">
                         <FeaturedSlidesEditor
                           templateKey={site.template_key}
+                          basic={useBasicEditorLayout}
                           menuId={site.id}
                           formId="menu-cover-form"
                           initialSlides={featuredSlideDrafts}
@@ -2406,7 +2464,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
-                      <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
@@ -2464,7 +2522,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     finalSaveMessage={bannerMessage}
                     finalSaveError={finalSaveError}
                   />
-                  {useBasicEditorLayout && <div className="site-menu-editor-credit-summary">{menuEditorCreditSummary}</div>}
+                  {useBasicEditorLayout && (!accessContext.isOwner || !accessState?.canUseAi) && <div className="site-menu-editor-credit-summary">{menuEditorCreditSummary}</div>}
                 </div>
               )
             )}
@@ -2519,13 +2577,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "design" && (
               <SectionCard
-                title="디자인"
+                title={useBasicEditorLayout ? "디자인 설정" : "디자인"}
+                basic={useBasicEditorLayout}
               >
                 <div className="space-y-5">
-                  {menuDesignPlan ? <MenuDesignSwitcher key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId} service={menuDesignPlan.service} access={menuDesignPlan.access} /> : null}
+                  {!useBasicEditorLayout && menuDesignPlan ? <MenuDesignSwitcher key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId} service={menuDesignPlan.service} access={menuDesignPlan.access} /> : null}
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
-                    <div className="site-section site-editor-subpanel p-5">
+                    {!useBasicEditorLayout && <div className="site-section site-editor-subpanel p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
                         <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
@@ -2556,7 +2615,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           ) : null}
                         </div>
                       </div>
-                    </div>
+                    </div>}
+                    {(() => {
+                      const controls = (
+                        <>
                     {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuSurfaceSettingsForm key={`surfaces-${JSON.stringify(readMenuTextColors(site.page_settings))}`} pageSettings={site.page_settings} settings={site.settings} templateKey={site.template_key} formId="design-settings-form" disabled={isReadOnly} /> : (
                     <div className="site-section site-editor-subpanel p-5">
                       <div>
@@ -2601,10 +2663,32 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       />
                     </div>
                     {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined))} initial={resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined)} basic={menuCoverCapabilities.coverMode === "section"} album={getDefaultDesignReview(typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined, site.template_key)?.itemLayout === "album"} formId="design-settings-form" /> : null}
+                        </>
+                      );
+                      return useBasicEditorLayout ? (
+                        <BasicDesignWorkspace
+                          menuId={site.id}
+                          formId="design-settings-form"
+                          revision={createHash("sha256").update(JSON.stringify(site.page_settings ?? null)).digest("hex").slice(0, 12)}
+                          saved={bannerMessage === "디자인 설정이 저장되었습니다."}
+                          disabled={isReadOnly}
+                          canPreview={canPreview}
+                        >
+                          {controls}
+                        </BasicDesignWorkspace>
+                      ) : controls;
+                    })()}
+                    {useBasicEditorLayout && menuDesignPlan && (
+                      <MenuDesignSwitcher
+                        key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId}
+                        service={menuDesignPlan.service} access={menuDesignPlan.access} basic disabled={isReadOnly}
+                        industryLabel={getTemplateCategoryLabel(site.restaurant_category ?? site.template_category)}
+                      />
+                    )}
                     {patternBands ? <MenuPatternBandsForm key={JSON.stringify(patternBands)} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} /> : null}
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
-                      <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
@@ -2616,8 +2700,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "localization" && (
-              <SectionCard title="다국어">
-                {accessState?.canUseAi && accessContext.isOwner ? (
+              <SectionCard title={useBasicEditorLayout ? "다국어 설정" : "다국어"} basic={useBasicEditorLayout}>
+                {useBasicEditorLayout && accessState?.canUseAi && accessContext.isOwner ? null : accessState?.canUseAi && accessContext.isOwner ? (
                   <AiCreditRechargePanel
                     menuSiteId={site.id}
                     menuName={site.name}
@@ -2637,6 +2721,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                 )}
                 <LocalizationSection
+                  basic={useBasicEditorLayout}
                   menuId={site.id}
                   enabledLocales={enabledLocales}
                   aiUsage={aiUsage}
@@ -2649,10 +2734,30 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "publish" && (
-              <SectionCard title="공개 설정">
+              <SectionCard title="공개 설정" basic={useBasicEditorLayout}>
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className="space-y-5">
                   <HiddenMenuId menuId={site.id} />
                   <div>
+                    {useBasicEditorLayout ? (
+                      <fieldset className="site-stack-block">
+                        <legend className="type-content-title">공개 상태</legend>
+                        <div className="site-action-row">
+                          <HelpTooltip label="공개 상태 도움말">비공개 상태에서는 로그인한 뒤 미리볼 수 있으며, 공개 URL과 QR로 접속한 손님에게는 보이지 않습니다.</HelpTooltip>
+                        </div>
+                        <div className="site-basic-editor-fields">
+                          {([
+                            { value: "draft", label: "비공개", checked: site.status !== "published" },
+                            { value: "published", label: "공개", checked: site.status === "published" },
+                          ] as const).map(({ value, label, checked }) => (
+                            <label key={value} className="site-choice site-choice-control site-editor-publish-choice">
+                              <span className="type-label">{label}</span>
+                              <input type="radio" name="status" value={value} defaultChecked={checked} disabled={isReadOnly} />
+                            </label>
+                          ))}
+                        </div>
+                      </fieldset>
+                    ) : (
+                      <>
                     <FieldLabel>공개 상태</FieldLabel>
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <label className="group relative flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 bg-white p-5 transition focus-within:border-zinc-950 has-[:checked]:border-zinc-950 has-[:checked]:bg-zinc-50">
@@ -2688,6 +2793,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </span>
                       </label>
                     </div>
+                      </>
+                    )}
                     {site.status === "archived" && (
                       <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-copy font-medium leading-relaxed">
                         현재 보관된 메뉴판입니다. 공개 설정 탭에서는 비공개 상태로 표시됩니다.
@@ -2702,19 +2809,19 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       공개 상태 변경은 저장 후 반영됩니다.
                     </p>
                   </div>
-                  <div className="site-notice site-notice-success p-4 text-copy font-medium leading-relaxed">
+                  {!useBasicEditorLayout && <div className="site-notice site-notice-success p-4 text-copy font-medium leading-relaxed">
                     저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
-                  </div>
-                  <div className="site-section site-editor-subpanel p-5">
-                    <h3 className="type-item-title">공개 전 필수 체크리스트</h3>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  </div>}
+                  <ContentPanel surface="muted">
+                    <h3 className="type-content-title">공개 전 필수 체크리스트</h3>
+                    <div className="site-basic-editor-fields">
                       {checklist.map((item) => (
-                        <p key={item.label} className={`text-copy font-medium ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
+                        <p key={item.label} className={`type-body-sm ${item.ok ? "text-emerald-700" : "site-copy-muted"}`}>
                           {item.ok ? "완료" : "필요"} · {item.label}
                         </p>
                       ))}
                     </div>
-                  </div>
+                  </ContentPanel>
                   {optionalChecklist.length > 1 && (
                     <div className="site-section site-editor-subpanel p-5">
                       <h3 className="type-item-title">선택 콘텐츠</h3>
@@ -2735,7 +2842,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </p>
                   <div>
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.

@@ -3,15 +3,18 @@
 import { useEffect, useState } from "react";
 
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 
 type CoverDeviceVisibilityFieldsProps = {
+  basic?: boolean;
   defaultPcVisible: boolean;
   defaultTabletVisible: boolean;
   defaultMobileVisible: boolean;
 };
 
 export default function CoverDeviceVisibilityFields({
+  basic = false,
   defaultPcVisible,
   defaultTabletVisible,
   defaultMobileVisible,
@@ -37,6 +40,36 @@ export default function CoverDeviceVisibilityFields({
     });
     return () => window.cancelAnimationFrame(frameId);
   }, [coordinator?.resetKey, coordinator?.snapshot]);
+
+  if (basic) {
+    const devices = [
+      { key: "pc", label: "PC" },
+      { key: "tablet", label: "태블릿" },
+      { key: "mobile", label: "모바일" },
+    ] as const;
+
+    return (
+      <ContentPanel surface="muted" density="compact">
+        <input type="hidden" name="menu_cover_device_visibility_present" value="true" />
+        <h3 className="type-label">기기별 사용 여부</h3>
+        <div className="site-cover-device-list">
+          {devices.map(({ key, label }) => (
+            <div className="site-field-stack" key={key}>
+              <SwitchField
+                key={resetVersion}
+                compact
+                name={`menu_cover_visible_${key}`}
+                label={label}
+                defaultChecked={visibility[key]}
+                onCheckedChange={(checked) => setVisibility((current) => ({ ...current, [key]: checked }))}
+              />
+              <div className="site-cover-device-sketch" data-device={key} data-visible={visibility[key]} aria-hidden="true"><i /></div>
+            </div>
+          ))}
+        </div>
+      </ContentPanel>
+    );
+  }
 
   return (
     <section className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">

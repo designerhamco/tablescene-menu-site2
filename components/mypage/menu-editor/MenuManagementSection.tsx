@@ -2447,6 +2447,7 @@ function MenuCategoryForm({
   draftOnly = false,
   onCancel,
   cancelLabel = "취소",
+  copyAction,
   deleteAction,
   cancelHelperText,
 }: {
@@ -2472,6 +2473,7 @@ function MenuCategoryForm({
   draftOnly?: boolean;
   onCancel?: () => void;
   cancelLabel?: string;
+  copyAction?: ReactNode;
   deleteAction?: ReactNode;
   cancelHelperText?: string;
 }) {
@@ -2916,6 +2918,7 @@ function MenuCategoryForm({
             {cancelLabel}
           </button>
         )}
+        {copyAction}
         {deleteAction}
       </div>
       {cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
@@ -2933,6 +2936,7 @@ function MenuCategoryForm({
 
 function MenuItemForm({
   menuId,
+  basicEditor = false,
   categories,
   capabilities,
   aiDescriptionUsage,
@@ -2973,6 +2977,7 @@ function MenuItemForm({
   onPriceDisplayModeChange,
 }: {
   menuId: string;
+  basicEditor?: boolean;
   categories: MenuCategory[];
   capabilities: TemplateCapabilities;
   aiDescriptionUsage: { used: number; limit: number };
@@ -3734,6 +3739,170 @@ function MenuItemForm({
     onDraftCopy?.(draftPatch);
   }
 
+  const itemBadgeFields = capabilities.itemBadges ? (
+            <div className="min-w-0">
+              <FieldLabel>{labels.itemLabel} 배지</FieldLabel>
+              <div className="mt-2 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                <BadgeSelect
+                  form={formId}
+                  value={selectedBadgeLabel}
+                  onChange={(value) => {
+                    setSelectedBadgeLabel(value);
+                    updateBadgeDraft(value);
+                  }}
+                  variant={badgeVariant}
+                />
+                {visibleBadgeLabel && (
+                  <span
+                    className={
+                      capabilities.itemBadgeColorControl === false
+                        ? "inline-flex w-fit rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-support font-medium uppercase tracking-[0.04em] text-zinc-950"
+                        : "inline-flex w-fit rounded-full px-2.5 py-1 text-support font-medium"
+                    }
+                    style={capabilities.itemBadgeColorControl === false ? undefined : getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
+                  >
+                    {visibleBadgeLabel}
+                  </span>
+                )}
+              </div>
+              {isCustomBadge && (
+                <div className="mt-3">
+                  <FieldLabel>배지 문구</FieldLabel>
+                  <input
+                    name="item_custom_badge_label"
+                    form={formId}
+                    value={customBadgeLabel}
+                    placeholder="예: 수제, 시그니처"
+                    onChange={(event) => {
+                      setCustomBadgeLabel(event.target.value);
+                      updateBadgeDraft(selectedBadgeLabel, event.target.value);
+                    }}
+                    className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
+                      customBadgeTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
+                    }`}
+                  />
+                  <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
+                    <span className={`break-keep ${customBadgeTooLong ? "text-red-600" : ""}`}>
+                      {customBadgeTooLong ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.` : "배지는 메뉴판에 작게 표시되는 문구입니다."}
+                    </span>
+                    <span className={`shrink-0 ${customBadgeTooLong ? "text-red-600" : ""}`}>{customBadgeLabel.length} / {MENU_BADGE_MAX_LENGTH}</span>
+                  </div>
+                </div>
+              )}
+              {capabilities.itemBadgeColorControl !== false && (
+                <BadgeColorInlineSettings
+                  formId={formId}
+                  selectedBadgeLabel={visibleBadgeLabel}
+                  forceStyleKey={isCustomBadge ? "default" : undefined}
+                  badgeStyles={badgeStyles}
+                  onColorChange={(patch) => updateDraftItem(patch)}
+                />
+              )}
+            </div>
+          ) : (
+            <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
+          );
+  const priceVisibility = (
+    <div className={basicEditor ? undefined : "mt-4"}>
+          <Checkbox
+            form={formId}
+            name="item_price_visible"
+            label={`공개 메뉴판에 ${labels.priceLabel} 표시`}
+            description={`끄면 공개 메뉴판에서 이 ${labels.itemLabel}의 ${labels.priceLabel} 정보가 숨겨집니다.`}
+            defaultChecked={priceVisibleValue}
+            onCheckedChange={(checked) => {
+              setPriceVisibleValue(checked);
+              updateDraftItem({ priceVisible: checked });
+            }}
+          />
+        </div>
+  );
+  const itemImageSection = capabilities.menuItemImages && (
+        <section className="site-section site-editor-subpanel p-4">
+          <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
+            {basicEditor ? "상품 이미지" : "이미지"}
+            <HelpTooltip label="이미지 도움말">
+              이미지는 선택 사항입니다. 등록한 메뉴 이미지는 이미지형 메뉴판 배치에 사용할 수 있습니다.
+            </HelpTooltip>
+          </h4>
+          <p className="mt-2 text-support font-medium leading-relaxed text-zinc-600">
+            이미지가 있는 메뉴는 공개 메뉴판에서 이미지형 배치로 표시됩니다.
+          </p>
+          <div className="mt-4">
+          <ImageUploadField
+            key={item?.id ?? "new-item"}
+            label={labels.imageLabel}
+            menuId={menuId}
+            target="menu-item-draft"
+            recordId={item?.id ?? "new-item"}
+            currentUrl={displayImageUrl}
+            uploadSuccessMessage="새 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+            deleteConfirmTitle="이 메뉴 이미지를 삭제할까요?"
+            deleteConfirmDescription="삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
+            onDraftImageChange={(draft) => {
+              setDraftImageState(draft);
+              updateDraftItem({
+                imageUrl: draft.imageUrl,
+                imagePath: draft.imagePath,
+                imageAction: draft.imageAction,
+              });
+            }}
+          />
+          </div>
+        </section>
+      );
+  const visibilitySection = (
+      <section className="site-section site-editor-subpanel p-4">
+        <h4 className="type-label text-zinc-950">{basicEditor ? "노출 방식" : "노출 설정"}</h4>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <ValidatedTextInput
+            form={formId}
+            name="item_sort_order"
+            label="정렬 순서"
+            type="number"
+            min={0}
+            step={1}
+            defaultValue={sortOrderValue}
+            placeholder="정렬 순서를 입력하세요"
+            required
+            helperText="숫자가 낮을수록 먼저 표시됩니다."
+            onValueChange={(value) => {
+              const nextSortOrder = Number(value);
+              setSortOrderValue(nextSortOrder);
+              updateDraftItem({ sortOrder: Number.isFinite(nextSortOrder) ? nextSortOrder : 0 });
+            }}
+          />
+          {!basicEditor && itemBadgeFields}
+          <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
+            <Checkbox
+              form={formId}
+              name="item_visible"
+              label="공개 메뉴판에 표시"
+              defaultChecked={visibleValue}
+              onCheckedChange={(checked) => {
+                setVisibleValue(checked);
+                updateDraftItem({ visible: checked });
+              }}
+            />
+            <Checkbox
+              form={formId}
+              name="item_is_sold_out"
+              label="품절 처리"
+              description="켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."
+              defaultChecked={soldOutValue}
+              onText="품절"
+              offText="판매 중"
+              onCheckedChange={(checked) => {
+                setSoldOutValue(checked);
+                updateDraftItem({ isSoldOut: checked });
+              }}
+            />
+          </div>
+          {basicEditor && priceVisibility}
+        </div>
+      </section>
+  );
+
   return (
     <div className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
       <form
@@ -3755,7 +3924,7 @@ function MenuItemForm({
       ))}
 
       <section className="site-section site-editor-subpanel p-4">
-        <h4 className="type-label text-zinc-950">기본 정보</h4>
+        <h4 className="type-label text-zinc-950">{basicEditor ? "메뉴 아이템 기본 설정" : "기본 정보"}</h4>
         <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">
           {labels.itemLabel}의 소속, 이름, 설명, 원산지 정보를 입력합니다.
         </p>
@@ -3903,122 +4072,15 @@ function MenuItemForm({
             </div>
           )}
         </div>
+        {basicEditor && itemBadgeFields}
       </section>
 
-      <section className="site-section site-editor-subpanel p-4">
-        <h4 className="type-label text-zinc-950">노출 설정</h4>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <ValidatedTextInput
-            form={formId}
-            name="item_sort_order"
-            label="정렬 순서"
-            type="number"
-            min={0}
-            step={1}
-            defaultValue={sortOrderValue}
-            placeholder="정렬 순서를 입력하세요"
-            required
-            helperText="숫자가 낮을수록 먼저 표시됩니다."
-            onValueChange={(value) => {
-              const nextSortOrder = Number(value);
-              setSortOrderValue(nextSortOrder);
-              updateDraftItem({ sortOrder: Number.isFinite(nextSortOrder) ? nextSortOrder : 0 });
-            }}
-          />
-          {capabilities.itemBadges ? (
-            <div className="min-w-0">
-              <FieldLabel>{labels.itemLabel} 배지</FieldLabel>
-              <div className="mt-2 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                <BadgeSelect
-                  form={formId}
-                  value={selectedBadgeLabel}
-                  onChange={(value) => {
-                    setSelectedBadgeLabel(value);
-                    updateBadgeDraft(value);
-                  }}
-                  variant={badgeVariant}
-                />
-                {visibleBadgeLabel && (
-                  <span
-                    className={
-                      capabilities.itemBadgeColorControl === false
-                        ? "inline-flex w-fit rounded-full border border-zinc-950 bg-white px-2.5 py-0.5 text-support font-medium uppercase tracking-[0.04em] text-zinc-950"
-                        : "inline-flex w-fit rounded-full px-2.5 py-1 text-support font-medium"
-                    }
-                    style={capabilities.itemBadgeColorControl === false ? undefined : getBadgeStyleCss(badgeStyles[getBadgeStyleKey(visibleBadgeLabel)])}
-                  >
-                    {visibleBadgeLabel}
-                  </span>
-                )}
-              </div>
-              {isCustomBadge && (
-                <div className="mt-3">
-                  <FieldLabel>배지 문구</FieldLabel>
-                  <input
-                    name="item_custom_badge_label"
-                    form={formId}
-                    value={customBadgeLabel}
-                    placeholder="예: 수제, 시그니처"
-                    onChange={(event) => {
-                      setCustomBadgeLabel(event.target.value);
-                      updateBadgeDraft(selectedBadgeLabel, event.target.value);
-                    }}
-                    className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
-                      customBadgeTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
-                    }`}
-                  />
-                  <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
-                    <span className={`break-keep ${customBadgeTooLong ? "text-red-600" : ""}`}>
-                      {customBadgeTooLong ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.` : "배지는 메뉴판에 작게 표시되는 문구입니다."}
-                    </span>
-                    <span className={`shrink-0 ${customBadgeTooLong ? "text-red-600" : ""}`}>{customBadgeLabel.length} / {MENU_BADGE_MAX_LENGTH}</span>
-                  </div>
-                </div>
-              )}
-              {capabilities.itemBadgeColorControl !== false && (
-                <BadgeColorInlineSettings
-                  formId={formId}
-                  selectedBadgeLabel={visibleBadgeLabel}
-                  forceStyleKey={isCustomBadge ? "default" : undefined}
-                  badgeStyles={badgeStyles}
-                  onColorChange={(patch) => updateDraftItem(patch)}
-                />
-              )}
-            </div>
-          ) : (
-            <input type="hidden" name="item_badge_label" value={item ? getMenuItemBadgeLabel(item) || "none" : "none"} form={formId} />
-          )}
-          <div className="md:col-span-2 grid gap-3 md:grid-cols-2">
-            <Checkbox
-              form={formId}
-              name="item_visible"
-              label="공개 메뉴판에 표시"
-              defaultChecked={visibleValue}
-              onCheckedChange={(checked) => {
-                setVisibleValue(checked);
-                updateDraftItem({ visible: checked });
-              }}
-            />
-            <Checkbox
-              form={formId}
-              name="item_is_sold_out"
-              label="품절 처리"
-              description="켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."
-              defaultChecked={soldOutValue}
-              onText="품절"
-              offText="판매 중"
-              onCheckedChange={(checked) => {
-                setSoldOutValue(checked);
-                updateDraftItem({ isSoldOut: checked });
-              }}
-            />
-          </div>
-        </div>
-      </section>
+      {basicEditor && itemImageSection}
+      {!basicEditor && visibilitySection}
 
       <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
-          가격 설정
+          {basicEditor ? "메뉴 가격 설정" : "가격 설정"}
           <HelpTooltip label="가격 설정 도움말">
             단일 가격은 하나의 가격을 보여줄 때 사용하고, 옵션별 가격은 HOT/ICE나 사이즈별 가격처럼 여러 가격을 보여줄 때 사용합니다.
           </HelpTooltip>
@@ -4327,19 +4389,7 @@ function MenuItemForm({
         <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-600">
           실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
         </p>
-        <div className="mt-4">
-          <Checkbox
-            form={formId}
-            name="item_price_visible"
-            label={`공개 메뉴판에 ${labels.priceLabel} 표시`}
-            description={`끄면 공개 메뉴판에서 이 ${labels.itemLabel}의 ${labels.priceLabel} 정보가 숨겨집니다.`}
-            defaultChecked={priceVisibleValue}
-            onCheckedChange={(checked) => {
-              setPriceVisibleValue(checked);
-              updateDraftItem({ priceVisible: checked });
-            }}
-          />
-        </div>
+        {!basicEditor && priceVisibility}
       </section>
 
       {supportsOrderCustomization && (
@@ -4849,40 +4899,8 @@ function MenuItemForm({
         </section>
       )}
 
-      {capabilities.menuItemImages && (
-        <section className="site-section site-editor-subpanel p-4">
-          <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
-            이미지
-            <HelpTooltip label="이미지 도움말">
-              이미지는 선택 사항입니다. 등록한 메뉴 이미지는 이미지형 메뉴판 배치에 사용할 수 있습니다.
-            </HelpTooltip>
-          </h4>
-          <p className="mt-2 text-support font-medium leading-relaxed text-zinc-600">
-            이미지가 있는 메뉴는 공개 메뉴판에서 이미지형 배치로 표시됩니다.
-          </p>
-          <div className="mt-4">
-          <ImageUploadField
-            key={item?.id ?? "new-item"}
-            label={labels.imageLabel}
-            menuId={menuId}
-            target="menu-item-draft"
-            recordId={item?.id ?? "new-item"}
-            currentUrl={displayImageUrl}
-            uploadSuccessMessage="새 이미지는 저장 후 공개 메뉴판에 반영됩니다."
-            deleteConfirmTitle="이 메뉴 이미지를 삭제할까요?"
-            deleteConfirmDescription="삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
-            onDraftImageChange={(draft) => {
-              setDraftImageState(draft);
-              updateDraftItem({
-                imageUrl: draft.imageUrl,
-                imagePath: draft.imagePath,
-                imageAction: draft.imageAction,
-              });
-            }}
-          />
-          </div>
-        </section>
-      )}
+      {!basicEditor && itemImageSection}
+      {basicEditor && visibilitySection}
 
       <div className="flex flex-wrap items-center justify-end gap-3">
         {draftOnly ? (
@@ -8084,6 +8102,7 @@ export default function MenuManagementSection({
     resetModes();
     setSelectedPageId(pageId);
     setSelectedCategoryId(categoryId);
+    if (basicEditor) setEditingCategoryId(categoryId);
   }
 
   function selectItem(pageId: string, categoryId: string, itemId: string, trigger?: HTMLElement) {
@@ -9457,7 +9476,7 @@ export default function MenuManagementSection({
                   return (
                     <>
                 <PanelHeader
-                  title={`${labels.categoryLabel} 수정`}
+                  title={basicEditor ? "카테고리 설정" : `${labels.categoryLabel} 수정`}
                   description={
                     capabilities.categoryDescription
                       ? `${labels.categoryLabel}의 이름, 설명, 표시 여부를 수정합니다.`
@@ -9488,6 +9507,11 @@ export default function MenuManagementSection({
                   draftFeedback={categoryDraftFeedback}
                   onCancel={resetModes}
                   cancelLabel={isCopiedCategory ? "목록으로" : "취소"}
+                  copyAction={basicEditor ? (
+                    <button type="button" className="site-button site-button-outline" disabled={reachedCategoryLimit || reachedItemsPerSiteLimit} onClick={() => copyCategoryDraft(selectedCategory.id)}>
+                      복사
+                    </button>
+                  ) : undefined}
                   deleteAction={
                     <DraftDeleteConfirmButton
                       title={isCopiedCategory ? "이 복사본을 삭제할까요?" : `${labels.categoryLabel}을 삭제할까요?`}
@@ -9529,6 +9553,7 @@ export default function MenuManagementSection({
                 />
                 <MenuItemForm
                   supportsOrderCustomization={supportsOrderCustomization}
+                  basicEditor={basicEditor}
                   menuId={menuId}
                   categories={categoriesForPage}
                   capabilities={capabilities}
@@ -10318,6 +10343,7 @@ function MenuItemCard({
           </div>
           <MenuItemForm
             supportsOrderCustomization={supportsOrderCustomization}
+            basicEditor={basicEditor}
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}
