@@ -1,3 +1,5 @@
+import * as orderSettings from "./menu-order-settings";
+import * as floorPlan from "./menu-floor-plan";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { canRotateTableQr } from "./qr-rotation-policy";
@@ -80,6 +82,8 @@ function fixture({
     return { actorUserId: site };
   };
   const deps: Record<string, unknown> = {
+    "@/lib/menu-order-settings": orderSettings,
+    "@/lib/menu-floor-plan": floorPlan,
     "server-only": {},
     "@/lib/qr-rotation-policy": rotationPolicy,
     "@/lib/order-point-deletion": {},

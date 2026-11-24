@@ -142,7 +142,7 @@ export default function OperationsHistoryViews({
                 <TabsContent value={room.id}>
                   <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
                     <FloorPlanViewport name={room.name}><FloorPlanCanvas
-                      data-mobile-cards="true"
+                      data-mobile-cards="true" gridSize={room.gridSize}
                       name={room.name}
                       data-order-cards={noun === "주문" || undefined}
                       aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}

@@ -6,9 +6,9 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { LoadingState } from "@/app/components/ui/loading-state";
 
-export default function OrderPointRegistrationForm({ embedded = false, menuSiteId, kind, onKindChange, name, onNameChange, roomReady, roomId = "", blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
+export default function OrderPointRegistrationForm({ embedded = false, menuSiteId, kind, onKindChange, name, onNameChange, suggestedName, roomReady, roomId = "", blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
   embedded?: boolean; menuSiteId: string; kind: OrderPointKind; onKindChange: (kind: OrderPointKind) => void;
-  name: string; onNameChange: (name: string) => void; roomReady: boolean; roomId?: string; blockedReason?: string;
+  name: string; suggestedName?: string; onNameChange: (name: string) => void; roomReady: boolean; roomId?: string; blockedReason?: string;
   pending?: boolean; disabled?: boolean; kioskAvailable: boolean; action: (data: FormData) => void | Promise<void>;
 }) {
   const reasonId = useId();
@@ -23,7 +23,7 @@ export default function OrderPointRegistrationForm({ embedded = false, menuSiteI
         </select>
       </label>
       <FieldActionRow field={<label className="type-label site-registration-name">이름
-        <input name="label" required maxLength={80} disabled={blocked} value={name} onChange={event => onNameChange(event.target.value)} placeholder={kiosk ? "예: 입구 키오스크" : "예: 1번 테이블"} className="site-field" />
+        <input name="label" required={!suggestedName} maxLength={80} disabled={blocked} value={name} onChange={event => onNameChange(event.target.value)} placeholder={suggestedName ?? (kiosk ? "예: 입구 키오스크" : "예: 1번 테이블")} className="site-field" />
       </label>} action={
         <button type="submit" disabled={blocked || (kiosk && !kioskAvailable)} className="site-button site-button-primary">{pending ? "생성 중" : "만들기"}</button>
       } />

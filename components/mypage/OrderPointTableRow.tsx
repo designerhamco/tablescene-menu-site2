@@ -16,8 +16,8 @@ import { OrderPointArchiveControl, OrderPointConnectionControl, OrderPointFeatur
 
 type ManagedPoint = ManagedOrderPoint;
 
-export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect, onRename, rooms = [], roomId, onMove }: {
-  menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
+export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, layoutLocked = false, archiveAction, readOnly = false, onUpdate, onConnect, onRename, rooms = [], roomId, onMove }: {
+  menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean; layoutLocked?: boolean;
   rooms?: FloorRoom[]; roomId?: string; onMove?: (pointId: string, roomId: string) => void;
   onRename?: (id: string, name: string) => Promise<InlineNameResult>;
   archiveAction: (data: FormData) => void; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
@@ -31,7 +31,7 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell>{noun}</TableCell>
     <TableCell primary>
       <ActionFeedbackToast message={editState.message} tone={editState.status === "success" ? "success" : "error"} eventKey={editState} />
-      <InlineNameEditor protectNavigation value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy} onSave={async name => {
+      <InlineNameEditor protectNavigation value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy || layoutLocked} onSave={async name => {
         if (onRename) return onRename(point.id, name);
         setEditPending(true);
         try {
@@ -46,8 +46,8 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></TableCell>
     <TableCell nowrap>
       <div className="site-action-row" data-wrap="nowrap">
-        {onMove ? <OrderPointMoveDialog point={point} rooms={rooms} roomId={roomId} disabled={busy} onMove={target => onMove(point.id, target)} /> : null}
-        <OrderPointArchiveControl menuSiteId={menuSiteId} point={point} action={archiveAction} disabled={busy} />
+        {onMove ? <OrderPointMoveDialog point={point} rooms={rooms} roomId={roomId} disabled={busy || layoutLocked} onMove={target => onMove(point.id, target)} /> : null}
+        <OrderPointArchiveControl menuSiteId={menuSiteId} point={point} action={archiveAction} disabled={busy || layoutLocked} />
         {canDelete && !point.draft ? <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={busy} compact /> : null}
       </div>
     </TableCell>

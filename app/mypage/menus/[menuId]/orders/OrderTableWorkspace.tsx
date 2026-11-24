@@ -270,7 +270,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
         ) : (
           <div className="site-floor-workspace-canvas">
             <FloorPlanViewport key={room.id} name={room.name}>
-              <FloorPlanCanvas name={room.name} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
+              <FloorPlanCanvas name={room.name} gridSize={room.gridSize} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
                 data-mobile-cards="true" data-order-table-canvas
                 onClick={event => {
                   if (event.target === event.currentTarget) {

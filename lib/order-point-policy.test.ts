@@ -1,3 +1,5 @@
+import * as orderSettings from "./menu-order-settings";
+import * as floorPlan from "./menu-floor-plan";
 import * as qrRotation from "./qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "./order-point-deletion";
 import assert from "node:assert/strict";
@@ -48,6 +50,8 @@ function serviceFixture({ owner = true, runtime = true, conflict = false, denied
   } };
   const access = async (...args: unknown[]) => { permissions.push(args); if (denied) throw new Error("PERMISSION_DENIED"); return { isOwner: owner, actorUserId: "owner" }; };
   const deps: Record<string, unknown> = {
+    "@/lib/menu-order-settings": orderSettings,
+    "@/lib/menu-floor-plan": floorPlan,
     "server-only": {}, "@/lib/qr-rotation-policy": qrRotation, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary }, "@/lib/order-point-policy": policy,
     "@/lib/menu-table-management": { normalizeMenuTableId },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: true }) },

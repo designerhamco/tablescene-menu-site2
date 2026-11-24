@@ -11,7 +11,10 @@ const legacyLimits={minWidth:4.56,minHeight:7.41,maxWidth:9.11,maxHeight:14.81};
 export function floorRectsOverlap(a:Pick<FloorPlacement,"x"|"y"|"width"|"height">,b:Pick<FloorPlacement,"x"|"y"|"width"|"height">){return a.x < b.x+b.width-.005 && a.x+a.width > b.x+.005 && a.y < b.y+b.height-.005 && a.y+a.height > b.y+.005;}
 
 
-export type FloorRoom = { id: string; name: string; emoji?: string; aspectRatio: number };
+export const FLOOR_RECEPTION_LOCK = "배치를 편집하려면 주문 설정에서 주문 접수를 꺼 주세요.";
+export const FLOOR_GRID = { min: 1, initial: 5, max: 10 } as const;
+
+export type FloorRoom = { id: string; name: string; emoji?: string; aspectRatio: number; gridSize?: number };
 export type FloorPlacement = { pointId: string; roomId: string; x: number; y: number; width: number; height: number };
 export type FloorMembership = { pointId: string; roomId: string };
 export type FloorDocument = { layoutVersion?: 2 | 3; rooms: FloorRoom[]; placements: FloorPlacement[]; memberships?: FloorMembership[] };
@@ -34,6 +37,60 @@ const number = (value: unknown, min: number, max: number) => {
   if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max) throw new FloorPlanError("배치 위치와 크기가 허용 범위를 벗어났습니다.");
   return Math.round(value * 100) / 100;
 };
+function validGridSize(size: unknown): size is number {
+  return typeof size === "number" && Number.isInteger(size) && size >= FLOOR_GRID.min && size <= FLOOR_GRID.max;
+}
+
+function gridAxis(coordinate: number, gridSize: number) {
+  return Math.max(0, Math.min(gridSize - 1, Math.floor(coordinate * gridSize / 100)));
+}
+
+function gridRect(gridSize: number, column: number, row: number) {
+  const step = 100 / gridSize;
+  const round = (value: number) => Math.round(value * 100) / 100;
+  return { x: round((column + .04) * step), y: round((row + .04) * step), width: round(step * .92), height: round(step * .92) };
+}
+
+function gridCell(gridSize: number, rect: Pick<FloorPlacement, "x" | "y" | "width" | "height">) {
+  return { column: gridAxis(rect.x + rect.width / 2, gridSize), row: gridAxis(rect.y + rect.height / 2, gridSize) };
+}
+
+export function snapFloorRect(rect: Pick<FloorPlacement, "x" | "y" | "width" | "height">, gridSize?: number) {
+  if (!gridSize) return constrainFloorRect(rect);
+  const { column, row } = gridCell(gridSize, rect);
+  return gridRect(gridSize, column, row);
+}
+
+function openGridRects(gridSize: number, occupied: FloorPlacement[]) {
+  const used = new Set(occupied.map(placement => {
+    const { column, row } = gridCell(gridSize, placement);
+    return row * gridSize + column;
+  }));
+  return Array.from({ length: gridSize * gridSize }, (_, index) => index)
+    .filter(index => !used.has(index))
+    .map(index => gridRect(gridSize, index % gridSize, Math.floor(index / gridSize)));
+}
+
+export function setFloorRoomGrid(document: FloorDocument, roomId: string, gridSize: number): FloorDocument {
+  if (!validGridSize(gridSize)) throw new FloorPlanError("격자 크기를 확인해 주세요.");
+  const room = document.rooms.find(room => room.id === roomId);
+  if (!room) throw new FloorPlanError("룸을 선택해 주세요.");
+  if (room.gridSize === gridSize) return document;
+  const occupied: FloorPlacement[] = [];
+  const placements = readableFloorDocument(document).placements.map(placement => {
+    if (placement.roomId !== roomId) return placement;
+    const x = placement.x + placement.width / 2, y = placement.y + placement.height / 2;
+    const nearest = openGridRects(gridSize, occupied).sort((left, right) =>
+      Math.abs(left.x + left.width / 2 - x) + Math.abs(left.y + left.height / 2 - y)
+      - Math.abs(right.x + right.width / 2 - x) - Math.abs(right.y + right.height / 2 - y))[0];
+    if (!nearest) throw new FloorPlanError("현재 배치된 항목이 모두 들어가는 격자 크기를 선택해 주세요.");
+    const moved = { ...placement, ...nearest };
+    occupied.push(moved);
+    return moved;
+  });
+  return { ...document, layoutVersion: 3, placements, rooms: document.rooms.map(item => item.id === roomId ? { ...item, gridSize } : item) };
+}
+
 export function normalizeFloorDocument(input: unknown): FloorDocument {
   const value = record(input);
   if(value.layoutVersion!==undefined&&value.layoutVersion!==2&&value.layoutVersion!==3)throw new FloorPlanError("배치도 크기 규칙을 확인해 주세요.");
@@ -45,11 +102,30 @@ export function normalizeFloorDocument(input: unknown): FloorDocument {
     const name = typeof room.name === "string" ? room.name.trim() : "";
     if (!name || name.length > 40 || /[\u0000-\u001f\u007f]/.test(name) || roomIds.has(roomId) || names.has(name.toLocaleLowerCase("ko-KR"))) throw new FloorPlanError("룸 이름은 중복 없이 1~40자로 입력해 주세요.");
     if(room.emoji!==undefined&&!isFloorRoomIcon(room.emoji))throw new FloorPlanError("룸 이모지를 선택 목록에서 골라 주세요.");
+    const gridSize = room.gridSize;
+    if (gridSize !== undefined && !validGridSize(gridSize)) throw new FloorPlanError("격자 크기를 확인해 주세요.");
     roomIds.add(roomId); names.add(name.toLocaleLowerCase("ko-KR"));
-    return { id: roomId, name, ...(room.emoji?{emoji:room.emoji as string}:{}), aspectRatio: number(room.aspectRatio, 0.5, 2) };
+    return { id: roomId, name, ...(gridSize ? { gridSize } : {}), ...(room.emoji?{emoji:room.emoji as string}:{}), aspectRatio: number(room.aspectRatio, 0.5, 2) };
   });
+  const gridByRoom = new Map(rooms.map(room => [room.id, room.gridSize]));
+  const occupiedCells = new Map<string, Set<string>>();
   const placements = value.placements.map(raw => {
     const p = record(raw), pointId = id(p.pointId), roomId = id(p.roomId);
+    const gridSize = gridByRoom.get(roomId);
+    if (gridSize) {
+      const rect = { x: number(p.x, 0, 100), y: number(p.y, 0, 100), width: number(p.width, 0, 100), height: number(p.height, 0, 100) };
+      const expected = snapFloorRect(rect, gridSize);
+      if (pointIds.has(pointId) || rect.x !== expected.x || rect.y !== expected.y || rect.width !== expected.width || rect.height !== expected.height) {
+        throw new FloorPlanError("테이블·키오스크를 룸의 격자 칸 안에 배치해 주세요.");
+      }
+      const key = `${rect.x},${rect.y}`;
+      const used = occupiedCells.get(roomId) ?? new Set<string>();
+      if (used.has(key)) throw new FloorPlanError("한 칸에는 테이블·키오스크 한 개만 배치할 수 있습니다.");
+      used.add(key);
+      occupiedCells.set(roomId, used);
+      pointIds.add(pointId);
+      return { pointId, roomId, ...expected };
+    }
     const bounded=value.layoutVersion!==undefined, fixed=value.layoutVersion===3;
     const x = number(p.x, 0, bounded?100:92), y = number(p.y, 0, bounded?100:92), width = number(p.width, fixed?FLOOR_RECT_SIZE.width:bounded?legacyLimits.minWidth:8, fixed?FLOOR_RECT_SIZE.width:bounded?legacyLimits.maxWidth:100), height = number(p.height, fixed?FLOOR_RECT_SIZE.height:bounded?legacyLimits.minHeight:8, fixed?FLOOR_RECT_SIZE.height:bounded?legacyLimits.maxHeight:100);
     if (!roomIds.has(roomId) || pointIds.has(pointId) || x + width > 100.01 || y + height > 100.01) throw new FloorPlanError("테이블은 한 곳에만 배치하고 룸 안에 들어오도록 조절해 주세요.");
@@ -93,6 +169,7 @@ export function readableFloorDocument(document:FloorDocument):FloorDocument{
   const placements:FloorPlacement[]=[];
   for(const room of document.rooms){
     const original=document.placements.filter(p=>p.roomId===room.id),roomPlacements:FloorPlacement[]=[];
+    if (room.gridSize) { placements.push(...original); continue; }
     let fits=true;
     for(const p of original){
       const position=document.layoutVersion===2?p:{...p,x:p.x*1280/FLOOR_GEOMETRY.width,y:p.y*(1280/room.aspectRatio)/FLOOR_GEOMETRY.height};
@@ -106,7 +183,16 @@ export function readableFloorDocument(document:FloorDocument):FloorDocument{
   }
   return {...document,layoutVersion:3,placements};
 }
-export function canPlaceFloorPoint(document:FloorDocument,roomId:string){const view=readableFloorDocument(document);return Boolean(freeFloorRect(view.placements.filter(p=>p.roomId===roomId),{x:0,y:0,...FLOOR_RECT_SIZE}));}
+function nextAvailableFloorRect(document: FloorDocument, roomId: string, placements: FloorPlacement[]) {
+  const gridSize = document.rooms.find(room => room.id === roomId)?.gridSize;
+  const occupied = placements.filter(placement => placement.roomId === roomId);
+  return gridSize ? openGridRects(gridSize, occupied)[0] : freeFloorRect(occupied, { x: 0, y: 0, ...FLOOR_RECT_SIZE });
+}
+
+export function canPlaceFloorPoint(document: FloorDocument, roomId: string) {
+  const view = readableFloorDocument(document);
+  return Boolean(nextAvailableFloorRect(view, roomId, view.placements));
+}
 
 /** A name commit must not accidentally persist other unsaved rooms/placements. */
 export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name: string, emoji?: string): FloorDocument {
@@ -121,7 +207,9 @@ export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name
 /** Only merge the server-confirmed room; canonical precision must not create a false draft. */
 export function mergeSavedFloorRoom(draft: FloorDocument, savedRoom: FloorRoom): FloorDocument {
   return {...draft, rooms: draft.rooms.some(room=>room.id===savedRoom.id)
-    ? draft.rooms.map(room=>room.id===savedRoom.id?savedRoom:room)
+    ? draft.rooms.map(room=>room.id===savedRoom.id
+      ? {...savedRoom,...(room.gridSize ? {gridSize: room.gridSize} : {})}
+      : room)
     : [...draft.rooms,savedRoom]};
 }
 
@@ -132,8 +220,8 @@ export function placeNewFloorPoints(document: FloorDocument, pointIds: readonly 
   if(!ids.length)return document;
   const next=readableFloorDocument(document),placements=[...next.placements];
   for(const pointId of new Set(ids)){
-    if(placements.length>=200)break;
-    const rect=freeFloorRect(placements.filter(p=>p.roomId===roomId),{x:0,y:0,...FLOOR_RECT_SIZE});
+    if (placements.length >= 200) throw new FloorPlanError("배치도에는 200개까지 배치할 수 있습니다.");
+    const rect = nextAvailableFloorRect(next, roomId, placements);
     if(!rect)throw new FloorPlanError("룸의 빈 배치 공간이 부족합니다. 다른 룸을 선택해 주세요.");
     placements.push({pointId,roomId,...rect});
   }
@@ -159,6 +247,9 @@ export function resolveFloorRoomRemoval(document: FloorDocument, request: FloorR
   if (!["move","archive"].includes(request.mode)) throw new FloorPlanError("룸의 항목을 이동하거나 보관해 주세요.");
   const active = new Set(activeIds), memberships = floorMemberships(document).filter(item=>active.has(item.pointId));
   const members = memberships.filter(item=>item.roomId===request.roomId);
+  if (members.length && document.rooms.find(room => room.id === request.roomId)?.gridSize) {
+    throw new FloorPlanError("테이블·키오스크를 이동하거나 보관해 룸을 비운 뒤 삭제해 주세요.");
+  }
   const expected = [...new Set(request.pointIds)].sort(), actual = members.map(item=>item.pointId).sort();
   if (expected.length!==request.pointIds.length || JSON.stringify(expected)!==JSON.stringify(actual)) throw new FloorPlanError("룸의 항목이 변경되었습니다. 목록을 새로고침한 뒤 다시 확인해 주세요.");
   if (document.rooms.length===1 && activeIds.some(pointId=>!memberships.some(item=>item.pointId===pointId))) throw new FloorPlanError("소속 룸이 없는 항목이 있습니다. 먼저 룸에 배치한 뒤 정리해 주세요.");
@@ -181,6 +272,6 @@ export function assertFloorMembershipsPreserved(previous: FloorDocument, next: F
 
 /** Compare persisted meaning, not object key insertion order or sub-persistence precision. */
 export function sameFloorDocument(a:FloorDocument,b:FloorDocument){
-  const signature=(d:FloorDocument)=>JSON.stringify({version:d.layoutVersion??1,rooms:d.rooms.map(r=>({id:r.id,name:r.name,emoji:r.emoji??"",aspectRatio:Math.round(r.aspectRatio*100)/100})),placements:d.placements.map(p=>({pointId:p.pointId,roomId:p.roomId,...Object.fromEntries((["x","y","width","height"] as const).map(k=>[k,Math.round(p[k]*100)/100]))})),memberships:floorMemberships(d).sort((x,y)=>x.pointId.localeCompare(y.pointId))});
+  const signature=(d:FloorDocument)=>JSON.stringify({version:d.layoutVersion??1,rooms:d.rooms.map(r=>({id:r.id,name:r.name,emoji:r.emoji??"",gridSize:r.gridSize??null,aspectRatio:Math.round(r.aspectRatio*100)/100})),placements:d.placements.map(p=>({pointId:p.pointId,roomId:p.roomId,...Object.fromEntries((["x","y","width","height"] as const).map(k=>[k,Math.round(p[k]*100)/100]))})),memberships:floorMemberships(d).sort((x,y)=>x.pointId.localeCompare(y.pointId))});
   return signature(a)===signature(b);
 }

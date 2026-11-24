@@ -1,4 +1,6 @@
 import "server-only";
+import { readMenuOrderSettings } from "@/lib/menu-order-settings";
+import { canPlaceFloorPoint, FLOOR_RECEPTION_LOCK, normalizeFloorDocument, retainRegisteredFloorPoints } from "@/lib/menu-floor-plan";
 import { canRotateTableQr, QR_ROTATION_BLOCKED_MESSAGE } from "@/lib/qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "@/lib/order-point-deletion";
 import type { Database } from "@/lib/supabase/types";
@@ -46,6 +48,7 @@ export type MenuTableManagementPageData = {
   tables: MenuTableListItem[];
   archivedTables: ArchivedMenuTableListItem[];
   pointSettingsAvailable: boolean;
+  orderEnabled: boolean;
 };
 
 export type MenuTableTokenDelivery = {
@@ -84,6 +87,12 @@ function mapDatabaseError(error: DatabaseError, fallbackCode: "TABLE_CREATE_FAIL
   if (message.includes("menu_table_limit") || message.includes("at most 100") || message.includes("table limit")) {
     throw new MenuTableManagementError("TABLE_LIMIT_REACHED", "메뉴판 하나에는 테이블과 키오스크를 각각 최대 100개까지 만들 수 있습니다.", 409);
   }
+  if (message.includes("floor_reception_active")) {
+    throw new MenuTableManagementError("TABLE_CONFLICT", FLOOR_RECEPTION_LOCK, 409);
+  }
+  if (message.includes("floor_point_has_open_orders")) {
+    throw new MenuTableManagementError("TABLE_CONFLICT", "진행 중인 주문이나 결합 주문을 먼저 처리한 뒤 보관해 주세요.", 409);
+  }
   if (error.code === "23505") {
     throw new MenuTableManagementError("TABLE_CONFLICT", "같은 구분의 테이블 또는 키오스크에 같은 이름이 이미 있습니다.", 409);
   }
@@ -113,7 +122,7 @@ export async function requireMenuTableReadAccess(menuSiteId: string) {
   const supabase = createAdminClient();
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, name, slug, status, template_key")
+    .select("id, name, slug, status, template_key, settings")
     .eq("id", menuSiteId)
     .maybeSingle();
   if (error || !menuSite?.slug || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
@@ -122,8 +131,11 @@ export async function requireMenuTableReadAccess(menuSiteId: string) {
   return { context, supabase, menuSite };
 }
 
-export async function requireMenuTableWriteAccess(menuSiteId: string) {
-  await requireMenuTableReadAccess(menuSiteId);
+export async function requireMenuTableWriteAccess(menuSiteId: string, options?: { layoutChange?: boolean }) {
+  const { menuSite } = await requireMenuTableReadAccess(menuSiteId);
+  if (options?.layoutChange && readMenuOrderSettings(menuSite.settings).orderEnabled) {
+    throw new MenuTableManagementError("TABLE_CONFLICT", FLOOR_RECEPTION_LOCK, 409);
+  }
   return requireMenuSiteWriteAccess(menuSiteId, "table.manage", "menu_table_management");
 }
 
@@ -150,6 +162,7 @@ export async function listMenuTables(menuSiteId: string, { includeArchived = fal
 
   const schemaProbe = !(tablesResult.data?.length) ? await supabase.from("menu_tables").select("point_kind", { head: true }).eq("menu_site_id", normalizedMenuSiteId) : null;
   return {
+    orderEnabled: readMenuOrderSettings(menuSite.settings).orderEnabled,
     pointSettingsAvailable: !schemaProbe?.error && (tablesResult.data ?? []).every(row => typeof row.point_kind === "string"),
     menuSite: {
       id: menuSite.id,
@@ -176,9 +189,23 @@ export async function restoreMenuTable({ menuSiteId, tableId, label, roomId }: {
     return inputError(error);
   }
   const normalizedRoomId=normalizeMenuTableId(roomId);
-  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId, { layoutChange: true });
   const room=await supabase.from("menu_floor_plans").select("document").eq("menu_site_id",normalizedMenuSiteId).maybeSingle();
   if(room.error || !hasMenuTableRegistrationRoom(room.data?.document,normalizedRoomId)) throw new MenuTableManagementError("ROOM_REQUIRED","복원할 룸을 먼저 추가하고 선택해 주세요.",409);
+  let layout;
+  try {
+    layout = normalizeFloorDocument(room.data?.document);
+  } catch {
+    throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 배치도 정보를 확인하지 못했습니다.", 409);
+  }
+  if (layout.rooms.find(item => item.id === normalizedRoomId)?.gridSize) {
+    const points = await supabase.from("menu_tables").select("id").eq("menu_site_id", normalizedMenuSiteId).in("status", ["active", "disabled"]);
+    if (points.error) throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸을 확인하지 못했습니다.", 409);
+    const occupied = retainRegisteredFloorPoints(layout, points.data ?? []);
+    if (!canPlaceFloorPoint(occupied, normalizedRoomId) || occupied.placements.length >= 200) {
+      throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸이 부족합니다. 다른 룸을 선택해 주세요.", 409);
+    }
+  }
   // Return to the operating list with all order/call channels off; old visits stay revoked.
   const { data, error } = await supabase.from("menu_tables")
     .update({ label: normalizedLabel, status: "active", archived_at: null, ...RECEPTION_OFF, updated_by: context.actorUserId })
@@ -226,7 +253,7 @@ export async function createMenuTable({
     return inputError(error);
   }
 
-  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId, { layoutChange: true });
   const rooms = await supabase.from("menu_floor_plans").select("document").eq("menu_site_id", normalizedMenuSiteId).maybeSingle();
   if (rooms.error) throw new MenuTableManagementError("TABLE_CREATE_FAILED", "룸 정보를 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.", 503);
   if (!hasMenuTableRegistrationRoom(rooms.data?.document, normalizedRoomId)) throw new MenuTableManagementError("ROOM_REQUIRED", "룸을 먼저 추가한 뒤 테이블·키오스크를 만들어 주세요.", 409);
@@ -282,7 +309,7 @@ export async function updateMenuTable({
     throw new MenuTableManagementError("INVALID_INPUT", "변경할 이름 또는 상태를 확인해 주세요.", 400);
   }
 
-  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId, { layoutChange: normalizedLabel !== undefined });
   const patch: Database["public"]["Tables"]["menu_tables"]["Update"] = { updated_by: context.actorUserId };
   if (normalizedLabel !== undefined) patch.label = normalizedLabel;
   if (normalizedStatus !== undefined) patch.status = normalizedStatus;
@@ -361,7 +388,7 @@ export async function archiveMenuTable({
     return inputError(error);
   }
 
-  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId, { layoutChange: true });
   const archivedAt = new Date().toISOString();
   const { data, error } = await supabase
     .from("menu_tables")
@@ -449,4 +476,23 @@ export async function setOrderPointFeature(input: {
   if (input.channel === "customer") query = query.eq("point_kind", "table");
   const { data, error } = await query.select("id").maybeSingle();
   if (error || !data) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", "설정이 변경됐거나 저장하지 못했습니다. 새로고침 후 다시 시도해 주세요.", 409);
+}
+
+export async function archiveFloorPoints(menuSiteId: string, pointIds: readonly string[]) {
+  const siteId = normalizeMenuTableId(menuSiteId);
+  if (!Array.isArray(pointIds) || pointIds.length < 1 || pointIds.length > 200) {
+    throw new MenuTableManagementError("INVALID_INPUT", "보관할 테이블·키오스크를 선택해 주세요.", 400);
+  }
+  const ids = [...new Set(pointIds.map(normalizeMenuTableId))];
+  const { context, supabase } = await requireMenuTableWriteAccess(siteId, { layoutChange: true });
+  const { data, error } = await supabase.rpc("archive_floor_points", {
+    p_menu_site_id: siteId,
+    p_point_ids: ids,
+    p_actor_user_id: context.actorUserId,
+  });
+  if (error?.message.includes("FLOOR_ARCHIVE_SELECTION")) {
+    throw new MenuTableManagementError("TABLE_CONFLICT", "항목 상태가 바뀌었어요. 새로고침하고 다시 선택해 주세요.", 409);
+  }
+  if (error || !data) mapDatabaseError(error ?? {}, "TABLE_UPDATE_FAILED");
+  return data;
 }

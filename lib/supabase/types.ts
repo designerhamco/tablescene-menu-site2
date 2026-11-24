@@ -3992,6 +3992,10 @@ export type Database = {
           total_amount: number
         }[]
       }
+      archive_floor_points: {
+        Args: { p_actor_user_id: string; p_menu_site_id: string; p_point_ids: string[] }
+        Returns: number
+      }
       manage_order_settlement_group: {
         Args: {
           p_action: string

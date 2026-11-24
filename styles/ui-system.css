@@ -1589,6 +1589,49 @@ svg.site-edit-icon {
 .site-registration-name > input { min-width: 0; width: 100%; }
 @media (max-width: 639px) { .site-registration-row { grid-template-columns: minmax(0, 1fr); } .site-registration-kind > select { flex: 1; } }
 .site-floor-workspace-canvas { position: relative; min-width: 0; }
+.site-floor-canvas[data-floor-grid] {
+  background-image: linear-gradient(to right, var(--ui-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--ui-border) 1px, transparent 1px);
+  background-size: var(--floor-grid-cell) var(--floor-grid-cell);
+  background-position: -1px -1px;
+}
+
+.site-floor-canvas[data-floor-grid] > .site-floor-object[data-point-kind="kiosk"] {
+  border-radius: var(--ui-radius-surface);
+}
+
+.site-floor-object[data-checked="true"] {
+  outline: 2px solid var(--ui-text);
+  outline-offset: -2px;
+}
+
+.site-floor-object:has(> .site-floor-object-choice) > .site-floor-object-interaction { place-items: center; }
+.site-floor-object:has(> .site-floor-object-choice) .site-floor-object-label { padding-inline-end: 0; }
+
+.site-floor-object-choice {
+  position: absolute;
+  inset-block-start: var(--site-space-detail);
+  inset-inline-start: var(--site-space-detail);
+  z-index: 2;
+}
+
+@media (max-width: 767px) {
+  .site-floor-canvas[data-floor-grid] { background-image: none; }
+}
+
+@media (min-width: 768px) {
+  .site-floor-viewport > .site-floor-canvas[data-floor-grid] {
+    width: 100%;
+    min-width: calc(var(--floor-grid-size) * 7rem);
+    height: auto;
+  }
+
+  .site-floor-canvas[data-order-table-canvas][data-floor-grid]::before,
+  .site-floor-canvas[data-order-table-canvas][data-floor-grid]::after {
+    display: none;
+  }
+}
+
 .site-floor-workspace-canvas > .site-floor-canvas { border: 0; border-radius: 0; }
 .site-floor-canvas-actions { position: absolute; inset-block-start: var(--site-panel-inset); inset-inline-end: var(--site-panel-inset); z-index: 1; }
 .site-floor-object-management { position: absolute; inset-block-end: var(--site-space-copy); inset-inline-start: var(--site-space-copy); cursor: default; }
