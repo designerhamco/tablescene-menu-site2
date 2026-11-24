@@ -7,6 +7,7 @@ import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { ALL_MENU_SITE_ID, allMenuOperationsHref, allMenuOperationSites } from "@/lib/all-menu-operations";
 import { operationMenuTargets } from "@/lib/operation-menu-targets";
 import OperationMenuTarget from "./OperationMenuTarget";
+import OrderUpdateRefresh from "./OrderUpdateRefresh";
 
 import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
 import type { MenuSitePermission } from "@/lib/menu-site-permissions";
@@ -14,16 +15,17 @@ import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
-export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings" | "call-items" | "qr" | "kiosks";
+export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings" | "call-items" | "qr" | "kiosks" | "kitchen";
 
 const operationNavigation: Array<{
-  key: StoreOperationKey | "qr" | "kiosks";
+  key: StoreOperationKey | "qr" | "kiosks" | "kitchen";
   label: string;
   permission: MenuSitePermission;
 }> = [
   { key: "tables", label: "테이블·키오스크 관리", permission: "table.manage" },
   { key: "calls", label: "호출 관리", permission: "call.manage" },
   { key: "orders", label: "주문 관리", permission: "order.read" },
+  { key: "kitchen", label: "주방 대시보드", permission: "order.read" },
   { key: "sales", label: "매출 관리", permission: "sales.read" },
   { key: "qr", label: "QR 관리", permission: "qr.manage" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
@@ -44,10 +46,11 @@ function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSecti
     return `/mypage/menus/${site.menuSiteId}/${section}/settings`;
   }
   if (section === "qr") return site.canManageQr ? `/mypage/menus/${site.menuSiteId}/qr` : `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
+  if (section === "kitchen" && site.operationAccess.orders) return `/mypage/menus/${site.menuSiteId}/kitchen`;
   if ((section === "tables" || section === "kiosks") && site.tableSetupAvailable && site.permissions.includes("table.manage")) {
     return `/mypage/menus/${site.menuSiteId}/tables`;
   }
-  if (section === "dashboard" || section === "kiosks" || !site.operationAccess[section]) {
+  if (section === "dashboard" || section === "kiosks" || section === "kitchen" || !site.operationAccess[section]) {
     return `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
   }
 
@@ -87,7 +90,7 @@ export default async function StoreOperationsShell({
             <StoreOperationsNavigation
               activeKey={`${allMenus ? ALL_MENU_SITE_ID : selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
               selector={selectedSite || allMenus ? <OperationSiteSelector selectedId={allMenus ? ALL_MENU_SITE_ID : selectedSite!.menuSiteId} items={[
-                ...(allOrders.length || allCalls.length || allMenus ? [{ id: ALL_MENU_SITE_ID, label: "전체 메뉴판", href: allMenuOperationsHref(activeSection) }] : []),
+                ...(activeSection !== "kitchen" && (allOrders.length || allCalls.length || allMenus) ? [{ id: ALL_MENU_SITE_ID, label: "전체 메뉴판", href: allMenuOperationsHref(activeSection) }] : []),
                 ...sites.map(site => ({
                 id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
               }))]} /> : null}
@@ -121,7 +124,14 @@ export default async function StoreOperationsShell({
                     const targets = operationMenuTargets(sites, item.key === "kiosks" ? "tables" : item.key);
                     if (targets.length) return <OperationMenuTarget key={item.key} label={item.label} items={targets} navigation active={active}/>;
                   }
-                  const enabled = allMenus ? (item.key === "orders" ? allOrders.length > 0 : item.key === "calls" ? allCalls.length > 0 : false) : Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : (item.key === "tables" || item.key === "kiosks") ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
+                  const enabled = allMenus
+                    ? (item.key === "orders" && allOrders.length > 0) || (item.key === "calls" && allCalls.length > 0)
+                    : Boolean(selectedSite && (
+                      item.key === "qr" ? selectedSite.canManageQr
+                        : item.key === "tables" || item.key === "kiosks" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")
+                        : item.key === "kitchen" ? selectedSite.operationAccess.orders
+                        : selectedSite.operationAccess[item.key]
+                    ));
                   const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
                   if ((!selectedSite && !allMenus) || (!enabled && !configurationAvailable)) {
                     const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
@@ -163,6 +173,9 @@ export default async function StoreOperationsShell({
             </StoreOperationsNavigation>
 
             <section className="min-w-0">
+              {user && (activeSection === "orders" || activeSection === "kitchen") && (
+                <OrderUpdateRefresh userId={user.id} menuSiteId={allMenus ? undefined : selectedSite?.menuSiteId} poll={activeSection === "kitchen"} />
+              )}
               {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "kiosks" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
                 <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
                   activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} /></div>

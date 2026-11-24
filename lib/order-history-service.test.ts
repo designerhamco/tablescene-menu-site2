@@ -4,12 +4,13 @@ import {readFileSync} from "node:fs";
 import ts from "typescript";
 import * as management from "./order-management";
 import * as history from "./order-history-query";
+import * as kitchen from "./kitchen-order";
 const site="11111111-1111-4111-8111-111111111111",table="22222222-2222-4222-8222-222222222222";
 const uuid=(n:number)=>`33333333-3333-4333-8333-${String(n).padStart(12,"0")}`;
 function row(n:number,status="received",payment="unpaid") {return{id:uuid(n),menu_site_id:site,menu_table_id:table,order_number:n,status,payment_status:payment,created_at:`2020-01-${String(1+Math.floor((n-1)/24)).padStart(2,"0")}T${String((n-1)%24).padStart(2,"0")}:00:00.000000+00:00`,updated_at:"2020-01-01T00:00:00Z",total_amount:1000,currency:"KRW"};}
-function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?:boolean;fail?:boolean;items?:number;optionsPerItem?:number}={}){
+function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?:boolean;fail?:boolean;items?:number;optionsPerItem?:number;doneItems?:number}={}){
  const calls:{table:string;filters:Record<string,unknown>;or?:string}[]=[];let gates=0;
- const itemRows=Array.from({length:options.items??0},(_,i)=>({id:uuid(i+5000),order_id:rows[0]?.id,menu_site_id:site,item_name_snapshot:`상품 ${i}`,base_price_snapshot:1000,option_price_snapshot:0,unit_price_snapshot:1000,quantity:1,line_total_snapshot:1000,display_order:i}));
+ const itemRows=Array.from({length:options.items??0},(_,i)=>({id:uuid(i+5000),order_id:rows[0]?.id,menu_site_id:site,item_name_snapshot:`상품 ${i}`,base_price_snapshot:1000,option_price_snapshot:0,unit_price_snapshot:1000,quantity:1,line_total_snapshot:1000,display_order:i,cooking_completed_at:i<(options.doneItems??0)?"2020-01-01T00:00:00Z":null}));
  const optionRows=itemRows.flatMap((item,i)=>Array.from({length:options.optionsPerItem??0},(_,j)=>({id:uuid(10000+i*10+j),menu_site_id:site,order_item_id:item.id,group_name_snapshot:"옵션",value_name_snapshot:`값 ${j}`,price_delta_snapshot:0,display_order:j})));
  const db={from(name:string){const filters:Record<string,unknown>={},orders:{key:string;ascending:boolean}[]=[];let or="",limit=Infinity,offset=0,count=false;
  const query={select(_columns:string,args?:{count?:string}){count=Boolean(args?.count);return query;},eq(key:string,value:unknown){filters[key]=value;return query;},neq(key:string,value:unknown){filters[`neq:${key}`]=value;return query;},in(key:string,value:unknown){filters[`in:${key}`]=value;return query;},gte(key:string,value:unknown){filters[`gte:${key}`]=value;return query;},lte(key:string,value:unknown){filters[`lte:${key}`]=value;return query;},lt(key:string,value:unknown){filters[`lt:${key}`]=value;return query;},or(value:string){or=value;return query;},order(key:string,value:{ascending:boolean}){orders.push({key,ascending:value.ascending});return query;},limit(value:number){limit=value;return query;},range(from:number,to:number){offset=from;limit=to-from+1;return query;},async maybeSingle(){calls.push({table:name,filters});assert.equal(name,"menu_sites");return{data:{id:site,name:"예시"},error:null};},then(resolve:(value:unknown)=>void){
@@ -22,7 +23,7 @@ function fixture(rows:ReturnType<typeof row>[],options:{denied?:boolean;enabled?
   result.sort((a,b)=>{for(const order of orders){const compared=String(a[order.key]).localeCompare(String(b[order.key]));if(compared)return order.ascending?compared:-compared;}return 0;});
   resolve({data:result.slice(offset,offset+limit),count:count?result.length:null,error:options.fail&&name==="menu_customer_orders"?{code:"failure"}:null});
  }};return query;}};
- const dependencies:Record<string,unknown>={"server-only":{},"@/lib/order-history-query":history,"@/lib/order-management":management,"@/lib/server/table-operations-eligibility-service":{hasPaidTableOperationsAccess:async()=>options.enabled!==false},"@/lib/order-dashboard-runtime":{isOrderDashboardRuntimeEnabledForSite:()=>true},"@/lib/menu-site-permissions":{hasMenuSitePermission:()=>false},"@/lib/server/menu-site-access-service":{requireMenuSitePermission:async(id:string,permission:string)=>{gates++;assert.equal(id,site);assert.equal(permission,"order.read");if(options.denied)throw new Error("denied");return{};},requireMenuSiteWriteAccess:async()=>{throw new Error("not used");}},"@/lib/supabase/admin":{createAdminClient:()=>db}};
+ const dependencies:Record<string,unknown>={"server-only":{},"@/lib/order-history-query":history,"@/lib/kitchen-order":kitchen,"@/lib/order-management":management,"@/lib/server/table-operations-eligibility-service":{hasPaidTableOperationsAccess:async()=>options.enabled!==false},"@/lib/order-dashboard-runtime":{isOrderDashboardRuntimeEnabledForSite:()=>true},"@/lib/menu-site-permissions":{hasMenuSitePermission:()=>false},"@/lib/server/menu-site-access-service":{requireMenuSitePermission:async(id:string,permission:string)=>{gates++;assert.equal(id,site);assert.equal(permission,"order.read");if(options.denied)throw new Error("denied");return{};},requireMenuSiteWriteAccess:async()=>{throw new Error("not used");}},"@/lib/supabase/admin":{createAdminClient:()=>db}};
  const source=readFileSync(new URL("./server/order-management-service.ts",import.meta.url),"utf8"),loaded={exports:{}};
  new Function("require","module","exports",ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)((name:string)=>{assert.ok(name in dependencies,name);return dependencies[name];},loaded,loaded.exports);
  return{service:loaded.exports as typeof import("./server/order-management-service"),calls,gates:()=>gates};
@@ -67,4 +68,19 @@ test("실제 Supabase 클라이언트의 조회 요청은 가짜 자격증명·�
  const cursor={createdAt:"2020-01-01T00:00:00.123456+00:00",id:uuid(1)};
  const result=await db.from("menu_customer_orders").select("id",{count:"exact"}).eq("menu_site_id",site).neq("status","cancelled").or(`and(or(status.neq.served,payment_status.eq.unpaid),or(${history.orderCursorPredicate(cursor,"newer")}))`).order("created_at",{ascending:true}).order("id",{ascending:true}).limit(200);
  assert.equal(result.error,null);assert.equal(requests,1);assert.equal(result.count,0);
+});
+
+test("주방에 조리 대상만 표시하고 모든 메뉴를 체크한 주문만 완료할 수 있다", async () => {
+  const orders = [row(1, "cooking"), row(2, "received"), row(3, "accepted"), row(4, "ready"), row(5, "served"), row(6, "cancelled")];
+  for (const doneItems of [0, 1, 2]) {
+    const { service } = fixture(orders, { items: 2, optionsPerItem: 1, doneItems });
+    const data = await service.listKitchenDashboard(site);
+    assert.deepEqual(data.orders.map(order => kitchen.getKitchenStage(order.status)), ["cooking", "before", "before", "ready"]);
+    assert.equal(kitchen.canFinishKitchenOrder(data.orders[0]), doneItems === 2);
+    assert.equal(kitchen.canFinishKitchenOrder({ status: "cooking", items: [] }), false);
+    assert.deepEqual(data.orders[0].items[0].options, [{ groupName: "옵션", valueName: "값 0" }]);
+  }
+  const hall = await fixture(orders).service.listOrderDashboard(site);
+  assert.equal(hall.orders.find(order => order.status === "cooking")?.nextStatus, null);
+  assert.equal(hall.orders.find(order => order.status === "ready")?.nextStatus, "served");
 });
