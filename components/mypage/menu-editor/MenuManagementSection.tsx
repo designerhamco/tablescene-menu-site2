@@ -25,6 +25,7 @@ import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
+import { Switch } from "@/app/components/ui/switch";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import HelpTooltip from "@/components/ui/HelpTooltip";
@@ -1163,6 +1164,7 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
 function Checkbox({
   name,
   defaultChecked,
+  compact = false,
   label,
   description,
   form,
@@ -1174,6 +1176,7 @@ function Checkbox({
 }: {
   name: string;
   defaultChecked?: boolean;
+  compact?: boolean;
   label: ReactNode;
   description?: ReactNode;
   form?: string;
@@ -1186,6 +1189,7 @@ function Checkbox({
   return (
     <SwitchField
       name={name}
+      compact={compact}
       form={form}
       label={label}
       description={description}
@@ -2428,6 +2432,7 @@ function MenuCategoryForm({
   menuId,
   pageId,
   category,
+  basicEditor = false,
   formId,
   labels,
   draftName,
@@ -2454,6 +2459,7 @@ function MenuCategoryForm({
   menuId: string;
   pageId: string;
   category?: MenuCategory;
+  basicEditor?: boolean;
   formId: string;
   labels: TemplateEditorLabels;
   draftName?: string;
@@ -2495,6 +2501,8 @@ function MenuCategoryForm({
   );
   const [initialCategoryPriceOptionLabels] = useState(() => normalizeDraftPriceOptionLabels(priceOptionLabels, maxPriceOptionColumns));
   const [categoryPriceColumns, setCategoryPriceColumns] = useState(() => normalizeCategoryPriceColumnDrafts(priceColumns));
+  const [newPriceColumnLabel, setNewPriceColumnLabel] = useState("");
+  const [editingPriceColumn, setEditingPriceColumn] = useState<{ index: number; label: string } | null>(null);
   const [initialCategoryPriceColumns] = useState(() => normalizeCategoryPriceColumnDrafts(priceColumns));
   const nameValue = category ? name : draftName !== undefined ? draftName : name;
   const normalizedCategoryPriceOptionLabels = normalizeDraftPriceOptionLabels(categoryPriceOptionLabels, maxPriceOptionColumns);
@@ -2562,9 +2570,11 @@ function MenuCategoryForm({
     if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
   }
 
-  function addCategoryPriceColumn() {
+  function addCategoryPriceColumn(label = "") {
     if (categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns) return;
-    const nextColumns = [...categoryPriceColumns, createCategoryPriceColumnDraft(categoryPriceColumns.length)];
+    const index = categoryPriceColumns.length;
+    const column = createCategoryPriceColumnDraft(index);
+    const nextColumns = [...categoryPriceColumns, label ? { ...column, label, key: getCategoryPriceColumnKey(label, index) } : column];
     setCategoryPriceColumns(nextColumns);
     if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
   }
@@ -2612,17 +2622,8 @@ function MenuCategoryForm({
     onDraftCommit?.();
   }
 
-  return (
-    <form
-      id={formId}
-      action={draftOnly ? undefined : category ? updateCategoryAction : createCategoryAction}
-      onSubmit={draftOnly ? (event) => event.preventDefault() : undefined}
-      className="mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4"
-    >
-      <HiddenMenuId menuId={menuId} />
-      {category && <input type="hidden" name="categoryId" value={category.id} />}
-      <input type="hidden" name="category_menu_page_id" value={category?.menu_page_id ?? pageId} />
-      <div>
+  const nameField = (
+    <div>
         <FieldLabel required>{labels.categoryLabel} 이름</FieldLabel>
         <input
           name="category_name"
@@ -2648,8 +2649,9 @@ function MenuCategoryForm({
           <span className={nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-600"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
         </div>
       </div>
-      {supportsDescription && (
-        <ValidatedTextArea
+  );
+  const descriptionField = supportsDescription && (
+    <ValidatedTextArea
           name="category_description"
           label={`${labels.categoryLabel} 설명`}
           defaultValue={description}
@@ -2661,8 +2663,9 @@ function MenuCategoryForm({
             if (!category) onDraftChange?.({ description: value });
           }}
         />
-      )}
-      <ValidatedTextInput
+  );
+  const sortOrderField = (
+    <ValidatedTextInput
         name="category_sort_order"
         label="정렬 순서"
         type="number"
@@ -2674,6 +2677,60 @@ function MenuCategoryForm({
         helperText="숫자가 낮을수록 먼저 표시됩니다."
         onValueChange={(value) => setSortOrder(Number(value))}
       />
+  );
+  const descriptionToggle = supportsDescription && (
+    <Checkbox
+            name="category_description_visible"
+            compact={basicEditor}
+            label={basicEditor ? "설명 사용" : (
+              <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
+                설명글 사용
+              </LabelWithHelp>
+            )}
+            defaultChecked={descriptionVisible}
+            onText="사용함"
+            offText="사용 안 함"
+            onCheckedChange={(checked) => {
+              setDescriptionVisible(checked);
+              if (!category) onDraftChange?.({ descriptionVisible: checked });
+            }}
+          />
+  );
+  const hasVisiblePriceColumns = categoryPriceColumns.some((column) => column.visible);
+
+  return (
+    <form
+      id={formId}
+      action={draftOnly ? undefined : category ? updateCategoryAction : createCategoryAction}
+      onSubmit={draftOnly ? (event) => event.preventDefault() : undefined}
+      className={basicEditor ? "site-basic-category-form" : "mt-4 space-y-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4"}
+      data-basic-category-form={basicEditor ? "" : undefined}
+    >
+      <HiddenMenuId menuId={menuId} />
+      {category && <input type="hidden" name="categoryId" value={category.id} />}
+      <input type="hidden" name="category_menu_page_id" value={category?.menu_page_id ?? pageId} />
+      {basicEditor ? (
+        <>
+          <div className="site-basic-category-name-order">{nameField}{sortOrderField}</div>
+          {supportsDescription && (
+            <section className="site-stack-copy" aria-label={`${labels.categoryLabel} 설명`}>
+              <div className="site-content-heading-row" data-layout="toolbar">
+                <label className="type-label" htmlFor={`${formId}-description`}>{labels.categoryLabel} 설명</label>
+                {descriptionToggle}
+              </div>
+              <textarea id={`${formId}-description`} className="site-field site-input" name="category_description" rows={2}
+                value={description} placeholder={`${labels.categoryLabel} 설명을 입력하세요`} maxLength={MENU_FIELD_LIMITS.menuCategories.description}
+                onChange={(event) => {
+                  setDescription(event.target.value);
+                  if (!category) onDraftChange?.({ description: event.target.value });
+                }} />
+              <p className="type-caption site-copy-muted" data-editor-count>{description.length} / {MENU_FIELD_LIMITS.menuCategories.description}</p>
+            </section>
+          )}
+        </>
+      ) : (
+        <>{nameField}{descriptionField}{sortOrderField}</>
+      )}
       {supportsCourseFields && (
         <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">코스 가격</h4>
@@ -2792,7 +2849,72 @@ function MenuCategoryForm({
           </p>
         </section>
       )}
-      {supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
+      {basicEditor && supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
+        <section className="site-stack-block">
+          <div className="site-content-heading-row" data-layout="toolbar">
+            <div className="site-action-row">
+              <h4 className="type-label">가격 옵션 컬럼</h4>
+              <HelpTooltip label="가격 옵션 컬럼 도움말">이 카테고리의 메뉴에 공통으로 적용할 가격 옵션입니다. 최대 {effectiveMaxCategoryPriceColumns}개까지 등록할 수 있습니다.</HelpTooltip>
+            </div>
+            <div className="site-action-row" data-wrap="nowrap">
+              <span className="type-label">사용 여부</span>
+              <Switch aria-label="가격 옵션 컬럼 사용 여부" size="sm" checked={hasVisiblePriceColumns} disabled={categoryPriceColumns.length === 0 || Boolean(editingPriceColumn)} onCheckedChange={(checked) => {
+                const nextColumns = categoryPriceColumns.map((column) => ({ ...column, visible: checked }));
+                setCategoryPriceColumns(nextColumns);
+                if (!category) onDraftChange?.({ priceColumns: normalizeCategoryPriceColumnDrafts(nextColumns) });
+              }} />
+            </div>
+          </div>
+          <div className="site-stack-copy">
+            <div className="site-field-action-row">
+              <input className="site-field site-input" aria-label="추가할 가격 옵션 컬럼" placeholder="예: HOT, ICE, LARGE"
+                maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} value={newPriceColumnLabel} onChange={(event) => setNewPriceColumnLabel(event.target.value)} />
+              <button type="button" className="site-button site-button-primary" disabled={!newPriceColumnLabel.trim() || categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns || Boolean(editingPriceColumn)} onClick={() => {
+                addCategoryPriceColumn(newPriceColumnLabel.trim());
+                setNewPriceColumnLabel("");
+              }}>{categoryPriceColumns.length}/{effectiveMaxCategoryPriceColumns} 추가</button>
+            </div>
+            {categoryPriceColumnValidationMessage && <p role="status" className="type-caption text-red-600">{categoryPriceColumnValidationMessage}</p>}
+          </div>
+          {categoryPriceColumns.length > 0 && (
+            <ol className="site-stack-copy">
+              {categoryPriceColumns.map((column, index) => {
+                const editing = editingPriceColumn?.index === index;
+                return (
+                  <li key={column.id ?? `new-price-column-${index}`} className="site-featured-registration-row">
+                    <div className="site-action-row" data-wrap="nowrap">
+                      <button type="button" className="site-button site-button-outline site-button-icon" data-icon-size="compact" disabled={index === 0 || Boolean(editingPriceColumn)} aria-label={`${column.label} 위로 이동`} onClick={() => moveCategoryPriceColumn(index, -1)}><ArrowUp aria-hidden /></button>
+                      <button type="button" className="site-button site-button-outline site-button-icon" data-icon-size="compact" disabled={index === categoryPriceColumns.length - 1 || Boolean(editingPriceColumn)} aria-label={`${column.label} 아래로 이동`} onClick={() => moveCategoryPriceColumn(index, 1)}><ArrowDown aria-hidden /></button>
+                    </div>
+                    {editing ? (
+                      <input className="site-field site-input" aria-label={`${index + 1}번 컬럼 이름`} value={editingPriceColumn.label} maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label}
+                        onChange={(event) => setEditingPriceColumn({ index, label: event.target.value })} />
+                    ) : <p className="type-label site-featured-registration-title">{column.label}{!column.visible && <span className="type-caption site-copy-muted"> · 숨김</span>}</p>}
+                    <div className="site-action-row" data-distribution="end">
+                      {editing ? (
+                        <>
+                          <button type="button" className="site-button site-button-primary site-button-compact" disabled={!editingPriceColumn.label.trim()} onClick={() => {
+                            updateCategoryPriceColumn(index, { label: editingPriceColumn.label.trim() });
+                            setEditingPriceColumn(null);
+                          }}>등록</button>
+                          <button type="button" className="site-button site-button-outline site-button-compact" onClick={() => setEditingPriceColumn(null)}>취소</button>
+                        </>
+                      ) : (
+                        <>
+                          <button type="button" className="site-button site-button-outline site-button-compact" disabled={Boolean(editingPriceColumn)} onClick={() => setEditingPriceColumn({ index, label: column.label })}>수정</button>
+                          <button type="button" className="site-button site-button-outline site-button-compact" disabled={Boolean(editingPriceColumn)} onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}>{column.visible ? "숨기기" : "표시"}</button>
+                          <button type="button" className="site-button site-button-outline-danger site-button-compact" disabled={Boolean(editingPriceColumn)} onClick={() => removeCategoryPriceColumn(index)}>삭제</button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </section>
+      )}
+      {!basicEditor && supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
         <section className="site-section site-editor-subpanel p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -2803,7 +2925,7 @@ function MenuCategoryForm({
             </div>
             <button
               type="button"
-              onClick={addCategoryPriceColumn}
+              onClick={() => addCategoryPriceColumn()}
               disabled={categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns}
               className="site-button site-button-outline"
             >
@@ -2871,25 +2993,10 @@ function MenuCategoryForm({
         </section>
       )}
       <div className="grid gap-3">
-        {supportsDescription && (
-          <Checkbox
-            name="category_description_visible"
-            label={
-              <LabelWithHelp help="사용 안 함으로 바꿔도 입력한 설명은 삭제되지 않습니다. 공개 메뉴판에만 표시되지 않습니다.">
-                설명글 사용
-              </LabelWithHelp>
-            }
-            defaultChecked={descriptionVisible}
-            onText="사용함"
-            offText="사용 안 함"
-            onCheckedChange={(checked) => {
-              setDescriptionVisible(checked);
-              if (!category) onDraftChange?.({ descriptionVisible: checked });
-            }}
-          />
-        )}
+        {!basicEditor && descriptionToggle}
         <Checkbox
           name="category_visible"
+          compact={basicEditor}
           label="메뉴판 표시"
           defaultChecked={visible}
           onCheckedChange={(checked) => {
@@ -2898,12 +3005,12 @@ function MenuCategoryForm({
           }}
         />
       </div>
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className={basicEditor ? "site-editor-action-row" : "flex flex-wrap items-center justify-end gap-3"}>
         {draftOnly ? (
           <SubmitButton
             type="button"
             tone="final"
-            disabled={nameInvalid || Boolean(categoryPriceColumnValidationMessage) || (Boolean(category) && !categoryFormDirty)}
+            disabled={nameInvalid || Boolean(editingPriceColumn) || Boolean(categoryPriceColumnValidationMessage) || (Boolean(category) && !categoryFormDirty)}
             onClick={handleDraftCommit}
           >
             {draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
@@ -3807,8 +3914,9 @@ function MenuItemForm({
           <Checkbox
             form={formId}
             name="item_price_visible"
-            label={`공개 메뉴판에 ${labels.priceLabel} 표시`}
-            description={`끄면 공개 메뉴판에서 이 ${labels.itemLabel}의 ${labels.priceLabel} 정보가 숨겨집니다.`}
+            compact={basicEditor}
+            label={basicEditor ? "가격 노출 여부" : `공개 메뉴판에 ${labels.priceLabel} 표시`}
+            description={basicEditor ? undefined : `끄면 공개 메뉴판에서 이 ${labels.itemLabel}의 ${labels.priceLabel} 정보가 숨겨집니다.`}
             defaultChecked={priceVisibleValue}
             onCheckedChange={(checked) => {
               setPriceVisibleValue(checked);
@@ -3817,10 +3925,56 @@ function MenuItemForm({
           />
         </div>
   );
+  const basicPriceDisplayField = basicEditor && supportsPriceDisplayMode && priceDisplayMode && onPriceDisplayModeChange && !isDirectPriceTextMode && (
+    <label className="site-field-stack type-label">
+      가격 표시 형식
+      <select className="site-field site-input" value={priceDisplayMode} onChange={(event) => onPriceDisplayModeChange(normalizePriceDisplayMode(event.target.value, null))}>
+        <option value="compact_decimal">간단 표기 · 4.5</option>
+        <option value="krw">원화 표기 · 4,500원</option>
+      </select>
+    </label>
+  );
+  const timeSaleDisplayField = (
+    <div>
+      <FieldLabel><LabelWithHelp help="종료 일시, 카운트다운 또는 원하는 문구를 표시할 수 있습니다.">표시 방식</LabelWithHelp></FieldLabel>
+      <Select
+        form={formId}
+        name="item_time_sale_display_mode"
+        value={timeSaleDisplayMode}
+        onChange={(event) => {
+          const nextMode = normalizeTimeSaleDisplayMode(event.target.value);
+          setTimeSaleDisplayMode(nextMode);
+          updateDraftItem({
+            timeSale: {
+              enabled: timeSaleEnabled,
+              name: timeSaleName,
+              salePrice: timeSalePrice,
+              targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
+              startsAt: timeSaleStartsAt,
+              endsAt: timeSaleEndsAt,
+              timeDisplayMode: nextMode,
+              badgeText: timeSaleBadgeText,
+              badgeBackgroundColor: timeSaleBadgeBackgroundColor,
+              active: timeSaleActive,
+            },
+          });
+        }}
+      >
+        <option value="deadline">종료 일시 표시 · 오늘 17:00까지</option>
+        <option value="countdown">남은 시간 카운트다운 · 00:42:18 남음</option>
+        <option value="message">원하는 문구 · 매일 오전 8시부터 10시까지</option>
+        <option value="message_and_countdown">문구 + 카운트다운 · 오늘만 특별 할인가 · 00:42:18 남음</option>
+      </Select>
+      {!basicEditor && <p className="mt-2 break-keep type-footnote text-zinc-600">
+        문구 표시는 마감 시각을 차분하게 보여주고, 카운트다운은 남은 시간을 1초 단위로 보여줍니다.
+      </p>}
+    </div>
+  );
   const itemImageSection = capabilities.menuItemImages && (
         <section className="site-section site-editor-subpanel p-4">
+          {!basicEditor && <>
           <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
-            {basicEditor ? "상품 이미지" : "이미지"}
+            이미지
             <HelpTooltip label="이미지 도움말">
               이미지는 선택 사항입니다. 등록한 메뉴 이미지는 이미지형 메뉴판 배치에 사용할 수 있습니다.
             </HelpTooltip>
@@ -3828,10 +3982,12 @@ function MenuItemForm({
           <p className="mt-2 text-support font-medium leading-relaxed text-zinc-600">
             이미지가 있는 메뉴는 공개 메뉴판에서 이미지형 배치로 표시됩니다.
           </p>
-          <div className="mt-4">
+          </>}
+          <div className={basicEditor ? "site-stack-copy" : "mt-4"}>
           <ImageUploadField
             key={item?.id ?? "new-item"}
-            label={labels.imageLabel}
+            label={basicEditor ? "상품 이미지" : labels.imageLabel}
+            editorLayout={basicEditor}
             menuId={menuId}
             target="menu-item-draft"
             recordId={item?.id ?? "new-item"}
@@ -3854,7 +4010,7 @@ function MenuItemForm({
   const visibilitySection = (
       <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label text-zinc-950">{basicEditor ? "노출 방식" : "노출 설정"}</h4>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <div className="mt-4 grid gap-4 md:grid-cols-2" data-editor-item-visibility={basicEditor ? "" : undefined}>
           <ValidatedTextInput
             form={formId}
             name="item_sort_order"
@@ -3877,7 +4033,8 @@ function MenuItemForm({
             <Checkbox
               form={formId}
               name="item_visible"
-              label="공개 메뉴판에 표시"
+              compact={basicEditor}
+              label={basicEditor ? "메뉴판 표시" : "공개 메뉴판에 표시"}
               defaultChecked={visibleValue}
               onCheckedChange={(checked) => {
                 setVisibleValue(checked);
@@ -3887,8 +4044,9 @@ function MenuItemForm({
             <Checkbox
               form={formId}
               name="item_is_sold_out"
-              label="품절 처리"
-              description="켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."
+              compact={basicEditor}
+              label={basicEditor ? "품절 여부" : "품절 처리"}
+              description={basicEditor ? undefined : "켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."}
               defaultChecked={soldOutValue}
               onText="품절"
               offText="판매 중"
@@ -3904,7 +4062,7 @@ function MenuItemForm({
   );
 
   return (
-    <div className="mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <div className={basicEditor ? "site-basic-item-form" : "mt-4 grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4"} data-basic-item-form={basicEditor ? "" : undefined}>
       <form
         id={formId}
         action={draftOnly ? undefined : item ? updateMenuItemAction : createMenuItemAction}
@@ -3925,10 +4083,10 @@ function MenuItemForm({
 
       <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label text-zinc-950">{basicEditor ? "메뉴 아이템 기본 설정" : "기본 정보"}</h4>
-        <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">
+        {!basicEditor && <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">
           {labels.itemLabel}의 소속, 이름, 설명, 원산지 정보를 입력합니다.
-        </p>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
+        </p>}
+        <div className="mt-4 grid gap-4 md:grid-cols-2" data-editor-item-identity={basicEditor ? "" : undefined}>
           <div>
             <FieldLabel required={!allowDirectItem}>{labels.categoryLabel}</FieldLabel>
             <Select
@@ -3949,13 +4107,13 @@ function MenuItemForm({
                 </option>
               ))}
             </Select>
-            <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${categoryInvalid ? "text-red-600" : "text-zinc-600"}`}>
+            {(!basicEditor || categoryInvalid) && <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${categoryInvalid ? "text-red-600" : "text-zinc-600"}`}>
               {categoryInvalid
                 ? `${labels.categoryLabel}을 선택해주세요.`
                 : allowDirectItem && !categoryId
                   ? `이 ${labels.itemLabel}는 현재 메뉴 페이지에 단독으로 표시됩니다.`
                   : `이 ${labels.itemLabel}가 표시될 ${labels.categoryLabel}을 선택하세요.`}
-            </p>
+            </p>}
           </div>
           <div>
             <FieldLabel required>{labels.itemNameLabel}</FieldLabel>
@@ -4016,7 +4174,7 @@ function MenuItemForm({
                   type="button"
                   disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
-                  className="site-button site-button-outline inline-flex items-center justify-center"
+                  className={basicEditor ? "site-button site-button-ai site-button-compact" : "site-button site-button-outline inline-flex items-center justify-center"}
                 >
                   {isGeneratingDescription ? (
                     <>
@@ -4041,12 +4199,14 @@ function MenuItemForm({
                   updateDraftItem({ description: value });
                 }}
               />
+              {!basicEditor && <>
               <div className="mt-3 max-w-sm">
                 <AiUsageMeter label="AI 설명 작성" used={aiDescriptionUsage.used} limit={aiDescriptionUsage.limit} compact />
               </div>
               <p className="mt-2 break-keep type-footnote text-zinc-600">
                 AI가 생성한 문구는 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
               </p>
+              </>}
             </div>
           ) : (
             <input type="hidden" name="item_description" value="" form={formId} />
@@ -4119,7 +4279,7 @@ function MenuItemForm({
             </div>
           </div>
         )}
-        {supportsPriceDisplayMode && priceDisplayMode && onPriceDisplayModeChange && !isDirectPriceTextMode && (
+        {!basicEditor && supportsPriceDisplayMode && priceDisplayMode && onPriceDisplayModeChange && !isDirectPriceTextMode && (
           <div className="site-section site-editor-subpanel mt-4 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -4188,8 +4348,9 @@ function MenuItemForm({
             </div>
           </>
         )}
+        {!isSingleMode && basicPriceDisplayField}
         {isSingleMode && (
-          <div className="mt-4">
+          <div className="mt-4" data-basic-price-row={basicPriceDisplayField ? "" : undefined}>
             {isDirectPriceTextMode ? (
               <ValidatedTextInput
                 form={formId}
@@ -4226,6 +4387,7 @@ function MenuItemForm({
                 }}
               />
             )}
+            {basicPriceDisplayField}
             {isDirectPriceTextMode ? (
               <p className="mt-2 break-keep text-support font-medium leading-relaxed text-amber-700">
                 직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다.
@@ -4428,7 +4590,8 @@ function MenuItemForm({
               <Checkbox
                 form={formId}
                 name="item_time_sale_enabled"
-                label="이 메뉴에 타임세일 적용"
+                compact={basicEditor}
+                label={basicEditor ? "타임세일 사용" : "이 메뉴에 타임세일 적용"}
                 description={`여러 메뉴에 적용할 수 있으며, 한 메뉴판에 최대 ${MAX_TIME_SALES_PER_MENU_SITE}개까지 등록할 수 있습니다. 하단 저장 후 반영됩니다.`}
                 defaultChecked={effectiveTimeSaleEnabled}
                 canTurnOn={timeSaleEligible || effectiveTimeSaleEnabled}
@@ -4595,7 +4758,7 @@ function MenuItemForm({
                     </p>
                   ) : null}
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4 md:grid-cols-2" data-basic-sale-schedule={basicEditor ? "" : undefined}>
                   <ValidatedTextInput
                     form={formId}
                     name="item_time_sale_starts_at"
@@ -4646,6 +4809,7 @@ function MenuItemForm({
                       });
                     }}
                   />
+                  {basicEditor && timeSaleDisplayField}
                 </div>
                 {timeSaleScheduleType === "daily_window" ? (
                   <div className="grid gap-4 md:grid-cols-2">
@@ -4676,40 +4840,7 @@ function MenuItemForm({
                   </div>
                 ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <FieldLabel>표시 방식</FieldLabel>
-                    <Select
-                      form={formId}
-                      name="item_time_sale_display_mode"
-                      value={timeSaleDisplayMode}
-                      onChange={(event) => {
-                        const nextMode = normalizeTimeSaleDisplayMode(event.target.value);
-                        setTimeSaleDisplayMode(nextMode);
-                        updateDraftItem({
-                          timeSale: {
-                            enabled: timeSaleEnabled,
-                            name: timeSaleName,
-                            salePrice: timeSalePrice,
-                            targets: hasVisiblePriceColumnValue ? activePriceColumnTimeSaleTargets : timeSaleTargets,
-                            startsAt: timeSaleStartsAt,
-                            endsAt: timeSaleEndsAt,
-                            timeDisplayMode: nextMode,
-                            badgeText: timeSaleBadgeText,
-                            badgeBackgroundColor: timeSaleBadgeBackgroundColor,
-                            active: timeSaleActive,
-                          },
-                        });
-                      }}
-                    >
-                      <option value="deadline">종료 일시 표시 · 오늘 17:00까지</option>
-                      <option value="countdown">남은 시간 카운트다운 · 00:42:18 남음</option>
-                      <option value="message">원하는 문구 · 매일 오전 8시부터 10시까지</option>
-                      <option value="message_and_countdown">문구 + 카운트다운 · 오늘만 특별 할인가 · 00:42:18 남음</option>
-                    </Select>
-                    <p className="mt-2 break-keep type-footnote text-zinc-600">
-                      문구 표시는 마감 시각을 차분하게 보여주고, 카운트다운은 남은 시간을 1초 단위로 보여줍니다.
-                    </p>
-                  </div>
+                  {!basicEditor && timeSaleDisplayField}
                   {timeSaleDisplayTextRequired ? (
                     <ValidatedTextInput
                       form={formId}
@@ -4902,7 +5033,7 @@ function MenuItemForm({
       {!basicEditor && itemImageSection}
       {basicEditor && visibilitySection}
 
-      <div className="flex flex-wrap items-center justify-end gap-3">
+      <div className={basicEditor ? "site-editor-action-row" : "flex flex-wrap items-center justify-end gap-3"}>
         {draftOnly ? (
           <>
             <SubmitButton
@@ -8822,16 +8953,17 @@ export default function MenuManagementSection({
         setIsMenuCleanupOpen(true);
       }}
       disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
-      className="site-button site-button-outline"
+      className={basicEditor ? "site-button site-button-ai site-button-compact" : "site-button site-button-outline"}
     >
       AI 메뉴 정리 · 3크레딧
     </button>
   );
   const pcTabletLayoutSettings = canConfigurePcTabletLayoutMode && (
     <ContentPanel surface="muted" density="compact">
-      <div className="site-stack-copy">
+      <div className="site-action-row">
         <h4 className="type-label">PC/태블릿 배치 방식</h4>
-        <p className="type-body-sm site-copy-muted">모바일은 등록 순서대로 표시됩니다.</p>
+        {basicEditor && <HelpTooltip label="PC/태블릿 배치 방식 도움말">묶음형은 카테고리 순서를 유지하면서 화면에 균형 있게 배치합니다. 채움형은 등록한 순서대로 이어서 배치합니다. 모바일은 등록 순서대로 표시됩니다.</HelpTooltip>}
+        {!basicEditor && <p className="type-body-sm site-copy-muted">모바일은 등록 순서대로 표시됩니다.</p>}
       </div>
       <div className="site-stack-copy">
         {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => (
@@ -8843,11 +8975,11 @@ export default function MenuManagementSection({
             aria-pressed={pcTabletLayoutModeDraft === option.value}
           >
             <span className="block type-label">{option.title}</span>
-            <span className="block type-body-sm site-copy-muted">{option.description}</span>
+            {!basicEditor && <span className="block type-body-sm site-copy-muted">{option.description}</span>}
           </button>
         ))}
       </div>
-      <p className="type-body-sm site-copy-muted">기본 추천은 묶음형 자동 배치입니다.</p>
+      {!basicEditor && <p className="type-body-sm site-copy-muted">기본 추천은 묶음형 자동 배치입니다.</p>}
     </ContentPanel>
   );
 
@@ -8860,9 +8992,10 @@ export default function MenuManagementSection({
       data-deleted-widget-draft-count={deletedWidgetIds.size}
       data-rendered-widget-row-count={renderedWidgetRowCount}
       data-rendered-content-block-count={renderedContentBlockCount}
+      data-basic-editor-management={basicEditor ? "" : undefined}
     >
       <section className="site-card site-editor-panel p-5 sm:p-6">
-        <div className="mb-6 border-b border-zinc-100 pb-5 sm:mb-8 sm:pb-6">
+        <div className="mb-6 border-b border-zinc-100 pb-5 sm:mb-8 sm:pb-6" data-editor-legacy-heading={basicEditor ? "" : undefined}>
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="min-w-0">
               <h2 className="type-subsection-title flex min-w-0 items-center gap-2">
@@ -8958,7 +9091,8 @@ export default function MenuManagementSection({
               </h3>
             </div>
             {!basicEditor && pcTabletLayoutSettings && <div className="mb-4">{pcTabletLayoutSettings}</div>}
-            <div className="site-action-row" data-distribution={basicEditor ? undefined : "end"}>
+            <div className="site-action-row" data-editor-structure-tools={basicEditor ? "" : undefined} data-distribution={basicEditor ? undefined : "end"}>
+              {basicEditor && menuCleanupButton}
               {shouldShowPageCreateButton && (
                 <button
                   type="button"
@@ -9000,14 +9134,13 @@ export default function MenuManagementSection({
                   + {labels.itemLabel}
                 </button>
               )}
-              {basicEditor && menuCleanupButton}
             </div>
             {hasActiveWidgetEditorChanges && (
               <p className="site-notice site-notice-warning mt-3 px-3 py-2 text-support font-medium leading-relaxed">
                 현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
               </p>
             )}
-            {menuWidgetCapability.enabled && (
+            {!basicEditor && menuWidgetCapability.enabled && (
               <p className="mt-3 text-support font-semibold leading-relaxed text-zinc-600">
                 {isAubeTable ? "위젯은 페이지 안에서 카테고리 앞·사이·뒤로 이동할 수 있습니다. 코스 제목부터 마지막 아이템까지는 하나의 카테고리로 유지됩니다." : "위젯은 카테고리처럼 맨 위·카테고리 사이·맨 아래로 자유롭게 이동할 수 있습니다."}
               </p>
@@ -9019,7 +9152,7 @@ export default function MenuManagementSection({
                 <EmptyState>{labels.pageLabel}가 없습니다</EmptyState>
               </div>
             ) : (
-              <div className="mt-5 grid gap-1.5">
+              <div className="mt-5 grid gap-1.5" data-editor-structure-tree={basicEditor ? "" : undefined}>
                 {canManagePages && draftTarget?.type === "page" && <DraftNameInput value={draftTarget.title} onChange={updateDraftTitle} placeholder={labels.pageLabel === "가격표 페이지" ? "새 가격표 페이지명 입력" : "새 페이지명 입력"} level="page" />}
                 {visibleStructurePages.map((page) => {
                   const pageDisplaySettings = getDraftedPageDisplaySettings(page);
@@ -9250,13 +9383,15 @@ export default function MenuManagementSection({
                 })}
               </div>
             )}
-            <div className="mt-3 flex items-center justify-end gap-1.5">
+            <div className="mt-3 flex items-center justify-end gap-1.5" data-editor-structure-reorder={basicEditor ? "" : undefined}>
+              {basicEditor && <span className="type-caption">순서 이동</span>}
               <button
                 type="button"
                 onClick={() => moveSelectedOrder(-1)}
                 disabled={!canMoveSelectedOrderUp}
                 aria-label="위로 이동"
                 title="위로 이동"
+                data-icon-size={basicEditor ? "compact" : undefined}
                 className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
                 <ArrowUp size={16} className="inline-block align-text-bottom" aria-hidden="true" />
@@ -9267,6 +9402,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderDown}
                 aria-label="아래로 이동"
                 title="아래로 이동"
+                data-icon-size={basicEditor ? "compact" : undefined}
                 className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
                 <ArrowDown size={16} className="inline-block align-text-bottom" aria-hidden="true" />
@@ -9450,6 +9586,7 @@ export default function MenuManagementSection({
                   menuId={menuId}
                   pageId={selectedPage.id}
                   formId="menu-category-form-new"
+                  basicEditor={basicEditor}
                   labels={labels}
                   draftOnly
                   draftName={draftTarget?.type === "category" ? draftTarget.title : undefined}
@@ -9478,7 +9615,7 @@ export default function MenuManagementSection({
                 <PanelHeader
                   title={basicEditor ? "카테고리 설정" : `${labels.categoryLabel} 수정`}
                   description={
-                    capabilities.categoryDescription
+                    basicEditor ? undefined : capabilities.categoryDescription
                       ? `${labels.categoryLabel}의 이름, 설명, 표시 여부를 수정합니다.`
                       : `${labels.categoryLabel}의 이름과 표시 여부를 수정합니다.`
                   }
@@ -9489,6 +9626,7 @@ export default function MenuManagementSection({
                   pageId={selectedPage?.id ?? selectedCategory.menu_page_id}
                   category={selectedCategory}
                   formId={`menu-category-form-${selectedCategory.id}`}
+                  basicEditor={basicEditor}
                   labels={labels}
                   draftOnly
                   draftName={categoryBasicDrafts[selectedCategory.id]?.name ?? selectedCategory.name}
@@ -9896,7 +10034,7 @@ export default function MenuManagementSection({
             )}
           </section>
         </div>
-        <div className="mt-6">
+        <div className="mt-6" data-editor-management-save={basicEditor ? "" : undefined}>
           <form action={saveMenuManagementBasicDraftAction}>
             <HiddenMenuId menuId={menuId} />
             <input type="hidden" name="page_basic_drafts" value={pageBasicDraftPayload} />
@@ -10335,8 +10473,8 @@ function MenuItemCard({
     >
       {isEditing ? (
         <>
-          <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
-            <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
+          <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4" data-basic-item-back={basicEditor ? "" : undefined}>
+            {!basicEditor && <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>}
             <button ref={returnButtonRef} type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>

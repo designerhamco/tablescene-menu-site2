@@ -1,8 +1,10 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
+import { X } from "@/app/components/ui/site-icon";
 import DirtySubmitButton from "./DirtySubmitButton";
 
 const devices = [
@@ -20,26 +22,35 @@ export default function BasicDesignWorkspace({ menuId, formId, revision, saved, 
   canPreview: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(saved);
+  const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [device, setDevice] = useState<(typeof devices)[number]["key"]>("tablet");
   const workspaceId = useId();
   const previewUrl = `/mypage/menus/${menuId}/preview?${new URLSearchParams({ view: "actual", embedded: "1", device, designRevision: revision })}`;
 
+  useEffect(() => {
+    if (saved) dialogRef.current?.close();
+  }, [saved, revision]);
+
   return (
     <section className="site-stack-group">
-      <ContentPanel surface="muted" density="compact">
-        <div className="site-content-heading-row">
-          <div className="site-stack-copy">
-            <h3 className="type-content-title">디자인 설정</h3>
-            {saved && <p className="type-body-sm" role="status">디자인 저장 완료</p>}
-          </div>
-          <button type="button" className="site-button site-button-outline" aria-expanded={open} aria-controls={workspaceId} onClick={() => setOpen((value) => !value)}>
-            {open ? "디자인 설정 닫기" : "디자인 설정 열기"}
+      <ContentPanel surface="muted" data-basic-design-launch>
+        <div className="site-stack-copy" data-basic-design-launch-actions>
+          {saved && <p className="type-body-sm" role="status">디자인 저장 완료</p>}
+          <button type="button" className="site-button site-button-outline" aria-haspopup="dialog" aria-controls={workspaceId} onClick={() => {
+            dialogRef.current?.showModal();
+            setOpen(true);
+          }}>
+            디자인 설정 <ArrowUpRight aria-hidden />
           </button>
         </div>
       </ContentPanel>
-      <div id={workspaceId} hidden={!open}>
-        <ContentPanel>
+      <dialog ref={dialogRef} id={workspaceId} className="site-dialog site-basic-design-dialog" aria-labelledby={`${workspaceId}-title`} onClose={() => setOpen(false)}>
+        <div className="site-management-scope site-stack-block">
+          <div className="site-content-heading-row" data-layout="toolbar">
+            <h3 id={`${workspaceId}-title`} className="type-content-title">디자인 설정</h3>
+            <button type="button" className="site-button site-button-ghost site-button-icon" aria-label="디자인 설정 닫기" onClick={() => dialogRef.current?.close()}><X aria-hidden /></button>
+          </div>
           <div className="site-content-heading-row">
             {canPreview && (
               <Tabs purpose="state" value={device} onValueChange={(next) => {
@@ -56,7 +67,7 @@ export default function BasicDesignWorkspace({ menuId, formId, revision, saved, 
             </DirtySubmitButton>
           </div>
           <div className="site-basic-design-workspace" data-preview={canPreview}>
-            <div className="site-stack-block">{children}</div>
+            <div className="site-stack-copy site-basic-design-controls">{children}</div>
             {open && canPreview && (
               <div className="site-stack-copy">
                 <div className="site-basic-design-preview" data-device={device}>
@@ -66,8 +77,8 @@ export default function BasicDesignWorkspace({ menuId, formId, revision, saved, 
               </div>
             )}
           </div>
-        </ContentPanel>
-      </div>
+        </div>
+      </dialog>
     </section>
   );
 }

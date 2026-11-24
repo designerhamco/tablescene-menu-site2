@@ -16,6 +16,9 @@ type ImageUploadFieldProps = {
   editorLayout?: boolean;
   labelAction?: ReactNode;
   hidePreview?: boolean;
+  disabled?: boolean;
+  hideDelete?: boolean;
+  barePicker?: boolean;
   menuId: string;
   target: ImageUploadTarget;
   recordId?: string;
@@ -58,6 +61,9 @@ export default function ImageUploadField({
   editorLayout = false,
   labelAction,
   hidePreview = false,
+  disabled = false,
+  hideDelete = false,
+  barePicker = false,
   menuId,
   target,
   recordId,
@@ -220,7 +226,7 @@ export default function ImageUploadField({
   }
 
   const uploadButton = (
-    <button type="button" disabled={isLoading} onClick={() => inputRef.current?.click()}
+    <button type="button" disabled={isLoading || disabled} onClick={() => inputRef.current?.click()}
       className="site-button site-button-primary">
       {isLoading && <LoadingSpinner className="h-3 w-3" />}
       {isLoading ? "업로드 중..." : editorLayout ? "파일 선택" : "이미지 등록"}
@@ -240,6 +246,7 @@ export default function ImageUploadField({
       <input
         ref={inputRef}
         type="file"
+        disabled={disabled}
         accept="image/jpeg,image/png,image/webp"
         className="hidden"
         onChange={(event) => {
@@ -249,15 +256,17 @@ export default function ImageUploadField({
       />
       {editorLayout ? (
         <>
-          <div className="site-content-heading-row">
-            <div className="site-action-row">
-              <label htmlFor={fileNameId} className="type-label">{label}</label>
-              <HelpTooltip label={`${label} 업로드 주의사항`} hover>
-                본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해 주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
-              </HelpTooltip>
+          {barePicker ? <label htmlFor={fileNameId} className="sr-only">{label}</label> : (
+            <div className="site-content-heading-row" data-layout={labelAction ? "toolbar" : undefined} data-editor-upload-heading={labelAction ? "" : undefined}>
+              <div className="site-action-row">
+                <label htmlFor={fileNameId} className="type-label">{label}</label>
+                <HelpTooltip label={`${label} 업로드 주의사항`} hover>
+                  본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해 주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+                </HelpTooltip>
+              </div>
+              {labelAction}
             </div>
-            {labelAction}
-          </div>
+          )}
           <div className="site-editor-file-row">
             <input id={fileNameId} className="site-field site-input" readOnly value={previewUrl ? fileName || "등록된 이미지" : ""} placeholder="선택한 파일 없음" />
             {uploadButton}
@@ -278,16 +287,16 @@ export default function ImageUploadField({
               ) : emptyPreview}
             </div>
           )}
-          {hidePreview && previewUrl && !isConfirmingDelete && (
+          {hidePreview && !hideDelete && previewUrl && !isConfirmingDelete && (
             <div className="site-action-row" data-distribution="end">
               <button type="button" className="site-button site-button-outline-danger" disabled={isLoading} onClick={() => setIsConfirmingDelete(true)}>이미지 삭제</button>
             </div>
           )}
-          <div className="site-stack-detail type-caption site-copy-muted">
+          {!barePicker && <div className="site-stack-detail type-caption site-copy-muted">
             {description && <p>{description}</p>}
             <p>{fileGuidance ?? uploadPolicy.label}</p>
             {optimizationGuidance && <p>{optimizationGuidance}</p>}
-          </div>
+          </div>}
           {status}
         </>
       ) : (

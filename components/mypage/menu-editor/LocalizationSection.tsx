@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "@/app/components/ui/site-icon";
 import { ChevronDown, ChevronRight } from "@/app/components/ui/site-arrow";
 
 import type { ReactNode } from "react";
@@ -916,7 +917,7 @@ function LocalizationSectionContent({
         <input type="hidden" name="localization_save_mode" value={localizationSaveMode} />
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
         {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
-        <section className="site-section site-editor-subpanel p-5">
+        <section className={basic ? "site-stack-group" : "site-section site-editor-subpanel p-5"}>
           {!basic && (
             <>
               <h3 className="type-content-title text-zinc-950">다국어 설정</h3>
@@ -927,20 +928,27 @@ function LocalizationSectionContent({
           )}
           <div className={basic ? "site-stack-block" : "mt-5"}>
             <div className="site-action-row">
-              <h4 className={basic ? "type-content-title" : "type-label text-zinc-950"}>사용할 언어</h4>
+              <h4 className="type-label">사용할 언어</h4>
               {basic && <HelpTooltip label="사용할 언어 도움말">한국어는 기본 언어입니다. 선택한 언어는 최종 저장 후 메뉴판에 표시되며, 언어를 꺼도 기존 번역은 유지됩니다.</HelpTooltip>}
             </div>
             {!basic && <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               한국어는 기본 언어로 항상 사용됩니다. 선택한 언어는 하단 저장 후 공개 메뉴판의 언어 선택에 반영됩니다.
             </p>}
           <div className={basic ? "site-basic-editor-language-grid" : "mt-4 grid gap-3 md:grid-cols-2"}>
-            <label className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-600">
-              <span>{LOCALE_LABELS.ko}</span>
-              <span className="text-support text-emerald-700">항상 사용</span>
-              <input type="checkbox" checked disabled className="h-4 w-4 accent-zinc-950" />
-            </label>
+            {basic ? (
+              <div className="site-choice site-choice-control site-editor-choice" data-fixed="true">
+                <span className="type-label">{LOCALE_LABELS.ko}</span>
+                <span className="type-caption site-copy-muted">기본</span>
+              </div>
+            ) : (
+              <label className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-600">
+                <span>{LOCALE_LABELS.ko}</span>
+                <span className="text-support text-emerald-700">항상 사용</span>
+                <input type="checkbox" checked disabled className="h-4 w-4 accent-zinc-950" />
+              </label>
+            )}
             {TRANSLATABLE_LOCALES.map((locale) => (
-              <label key={locale} className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-700">
+              <label key={locale} className={basic ? "site-choice site-choice-control site-editor-choice type-label" : "flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-700"}>
                 <span>{basic ? BASIC_LANGUAGE_LABELS[locale] : LOCALE_LABELS[locale]}</span>
                 <input
                   type="checkbox"
@@ -948,8 +956,9 @@ function LocalizationSectionContent({
                   value={locale}
                   checked={selectedLocales.includes(locale)}
                   onChange={() => toggleLocale(locale)}
-                  className="h-4 w-4 accent-zinc-950"
+                  className={basic ? "sr-only" : "h-4 w-4 accent-zinc-950"}
                 />
+                {basic && <Check className="site-editor-choice-mark" aria-hidden />}
               </label>
             ))}
           </div>
@@ -958,45 +967,51 @@ function LocalizationSectionContent({
           </p>}
           </div>
 
-          <div className="mt-6 border-t border-zinc-100 pt-5">
+          <div className={basic ? "site-stack-copy" : "mt-6 border-t border-zinc-100 pt-5"}>
             <div className={basic ? "site-stack-group" : "flex flex-col justify-between gap-4 md:flex-row md:items-start"}>
-            <div>
+            {basic ? (
               <div className="site-action-row">
-                <h3 className="type-content-title text-zinc-950">{basic ? "자동 번역" : "AI 번역 크레딧"}</h3>
-                {basic && <HelpTooltip label="자동 번역 도움말">AI 초안은 공개 전에 실제 매장 운영 정보와 일치하는지 직접 확인해 주세요.</HelpTooltip>}
+                <h3 className="type-label">자동 번역</h3>
+                <HelpTooltip label="자동 번역 도움말">
+                  전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧, 언어별·항목별 번역은 1크레딧이 차감됩니다. 빈 번역 칸부터 채웁니다. 공개 전에 실제 매장 정보와 일치하는지 확인하고, AI 입력창에는 민감정보나 타인의 개인정보를 입력하지 마세요.
+                </HelpTooltip>
               </div>
-              <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
-                선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
-                생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
-              </p>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <AiUsageMeter label="전체 자동 번역" used={localFullUsage.used} limit={localFullUsage.limit} />
-                <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
-              </div>
-              <p className="mt-3 break-keep type-footnote text-zinc-600">
-                전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 계정 AI 크레딧이 차감됩니다.
-              </p>
-              <p className="mt-2 break-keep type-footnote text-zinc-600">
-                AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
-              </p>
-              <p className="mt-2 break-keep type-footnote text-zinc-600">
-                주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.
-              </p>
-              {!hasTargetLocales && (
-                <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
-              )}
-              {localFullUsage.used >= localFullUsage.limit ? (
-                <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-red-700">
-                  AI 크레딧이 부족합니다. 전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
+            ) : (
+              <div>
+                <h3 className="type-content-title text-zinc-950">AI 번역 크레딧</h3>
+                <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
+                  선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
+                  생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
                 </p>
-              ) : null}
-              <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-support font-medium ${translationStatus.tone}`}>
-                {translationStatus.label}
-              </p>
-              <p className="mt-3 break-keep text-copy font-medium text-zinc-600">{translationStatus.message}</p>
-            </div>
-            <div className="flex shrink-0 flex-col items-stretch gap-3 md:min-w-[18rem] md:items-end">
-              <div className="flex flex-wrap items-center justify-end gap-2">
+                <div className="mt-4 grid gap-3 md:grid-cols-2">
+                  <AiUsageMeter label="전체 자동 번역" used={localFullUsage.used} limit={localFullUsage.limit} />
+                  <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
+                </div>
+                <p className="mt-3 break-keep type-footnote text-zinc-600">
+                  전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 계정 AI 크레딧이 차감됩니다.
+                </p>
+                <p className="mt-2 break-keep type-footnote text-zinc-600">
+                  AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
+                </p>
+                <p className="mt-2 break-keep type-footnote text-zinc-600">
+                  주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.
+                </p>
+                {!hasTargetLocales && (
+                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
+                )}
+                {localFullUsage.used >= localFullUsage.limit ? (
+                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-red-700">
+                    AI 크레딧이 부족합니다. 전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
+                  </p>
+                ) : null}
+                <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-support font-medium ${translationStatus.tone}`}>
+                  {translationStatus.label}
+                </p>
+                <p className="mt-3 break-keep text-copy font-medium text-zinc-600">{translationStatus.message}</p>
+              </div>
+            )}
+            <div className={basic ? "site-basic-editor-translation-actions site-stack-copy" : "flex shrink-0 flex-col items-stretch gap-3 md:min-w-[18rem] md:items-end"}>
+              <div className="site-action-row" data-distribution={basic ? undefined : "end"}>
                 <TranslationSubmitButton
                   disabled={isTranslationDisabled}
                   pending={pendingTranslationRun === "all"}
@@ -1004,7 +1019,7 @@ function LocalizationSectionContent({
                   onClick={() => void runTranslationDraft({ mode: "all" })}
                 />
               </div>
-              <div className="grid gap-2 sm:grid-cols-3 md:w-full">
+              <div className={basic ? "site-basic-editor-translation-cards" : "grid gap-2 sm:grid-cols-3 md:w-full"}>
                 {TRANSLATABLE_LOCALES.map((locale) => {
                   const state = localeTranslationStates[locale];
                   const isEnabled = selectedLocales.includes(locale);
@@ -1012,13 +1027,15 @@ function LocalizationSectionContent({
                   const isSingleDisabled = isGeneratingFullDraft || !isEnabled || localPartialUsage.used >= localPartialUsage.limit;
 
                   return (
-                    <div key={locale} className="site-section site-editor-subpanel p-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-support font-medium text-zinc-700">{basic ? BASIC_LANGUAGE_LABELS[locale] : LOCALE_LABELS[locale]}</span>
-                        <Badge>
-                          {getLocaleTranslationStateLabel(state)}
-                        </Badge>
-                      </div>
+                    <div key={locale} className={basic ? "site-editor-translation-card site-stack-copy" : "site-section site-editor-subpanel p-2"}>
+                      {basic ? (
+                        <span className="type-label">{BASIC_LANGUAGE_LABELS[locale]} · {getLocaleTranslationStateLabel(state)}</span>
+                      ) : (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-support font-medium text-zinc-700">{LOCALE_LABELS[locale]}</span>
+                          <Badge>{getLocaleTranslationStateLabel(state)}</Badge>
+                        </div>
+                      )}
                       <button
                         type="button"
                         disabled={isSingleDisabled}
@@ -1029,7 +1046,7 @@ function LocalizationSectionContent({
                             retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
                           })
                         }
-                        className="site-button site-button-outline mt-2 inline-flex w-full items-center justify-center"
+                        className={basic ? "site-button site-button-ai site-button-compact" : "site-button site-button-outline mt-2 inline-flex w-full items-center justify-center"}
                       >
                         {isPending ? (
                           <>
@@ -1049,6 +1066,10 @@ function LocalizationSectionContent({
                   );
                 })}
               </div>
+              {basic && (localFullUsage.used >= localFullUsage.limit || localPartialUsage.used >= localPartialUsage.limit) && (
+                <p className="type-caption site-copy-muted">보유 AI 크레딧이 부족하면 자동 번역을 실행할 수 없습니다.</p>
+              )}
+              {basic && translationStatus.message && <p className="type-caption site-copy-muted">{translationStatus.message}</p>}
               <TranslationPendingMessage pending={isGeneratingFullDraft} />
             </div>
             </div>
@@ -1082,8 +1103,9 @@ function LocalizationSectionContent({
           </section>
         ) : null}
 
-        <section className="site-section site-editor-subpanel p-5">
-          <h3 className="type-content-title text-zinc-950">번역 확인 및 수정</h3>
+        <section className={basic ? "site-stack-copy" : "site-section site-editor-subpanel p-5"}>
+          <h3 className={basic ? "type-label" : "type-content-title text-zinc-950"}>번역 확인 및 수정</h3>
+          {!basic && <>
           <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
             {localizationStructure === "basic"
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판의 언어 선택에 반영됩니다."
@@ -1100,6 +1122,8 @@ function LocalizationSectionContent({
           <p className="mt-2 break-keep text-support font-medium leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
+          </>}
+          <div className={basic ? "site-editor-translation-surface" : undefined}>
           <Tabs purpose="state" value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5">
             <TabsList size="md" aria-label="번역 언어 선택">
               {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
@@ -1162,13 +1186,14 @@ function LocalizationSectionContent({
               </Tabs>
             </TabsContent>
           </Tabs>
+          </div>
         </section>
 
-        <div className="site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4">
+        <div className={basic ? "site-editor-action-row" : "site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4"}>
           <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>{basic ? "최종 저장" : "저장"}</LocalizationSaveButton>
-          <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
+          {!basic && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
             언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
-          </p>
+          </p>}
         </div>
       </form>
 
