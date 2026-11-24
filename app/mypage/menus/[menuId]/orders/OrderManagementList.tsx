@@ -60,7 +60,7 @@ function ColumnFilter({ label, options, selected, change }: {
   );
 }
 
-export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, openManualOrder }: {
+export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder }: {
   orders: Order[];
   roomNames: ReadonlyMap<string, string>;
   menuSiteId: string;
@@ -71,7 +71,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   transitionAction: (form: FormData) => void;
   onPrint: (orders: Order[]) => void;
   openDetail: (order: Order, trigger: HTMLButtonElement) => void;
-  openManualOrder?: (trigger: HTMLButtonElement, pointId?: string) => void;
+  manualPoints?: ReadonlyMap<string, { id: string; label: string }>;
+  openManualOrder: (point: { id: string; label: string }, trigger: HTMLButtonElement) => void;
   openOperation: (kind: PointOrderOperation["kind"], order: Order, trigger: HTMLButtonElement) => void;
 }) {
   const [searchField, setSearchField] = useState<OrderListSearchField>("number");
@@ -84,7 +85,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
   const groups = getOrderListGroups(orders, { query, searchField, status, oldestFirst, menus, payments });
   const visibleOrders = groups.flatMap(group => group.orders.map(row => row.order));
   const selectedOrders = visibleOrders.filter(order => selection.has(order.id));
-  const selectedPointIds = new Set(selectedOrders.map(order => order.tableId));
+  const [pointId, otherPoint] = new Set(selectedOrders.map(order => order.tableId));
+  const manualTarget = pointId && !otherPoint ? manualPoints?.get(pointId) : undefined;
   const all = visibleOrders.length > 0 && visibleOrders.length === selectedOrders.length;
   const cancel = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
   const print = selectedOrders.length > 0 && selectedOrders.every(canPrintPointOrder);
@@ -269,8 +271,8 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
         <div className="site-action-row" data-distribution="center">
           <div className="site-action-row" role="group" aria-label="일반 주문 처리">
             <span className="type-label">일반</span>
-            <Button variant="outline" size="compact" disabled={!openManualOrder || pending}
-              onClick={event => openManualOrder?.(event.currentTarget, selectedPointIds.size === 1 ? [...selectedPointIds][0] : undefined)}>
+            <Button variant="outline" size="compact" disabled={!manualTarget || pending}
+              onClick={event => { if (manualTarget) openManualOrder(manualTarget, event.currentTarget); }}>
               수동 주문 추가
             </Button>
             <Button variant="outline" size="compact" disabled={!print || pending} onClick={() => onPrint(selectedOrders)}><PrinterFill aria-hidden="true" /> 청구서 인쇄</Button>

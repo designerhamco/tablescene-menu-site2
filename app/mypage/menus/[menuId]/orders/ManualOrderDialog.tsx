@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/app/componen
 import { FieldMessage } from "@/app/components/ui/field-message";
 import { Input } from "@/app/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Minus, Plus, ShoppingCart, Trash2 } from "@/app/components/ui/site-icon";
 import type { PostpayOrderCatalogItem } from "@/components/public-menu/order-call/types";
 import type { ManualOrderActions, ManualOrderCategory } from "@/lib/manual-order";
@@ -140,15 +139,13 @@ function ItemDialog({ item, remaining, close, add, restoreFocus }: {
   );
 }
 
-export default function ManualOrderDialog({ actions, points, initialPointId, close, onSuccess, onCloseAutoFocus }: {
+export default function ManualOrderDialog({ actions, point, close, onSuccess, onCloseAutoFocus }: {
   actions: ManualOrderActions;
-  points: Point[];
-  initialPointId?: string;
+  point: Point;
   close: () => void;
   onSuccess: (orderId: string) => void;
   onCloseAutoFocus: (event: Event) => void;
 }) {
-  const [pointId, setPointId] = useState(initialPointId ?? "");
   const [catalog, setCatalog] = useState<ManualOrderCategory[]>();
   const [activeItem, setActiveItem] = useState<PostpayOrderCatalogItem>();
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -163,7 +160,6 @@ export default function ManualOrderDialog({ actions, points, initialPointId, clo
   const itemTrigger = useRef<HTMLButtonElement>(null);
   const submitTrigger = useRef<HTMLButtonElement>(null);
   const phoneId = useId();
-  const point = points.find(entry => entry.id === pointId);
   const total = lines.reduce((sum, line) => sum + line.unitPrice * line.input.quantity, 0);
   const remaining = POSTPAY_ORDER_MAX_TOTAL_UNITS - lines.reduce((sum, line) => sum + line.input.quantity, 0);
 
@@ -197,7 +193,7 @@ export default function ManualOrderDialog({ actions, points, initialPointId, clo
     const clientRequestId = requestId.current;
     startTransition(async () => {
       try {
-        const result = await actions.submit({ tableId: pointId, clientRequestId, lines: lines.map(line => line.input), notificationPhone, expectedTotal: total });
+        const result = await actions.submit({ tableId: point.id, clientRequestId, lines: lines.map(line => line.input), notificationPhone, expectedTotal: total });
         if ("error" in result) {
           setError(result.error);
           setCatalogStale(Boolean(result.refreshCatalog));
@@ -215,16 +211,8 @@ export default function ManualOrderDialog({ actions, points, initialPointId, clo
       <DialogContent scrollable data-manual-order className="print:hidden" aria-describedby={undefined} onCloseAutoFocus={onCloseAutoFocus}
         onEscapeKeyDown={event => { if (pending) event.preventDefault(); }}
         onInteractOutside={event => { if (pending) event.preventDefault(); }}>
-        <DialogHeader reserveCloseButton><DialogTitle>수동 주문 추가{point ? ` · ${point.label}` : ""}</DialogTitle></DialogHeader>
+        <DialogHeader reserveCloseButton><DialogTitle>수동 주문 추가 · {point.label}</DialogTitle></DialogHeader>
         <div className="site-stack-group" aria-busy={pending}>
-          {!initialPointId && <div className="site-field-stack">
-            <label className="type-label" htmlFor={phoneId + "-point"}>테이블·키오스크</label>
-            <Select value={pointId || undefined} onValueChange={value => { setPointId(value); requestId.current = ""; }} disabled={pending}>
-              <SelectTrigger id={phoneId + "-point"}><SelectValue placeholder="등록할 위치를 선택해 주세요" /></SelectTrigger>
-              <SelectContent>{points.map(entry => <SelectItem key={entry.id} value={entry.id}>{entry.label}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>}
-
           {catalog === undefined && !error && <p className="type-body-sm site-copy-muted" role="status">메뉴를 불러오는 중입니다.</p>}
           {catalog?.length === 0 && <p className="type-body-sm site-copy-muted" role="status">현재 주문 가능한 메뉴가 없습니다.</p>}
           {catalog && catalog.length > 0 && <Accordion type="single" collapsible defaultValue={catalog[0].id} aria-label="메뉴 카테고리">
@@ -285,7 +273,7 @@ export default function ManualOrderDialog({ actions, points, initialPointId, clo
             )}
             <div className="site-action-row" data-distribution="end">
               <Button type="button" variant="outline" disabled={pending} onClick={close}>취소</Button>
-              <Button ref={submitTrigger} type="button" disabled={!point || !lines.length || pending || catalogStale} onClick={() => {
+              <Button ref={submitTrigger} type="button" disabled={!lines.length || pending || catalogStale} onClick={() => {
                 try { normalizeOrderPhone(notificationPhone.trim()); }
                 catch { setPhoneError("휴대폰 번호를 확인해 주세요."); return; }
                 setConfirming(true);
@@ -301,7 +289,7 @@ export default function ManualOrderDialog({ actions, points, initialPointId, clo
         <AlertDialog open={confirming} onOpenChange={setConfirming}>
           <AlertDialogContent onCloseAutoFocus={event => { event.preventDefault(); submitTrigger.current?.focus(); }}>
             <AlertDialogHeader>
-              <AlertDialogTitle>{point?.label}에 주문을 추가할까요?</AlertDialogTitle>
+              <AlertDialogTitle>{point.label}에 주문을 추가할까요?</AlertDialogTitle>
               <AlertDialogDescription>고객이 요청한 메뉴·옵션·수량을 다시 확인해 주세요. 후불 {won(total)}으로 등록됩니다.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

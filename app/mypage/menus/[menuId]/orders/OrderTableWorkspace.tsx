@@ -50,7 +50,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const [now, setNow] = useState<number | null>(null);
   const [detail, setDetail] = useState<Point & { orderId?: string }>();
   const [feedback, setFeedback] = useState<OrderManagementActionState>();
-  const [manualOrder, setManualOrder] = useState<{ pointId?: string }>();
+  const [manualOrder, setManualOrder] = useState<Point>();
   const [operation, setOperation] = useState<(PointOrderOperation & { point: Point })>();
   const trigger = useRef<HTMLButtonElement>(null);
   const mapTab = useRef<HTMLButtonElement>(null);
@@ -80,11 +80,12 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const listOrders = activeListRoom === "all" ? orders : orders.filter(order => roomByPoint.get(order.tableId) === activeListRoom);
   const placements = getHistoryPlacements({ ...floorPlan, document: floor });
   const pointsById = new Map(floorPlan.points.map(point => [point.id, point]));
-  const manualPoints = floorPlan.points.filter(point => point.status === "active").map(point => ({
-    id: point.id,
-    label: listRoomNames.has(point.id) ? `${listRoomNames.get(point.id)} · ${point.label}` : point.label,
-  }));
-  const canAddOrder = Boolean(manualOrderActions && permissions.canManage && manualPoints.length);
+  const manualPoints = manualOrderActions && permissions.canManage
+    ? new Map(floorPlan.points.filter(point => point.status === "active").map(point => {
+        const roomName = listRoomNames.get(point.id);
+        return [point.id, { id: point.id, label: roomName ? `${roomName} · ${point.label}` : point.label }];
+      }))
+    : undefined;
   const roomPoints = placements.flatMap(placement => {
     const point = pointsById.get(placement.pointId);
     return placement.roomId === room?.id && point ? [{ placement, point }] : [];
@@ -95,6 +96,9 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   const unplaced = [...groups].filter(([id]) => !placed.has(id));
   const availableIds = roomPoints.filter(({ point }) => point.status === "active").map(({ point }) => point.id);
   const selectedPointIds = new Set(availableIds.filter(id => selection?.kind === "single" ? selection.id === id : selection?.ids.has(id)));
+  const manualTarget = selection?.kind === "single" && selectedPointIds.has(selection.id)
+    ? manualPoints?.get(selection.id)
+    : undefined;
   const allChecked = selection?.kind === "checked" && availableIds.length > 0 && availableIds.length === selectedPointIds.size;
   const selectedOrders = activeOrders.filter(order => selectedPointIds.has(order.tableId));
   const cancelOrder = selectedOrders.length === 1 && isPointOrderOperationAllowed(selectedOrders[0], permissions, "cancel") ? selectedOrders[0] : undefined;
@@ -131,9 +135,9 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     setOperation({ kind, orderId: order.id, point });
   }
 
-  function openManualOrder(button: HTMLButtonElement, pointId?: string) {
+  function openManualOrder(point: Point, button: HTMLButtonElement) {
     trigger.current = button;
-    setManualOrder({ pointId: manualPoints.some(point => point.id === pointId) ? pointId : undefined });
+    setManualOrder(point);
   }
 
   const shell = (
@@ -188,7 +192,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
         {view === "list" ? (
           <OrderManagementList key={activeListRoom} orders={listOrders} roomNames={listRoomNames} menuSiteId={menuSiteId}
             permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
-            onPrint={onPrint} openManualOrder={canAddOrder ? openManualOrder : undefined}
+            onPrint={onPrint} manualPoints={manualPoints} openManualOrder={openManualOrder}
             openDetail={(order, button) => openDetail({ id: order.tableId, label: order.tableLabel }, button, order.id)}
             openOperation={(kind, order, button) => openOperation(kind, order, { id: order.tableId, label: order.tableLabel }, button)} />
         ) : !floorPlan.available || !room ? (
@@ -262,8 +266,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       {view === "map" && (
         <div className="site-floor-workspace-footer">
           <div className="site-action-row" data-distribution="center">
-            <Button variant="outline" size="compact" disabled={!canAddOrder || pending}
-              onClick={event => openManualOrder(event.currentTarget, selectedPointIds.size === 1 ? [...selectedPointIds][0] : undefined)}>
+            <Button variant="outline" size="compact" disabled={!manualTarget || pending}
+              onClick={event => { if (manualTarget) openManualOrder(manualTarget, event.currentTarget); }}>
               수동 주문 추가
             </Button>
             <Button variant="outline-danger" size="compact" disabled title="주문 이동 준비 중">주문(테이블) 이동</Button>
@@ -321,7 +325,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
         </DialogContent>
       </Dialog>
       {manualOrder && manualOrderActions && (
-        <ManualOrderDialog actions={manualOrderActions} points={manualPoints} initialPointId={manualOrder.pointId}
+        <ManualOrderDialog actions={manualOrderActions} point={manualOrder}
           close={() => setManualOrder(undefined)} onCloseAutoFocus={restoreFocus}
           onSuccess={orderId => {
             setManualOrder(undefined);
