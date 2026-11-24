@@ -46,7 +46,7 @@ export function getKitchenOptionLabels(options: KitchenOrderOption[]) {
   const product = options.filter(option => option.kind === "product").map(option => option.valueName).join(", ");
   const request = options.filter(option => option.kind === "request").map(option => option.valueName).join(", ");
   return {
-    product: product && request ? `${product} (${request})` : product || request,
+    product: request ? `${product}(${request})` : product,
     price: options.filter(option => !option.kind || option.kind === "price").map(option => option.valueName).join(", "),
   };
 }
