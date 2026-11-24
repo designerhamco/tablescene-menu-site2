@@ -1700,6 +1700,48 @@ svg.site-edit-icon {
 .site-floor-object:has(> .site-floor-object-choice) > .site-floor-object-interaction { place-items: center; }
 .site-floor-object:has(> .site-floor-object-choice) .site-floor-object-label { padding-inline-end: 0; }
 
+.site-floor-object[data-settings-placement="card"] > .site-floor-object-interaction {
+  inset-block-end: 50%;
+  padding-block-end: var(--site-space-copy);
+}
+.site-floor-object[data-settings-placement="card"] .site-floor-object-label { align-self: end; }
+.site-floor-settings-inline {
+  position: absolute;
+  inset-inline: var(--site-space-copy);
+  inset-block-start: 50%;
+  z-index: 1;
+}
+.site-floor-object:is([data-settings-placement="measuring"], [data-settings-placement="popover"]) > .site-floor-settings-inline {
+  visibility: hidden;
+  pointer-events: none;
+}
+.site-floor-settings-content {
+  inline-size: max-content;
+  padding-inline: var(--site-space-copy);
+}
+.site-floor-settings-inline > .site-floor-settings-content {
+  background: var(--ui-surface);
+  border-radius: var(--ui-radius-control-rounded);
+  margin-inline: auto;
+}
+.site-floor-settings-scroll {
+  min-inline-size: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+[data-slot="popover-content"].site-floor-settings-popover {
+  display: grid;
+  inline-size: max-content;
+  max-inline-size: var(--radix-popover-content-available-width);
+  gap: var(--site-space-copy);
+  padding: var(--site-panel-inset-compact);
+  border-color: var(--ui-border);
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+.site-floor-settings-arrow { fill: var(--ui-surface); stroke: var(--ui-border); }
+
 .site-floor-object-choice {
   position: absolute;
   inset-block-start: var(--site-space-detail);

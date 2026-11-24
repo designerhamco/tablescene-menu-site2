@@ -15,7 +15,7 @@ export async function loadMenuFloorPlan(menuSiteId: string): Promise<FloorPlanSn
   try {
     return { available: true, revision: result.data?.revision ?? 0, document: result.data ? normalizeFloorDocument(result.data.document) : emptyFloorDocument() };
   } catch {
-    return { available: false, revision: 0, document: emptyFloorDocument(), unavailableMessage: "저장된 배치도를 확인하지 못했습니다. 관리자에게 문의해 주세요. 리스트형 관리는 계속 사용할 수 있습니다." };
+    return { available: false, revision: 0, document: emptyFloorDocument(), unavailableMessage: "저장된 배치도를 확인하지 못했습니다. 관리자에게 문의해 주세요. 등록 항목에서 테이블·키오스크 설정을 확인할 수 있습니다." };
   }
 }
 export async function saveMenuFloorPlan(menuSiteId: string, revision: unknown, input: unknown) {

@@ -11,31 +11,26 @@ import type { OrderPointConnectRequest } from "@/lib/order-point-connection";
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useActionState, useCallback, useId, useRef, useState } from "react";
-import { Armchair, Monitor, LayoutGrid } from "@/app/components/ui/site-icon";
+import { Armchair, Monitor } from "@/app/components/ui/site-icon";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem } from "@/lib/menu-table-management";
 import type { OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
 import { OrderPointSelectionDetails, OrderPointArchiveControl, type ManagedOrderPoint } from "@/components/mypage/OrderPointControls";
 import OrderPointConnectionDialog from "@/components/mypage/OrderPointConnectionDialog";
 import type { OrderPointDeviceSettings } from "@/lib/terminal-device-info";
-import OrderPointTableRow from "@/components/mypage/OrderPointTableRow";
-import InfoTooltip from "@/components/ui/InfoTooltip";
 import DeleteOrderPoint from "@/components/mypage/DeleteOrderPoint";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import OrderPointRegistrationForm from "@/components/mypage/OrderPointRegistrationForm";
 import { EditableList, EditableListItem } from "@/app/components/ui/editable-list";
-import { Table, TableBody, TableCaption, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { FloorRoom,FloorRoomRemoval,FloorRoomRemovalResult } from "@/lib/menu-floor-plan";
 import { initialMenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction, updateOrderPointFeature } from "./actions";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { Badge } from "@/app/components/ui/badge";
-import { EmptyState } from "@/app/components/ui/empty-state";
 import {SectionHeader} from "@/app/components/ui/section-header";
-import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import type { OrderPointKind } from "@/lib/order-point-policy";
 import OrderPointRestoreForm from "@/components/mypage/OrderPointRestoreForm";
-import FloorPlanDesktopNotice from "@/components/mypage/floor-plan/FloorPlanDesktopNotice";
 import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
 import SelectedPointNameForm from "@/components/mypage/floor-plan/SelectedPointNameForm";
 import { emptyFloorDocument, FLOOR_RECEPTION_LOCK, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
@@ -121,65 +116,20 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const [mutationState, mutationAction, mutationPending] = useActionState(async(previous:typeof initialMenuTableActionState,data:FormData)=>{const result=await mutatePointAction(previous,data);if(result.status==="success"&&result.tableId&&result.registrationRoomId)setRecentRestore({pointId:result.tableId,roomId:result.registrationRoomId,operationId:crypto.randomUUID()});return result;},initialMenuTableActionState);
   const [enableRequest, setEnableRequest] = useState<OrderPointConnectRequest | undefined>();
   const [connectionPointId, setConnectionPointId] = useState<string | null>(null);
-  const [displayMode, setDisplayMode] = useState("map");
   const [expandedPointId, setExpandedPointId] = useState<string | null>(null);
   const usageId = useId();
   const connectionTriggerRef = useRef<HTMLButtonElement | null>(null);
   const openConnection = (id: string, request?: OrderPointConnectRequest) => { setEnableRequest(request); connectionTriggerRef.current = document.activeElement instanceof HTMLButtonElement ? document.activeElement : null; setConnectionPointId(id); };
-  const viewSelectRef = useRef<HTMLButtonElement>(null);
   const setExpanded = (pointId: string, open: boolean) => setExpandedPointId(open ? pointId : null);
 
   useUnsavedChanges({ dirty: editsDirty || Object.values(nameDrafts).some(name => Boolean(name.trim())), pending: false, discard: () => { discardEdits(); setNameDrafts({ table: "", kiosk: "" }); setRegistrationKind("table"); } });
 
-  // Keep the editor mounted, but require confirmation before discarding a draft.
-  async function changeDisplayMode(value: string) {
-    if (value === displayMode) return;
-    if (await confirmUnsavedChanges()) setDisplayMode(value);
-  }
+  const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm embedded floorToolbar={floorPlan.available} menuSiteId={menuSiteId} kind={registrationKind} suggestedName={nextPointName(registrationKind)} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={false} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
 
-  const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm embedded floorToolbar={floorPlan.available && displayMode === "map"} menuSiteId={menuSiteId} kind={registrationKind} suggestedName={nextPointName(registrationKind)} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={false} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
-
-  return <div className="site-stack-content">
-    <OrderPointConnectionDialog menuSiteId={menuSiteId} mutateAction={mutatePointAction} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} enableRequest={enableRequest} onClose={() => { setConnectionPointId(null); setEnableRequest(undefined); }} />
-    <FloorPlanDesktopNotice returnFocusRef={viewSelectRef} />
-    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
-    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
-
-    <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
-      <div className="site-stack-group">
-        <SectionHeader id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<div className="site-action-row" data-wrap="nowrap">
-          {orderEnabled && <Button variant="link" size="compact" asChild><Link href={`/mypage/menus/${menuSiteId}/order-settings`}>주문 설정</Link></Button>}
-          <ViewStyleSelect ref={viewSelectRef} value={displayMode} onValueChange={value=>{void changeDisplayMode(value);}}/>
-        </div>}/>
-          <FloorPlanEditor requireEdit layoutLock={orderEnabled ? FLOOR_RECEPTION_LOCK : undefined}
-            onArchivePoints={archivePointsAction} canArchivePoints={ids => ids.every(id => tables.some(point => point.id === id))}
-            onRoomChange={roomChanged} onRemoveRoom={removeFloorRoomAction} restoredPoint={recentRestore} externalDirty={editsDirty} onSaveEdits={saveEdits} onDiscardEdits={discardEdits} createdPoint={createState.status === "success" && createState.tableId && createState.registrationRoomId ? { pointId: createState.tableId, roomId: createState.registrationRoomId } : undefined} view={displayMode === "list" ? "list" : "map"} registration={registration} initial={floorPlan} points={draftTables}
-            renderList={({pointIds,unassignedPointIds,rooms,roomId,pending,onMovePoint}) => <div className="site-stack-group">{[
-              {title:"운영 테이블·키오스크",ids:pointIds,unassigned:false},
-              ...(unassignedPointIds.length?[{title:"룸 미지정 테이블·키오스크",ids:unassignedPointIds,unassigned:true}]:[])
-            ].map(group=>{const roomTables=draftTables.filter(point=>group.ids.includes(point.id));return <div key={group.title} className="site-stack-block">
-              <h3 className="type-subsection-title">{group.title} · {roomTables.length.toLocaleString("ko-KR")}개</h3>
-              {!roomTables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={roomId?"이 룸에 등록된 테이블·키오스크가 없습니다.":"룸을 추가해 주세요."} description={roomId?"위에서 새 항목을 만들거나 다른 룸의 관리 메뉴에서 이동할 수 있습니다.":"룸을 먼저 추가해 주세요."} /> : <Table variant="management" label={`${group.title} 목록`} columns={["compact", "text", "toggles", "toggles", "detail", "actions"]}>
-                <TableCaption className="sr-only">종류, 이름, 주문·호출 개별 허용과 매장 기기 연결을 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
-                <TableHeader><TableRow>
-                  <TableHead>종류</TableHead><TableHead>이름</TableHead><TableHead>주문</TableHead><TableHead>호출</TableHead><TableHead>매장 기기 연결</TableHead>
-                  <TableHead><div className="site-action-row" data-wrap="nowrap">관리<InfoTooltip label="보관·삭제 안내"><p>보관하면 운영 목록에서 빠지고 기기 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다. 삭제는 사용 이력이 없는 등록만 가능합니다.</p></InfoTooltip></div></TableHead>
-                </TableRow></TableHeader>
-                <TableBody>{roomTables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending||pending} layoutLocked={orderEnabled} rooms={rooms} roomId={group.unassigned?undefined:roomId} onMove={floorPlan.available?onMovePoint:undefined} archiveAction={archiveAction} onRename={renameDraft} readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />)}</TableBody>
-              </Table>}
-            </div>;})}</div>}
-            renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} connectionState={connectionState} disabled={pending || mutationPending} hideName readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />}
-            renderSelectedEditor={(point, disabled, actions) => <SelectedPointNameForm key={point.id}
-              label={point.label} kind={point.kind ?? "table"} disabled={disabled || mutationPending} actions={actions}
-              onSave={name => renameDraft(point.id, name)} />}
-            renderSelectedActions={(point, pending) => <OrderPointArchiveControl menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} action={archiveAction} disabled={pending || mutationPending || orderEnabled} />}
-            onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
-      </div>
-      {mutationPending ? <LoadingState inline label="테이블·키오스크 작업을 처리하고 있습니다." /> : null}
-    </section>
-
-    <section className="site-stack-block" aria-labelledby={`${usageId}-archived-title`}>
-      <h2 className="type-subsection-title" id={`${usageId}-archived-title`}>보관된 테이블·키오스크 · {archivedTables.length.toLocaleString("ko-KR")}개</h2>
+  const archivedItems = <Dialog onOpenChange={open => { if (!open) setExpandedPointId(null); }}>
+    <DialogTrigger asChild><Button type="button" variant="outline" size="compact">보관 항목 {archivedTables.length}</Button></DialogTrigger>
+    <DialogContent scrollable aria-describedby={undefined}>
+      <DialogHeader reserveCloseButton><DialogTitle>보관된 테이블·키오스크</DialogTitle></DialogHeader>
       {!archivedTables.length ? <p className="type-body-sm site-copy-muted">보관된 테이블·키오스크가 없습니다.</p> : <EditableList label="보관된 테이블·키오스크 목록">
         {archivedTables.map((point, index) => <EditableListItem key={point.id} label={point.label} title={<PointTitle point={point} />}
           meta={`보관일 ${formatKoreanDateTime(point.archivedAt)}`} status={<Badge tone="neutral">미사용(보관)</Badge>}
@@ -189,6 +139,34 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
           {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></div> : null}
         </EditableListItem>)}
       </EditableList>}
+    </DialogContent>
+  </Dialog>;
+
+  return <div className="site-stack-content">
+    <OrderPointConnectionDialog menuSiteId={menuSiteId} mutateAction={mutatePointAction} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} enableRequest={enableRequest} onClose={() => { setConnectionPointId(null); setEnableRequest(undefined); }} />
+    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
+    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
+
+    <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
+      <div className="site-stack-group">
+        <SectionHeader id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<div className="site-action-row" data-wrap="nowrap">
+          {orderEnabled && <Button variant="link" size="compact" asChild><Link href={`/mypage/menus/${menuSiteId}/order-settings`}>주문 설정</Link></Button>}
+        </div>}/>
+          <FloorPlanEditor requireEdit pointTools={archivedItems} layoutLock={orderEnabled ? FLOOR_RECEPTION_LOCK : undefined}
+            onArchivePoints={archivePointsAction} canArchivePoints={ids => ids.every(id => tables.some(point => point.id === id))}
+            onRoomChange={roomChanged} onRemoveRoom={removeFloorRoomAction} restoredPoint={recentRestore} externalDirty={editsDirty} onSaveEdits={saveEdits} onDiscardEdits={discardEdits} createdPoint={createState.status === "success" && createState.tableId && createState.registrationRoomId ? { pointId: createState.tableId, roomId: createState.registrationRoomId } : undefined} registration={registration} initial={floorPlan} points={draftTables}
+            renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} connectionState={connectionState} disabled={pending || mutationPending} hideName readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />}
+            renderSelectedEditor={(point, disabled, actions) => <SelectedPointNameForm key={point.id}
+              label={point.label} kind={point.kind ?? "table"} disabled={disabled || mutationPending} actions={actions}
+              onSave={name => renameDraft(point.id, name)} />}
+            renderSelectedActions={(point, pending) => <>
+              <OrderPointArchiveControl menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} action={archiveAction} disabled={pending || mutationPending || orderEnabled} />
+              {canDelete && tables.some(item => item.id === point.id) && <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={pending || mutationPending} compact />}
+            </>}
+            onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+      </div>
+      {mutationPending ? <LoadingState inline label="테이블·키오스크 작업을 처리하고 있습니다." /> : null}
     </section>
+
   </div>;
 }

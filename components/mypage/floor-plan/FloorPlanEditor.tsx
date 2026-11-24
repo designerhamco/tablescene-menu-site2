@@ -9,6 +9,9 @@ import { RotateCcw } from "@/app/components/ui/site-arrow";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
 import RoomNameForm from "./RoomNameForm";
+import FloorPlanDesktopNotice from "./FloorPlanDesktopNotice";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
+import { EditableList, EditableListItem } from "@/app/components/ui/editable-list";
 import {RoomLabel} from "@/app/components/ui/room-label";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
@@ -26,8 +29,9 @@ import { placeRegisteredFloorPoint, saveRegisteredFloorPoint, mergeRegisteredFlo
 import { FloorPlanCanvas, FloorPlanObject, FloorPlanWorkspace } from "@/app/components/ui/floor-plan-canvas";
 
 type Gesture = { pointerId: number; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument; moved: boolean };
-export default function FloorPlanEditor({ initial, points, onSave, registration, onDocumentChange, renderSelectedPoint, renderSelectedActions, renderSelectedEditor, view = "map", renderList, createdPoint, onRemoveRoom, onRoomChange, restoredPoint, registrationPending = false, externalDirty=false, onSaveEdits, onDiscardEdits, requireEdit = false, layoutLock, onArchivePoints, canArchivePoints }: {
+export default function FloorPlanEditor({ initial, points, onSave, registration, onDocumentChange, renderSelectedPoint, renderSelectedActions, renderSelectedEditor, pointTools, createdPoint, onRemoveRoom, onRoomChange, restoredPoint, registrationPending = false, externalDirty=false, onSaveEdits, onDiscardEdits, requireEdit = false, layoutLock, onArchivePoints, canArchivePoints }: {
   requireEdit?: boolean;
+  pointTools?: ReactNode;
   renderSelectedEditor?: (point: FloorPoint, disabled: boolean, actions: ReactNode) => ReactNode;
   onArchivePoints?: (ids: readonly string[]) => Promise<{ status: "success" | "error"; message: string }>;
   canArchivePoints?: (ids: readonly string[]) => boolean;
@@ -35,7 +39,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   externalDirty?:boolean;onSaveEdits?:(revision:number,document:FloorDocument)=>Promise<FloorSaveResult>;onDiscardEdits?:()=>void;restoredPoint?:RegisteredFloorPoint;
   onRoomChange?: (roomId:string, savedRooms:FloorRoom[])=>void; onRemoveRoom?: (revision:number,request:FloorRoomRemoval)=>Promise<FloorRoomRemovalResult>;
   createdPoint?: RegisteredFloorPoint; registrationPending?: boolean;
-  view?: "map" | "list"; renderList?: (context: { pointIds: string[]; unassignedPointIds: string[]; rooms: FloorRoom[]; roomId: string; pending: boolean; onMovePoint: (pointId: string, roomId: string) => void }) => ReactNode; initial: FloorPlanSnapshot; points: FloorPoint[]; renderSelectedActions?: (point: FloorPoint, pending: boolean) => ReactNode; renderSelectedPoint?: (point: FloorPoint, pending: boolean) => ReactNode; registration?: (context: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => ReactNode; onDocumentChange?: (document: FloorDocument) => void;
+  initial: FloorPlanSnapshot; points: FloorPoint[]; renderSelectedActions?: (point: FloorPoint, pending: boolean) => ReactNode; renderSelectedPoint?: (point: FloorPoint, pending: boolean) => ReactNode; registration?: (context: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => ReactNode; onDocumentChange?: (document: FloorDocument) => void;
   onSave: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
 }) {
   const [draft, setDraft] = useState(initial.document);
@@ -47,6 +51,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const [archiveSelection, setArchiveSelection] = useState<string[]>();
   const [archiveError, setArchiveError] = useState("");
   const [unplacedId, setUnplacedId] = useState("");
+  const [unplacedOpen, setUnplacedOpen] = useState(false);
+  const [unplacedError, setUnplacedError] = useState("");
+  const unplacedTriggerRef = useRef<HTMLButtonElement>(null);
   const mobile=useIsMobile();
   const editing = !mobile && !layoutLock && (!requireEdit || editMode);
   const geometryBlocked=useRef(false);
@@ -73,7 +80,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const visiblePoints = points;
   const memberships=floorMemberships(document);
   const roomPoints=points.filter(point=>memberships.some(member=>member.pointId===point.id&&member.roomId===room?.id));
-  const unplaced = visiblePoints.filter(p => !document.placements.some(item => item.pointId === p.id) && (!memberships.some(member=>member.pointId===p.id)||memberships.some(member=>member.pointId===p.id&&member.roomId===room?.id)));
+  const placedIds = new Set(document.placements.map(placement => placement.pointId));
+  const unplaced = visiblePoints.filter(point => !initial.available || !placedIds.has(point.id));
   const chosen = unplaced.find(p => p.id === unplacedId) ?? unplaced[0];
   const roomPlacements = geometryDocument.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId));
   const checked = roomPlacements.filter(p => checkedIds.has(p.pointId));
@@ -193,14 +201,6 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     gesture.current = null;
     if (boardRef.current?.hasPointerCapture(event.pointerId)) boardRef.current.releasePointerCapture(event.pointerId);
   }
-  function movePointToRoom(pointId: string, targetId: string) {
-    if (layoutLock || pending || !document.rooms.some(item => item.id === targetId) || !points.some(item => item.id === pointId)) return;
-    try{setDraft(floorMemberships(document).some(item => item.pointId === pointId)
-      ? moveFloorPoint(document, pointId, targetId)
-      : placeNewFloorPoints(document, [pointId], targetId));}catch(error){setFeedback({error:true,message:(error as Error).message});return;}
-    setRoomId(targetId); setSelectedId(pointId); setTargetRoomId("");
-  }
-  const listContent = () => renderList?.({pointIds: initial.available ? roomPoints.map(point => point.id) : points.map(point => point.id), unassignedPointIds: initial.available ? points.filter(point => !memberships.some(member => member.pointId === point.id)).map(point => point.id) : [], rooms: initial.available ? document.rooms : [], roomId: room?.id ?? "", pending, onMovePoint: movePointToRoom});
   function moveSelection(targetId: string) {
     if (!canChangeLayout || pending || !selectedForMove.length) return;
     try {
@@ -237,9 +237,20 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       } catch { setFeedback({ error: true, message: "룸을 추가하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); } finally { setRoomAddPending(false); }
     });
   }
-  function addPoint() {
-    if (!canChangeLayout || !room || !chosen) return;
-    try{setDraft(placeNewFloorPoints(document,[chosen.id],room.id));setSelectedId(chosen.id);}catch(error){setFeedback({error:true,message:(error as Error).message});}
+  function addPoint(point: FloorPoint | undefined = chosen) {
+    if (layoutLock || pending || !initial.available || !room || !point) return;
+    try {
+      setDraft(placeNewFloorPoints(document, [point.id], room.id));
+      setSelectedId(point.id);
+      setCheckedIds(new Set());
+      if (requireEdit) {
+        setEditMode(true);
+        setUnplacedOpen(false);
+      }
+    } catch (error) {
+      if (unplacedOpen) setUnplacedError((error as Error).message);
+      else setFeedback({ error: true, message: (error as Error).message });
+    }
   }
 
   function save() {
@@ -250,8 +261,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       try {
         const result = await (onSaveEdits??onSave)(saved.revision, normalized);
         if (result.status === "error") { if(removeRoom)setRemoveError(result.message); setFeedback({ error: true, message: result.message }); return; }
-        setDraft(result.document); setSaved({ available: true, revision: result.revision, document: result.document }); setEditMode(false); setFeedback({ error: false, message: view === "list" ? "저장했습니다." : "배치도를 저장했습니다." });
-      } catch { if(removeRoom)setRemoveError("배치 변경을 저장하지 못했습니다. 다시 시도해 주세요."); setFeedback({ error: true, message: `${view === "list" ? "저장하지" : "배치도를 저장하지"} 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.` }); }
+        setDraft(result.document); setSaved({ available: true, revision: result.revision, document: result.document }); setEditMode(false); setFeedback({ error: false, message: "배치도를 저장했습니다." });
+      } catch { if(removeRoom)setRemoveError("배치 변경을 저장하지 못했습니다. 다시 시도해 주세요."); setFeedback({ error: true, message: "배치도를 저장하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); }
     });
   }
   async function renameRoom(id: string, name: string, emoji?: string): Promise<InlineNameResult> {
@@ -284,7 +295,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
             {unplaced.map(point => <option key={point.id} value={point.id}>{point.kind === "kiosk" ? "키오스크" : "테이블"} · {point.label}</option>)}
           </select>
         </label>
-        } action={<button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>} />
+        } action={<button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={() => addPoint()}>바로 배치</button>} />
       </div>
     </div>
     <p id={placementHelpId} className="sr-only">{placementReason}</p>
@@ -335,10 +346,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     setRemoveRoom(false);
   }
 
-  const roomManagement = requireEdit && view === "map";
+  const roomManagement = requireEdit;
   const resetAction = <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" disabled={pending || !dirty} onClick={resetLayout} aria-label="처음으로 되돌리기" title="마지막으로 저장한 배치로 되돌립니다"><RotateCcw aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>마지막으로 저장한 배치로 되돌리기</TooltipContent></Tooltip>;
-  const saveLabel = pending ? "저장 중" : view === "list" ? "저장"
-    : roomManagement && saved.revision > 0 && !dirty && !editing ? "저장 완료" : "배치도 저장";
+  const saveLabel = pending ? "저장 중" : roomManagement && saved.revision > 0 && !dirty && !editing ? "저장 완료" : "배치도 저장";
   const saveAction = <div className="site-field-stack">{dirty ? <span className="type-footnote site-copy-muted">저장하지 않은 변경사항이 있습니다.</span> : null}<button type="button" className="site-button site-button-primary" onClick={save} disabled={pending || !dirty || Boolean(layoutLock)}><Save aria-hidden="true" />{saveLabel}</button></div>;
   const roomForm = room ? <RoomNameForm room={room} rooms={document.rooms} pending={pending || Boolean(layoutLock)} saving={renamePending} focusRoomId={focusRoomNameId} onSave={renameRoom} deleteAction={roomAction}/> : null;
   const registrationPanel = <ContentPanel surface="muted" density="controls">{roomForm}{room && registrationContent ? <div className="site-content-divider">{registrationContent}</div> : registrationContent}</ContentPanel>;
@@ -381,7 +391,41 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     ? renderSelectedEditor?.(selectedPoint, pending || !canChangeLayout, pointActions)
     : null;
   const pointSettings = selectedPoint && renderSelectedPoint ? renderSelectedPoint(selectedPoint, pending) : null;
-  if (!initial.available) return <div className="site-stack-group">{registrationPanel}{view === "list" ? listContent() : null}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "룸 정보를 확인할 수 없습니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
+  const unplacedItems = roomManagement ? <Dialog open={unplacedOpen} onOpenChange={open => {
+    setUnplacedOpen(open);
+    setUnplacedId("");
+    setUnplacedError("");
+  }}>
+    <DialogTrigger asChild><Button ref={unplacedTriggerRef} type="button" variant="outline" size="compact">
+      {initial.available ? "미배치 항목" : "등록 항목"} {unplaced.length}
+    </Button></DialogTrigger>
+    <DialogContent scrollable {...(room && initial.available ? {} : { "aria-describedby": undefined })}>
+      <DialogHeader reserveCloseButton><DialogTitle>{initial.available ? "미배치 테이블·키오스크" : "등록된 테이블·키오스크"}</DialogTitle>
+        {room && initial.available ? <DialogDescription>배치할 룸 · {room.name}</DialogDescription> : null}
+      </DialogHeader>
+      {unplacedError && <p role="alert" className="type-body-sm text-destructive">{unplacedError}</p>}
+      {unplaced.length ? <EditableList label={initial.available ? "미배치 항목" : "등록 항목"}>
+        {unplaced.map((point, index) => {
+          const roomName = document.rooms.find(item => item.id === memberships.find(member => member.pointId === point.id)?.roomId)?.name;
+          const expanded = unplacedId === point.id;
+          const type = point.kind === "kiosk" ? "키오스크" : "테이블";
+          return <EditableListItem key={point.id} label={point.label} title={point.label} status={type} meta={roomName ?? "소속 룸 없음"}
+            open={expanded} onOpenChange={open => { setUnplacedId(open ? point.id : ""); setUnplacedError(""); }} divided={index > 0}>
+            {expanded && <>
+              {renderSelectedEditor?.(point, pending || Boolean(layoutLock), renderSelectedActions?.(point, pending || Boolean(layoutLock)))}
+              <div className="site-floor-settings-scroll">{renderSelectedPoint?.(point, pending)}</div>
+              {room && initial.available && <div className="site-action-row">
+                <Button type="button" disabled={pending || Boolean(layoutLock) || !hasSpace} onClick={() => addPoint(point)}>바로 배치</Button>
+                {!hasSpace && <span className="type-body-sm site-copy-muted">이 룸의 빈 배치 공간이 부족합니다.</span>}
+              </div>}
+            </>}
+          </EditableListItem>;
+        })}
+      </EditableList> : <p className="type-body-sm site-copy-muted">{initial.available ? "미배치 항목이 없습니다." : "등록된 항목이 없습니다."}</p>}
+    </DialogContent>
+  </Dialog> : null;
+  const collectionActions = roomManagement ? <div className="site-action-row">{unplacedItems}{pointTools}</div> : null;
+  if (!initial.available) return <div className="site-stack-group">{registrationPanel}{collectionActions}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요."}</p></ContentPanel></div>;
   return <Tabs purpose="section" appearance="rooms" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setTargetRoomId(""); clearSelection(); setEditMode(false); setRemoveRoom(false); }}>
     <div className={roomManagement ? "site-floor-room-tabs" : "site-stack-group"}>
       <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<Tooltip><TooltipTrigger asChild><Button iconAppearance="framed" ref={roomAddRef} type="button" variant="outline" shape="rounded" size="icon" onClick={addRoom} disabled={pending || Boolean(layoutLock) || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
@@ -392,12 +436,10 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     <div className="site-stack-group">
     {layoutLock && !registrationContent && <p className="type-body-sm site-copy-muted" role="status">{layoutLock}</p>}
     {!roomManagement && registrationPanel}
-    {view === "list" ? <>
-      {listContent()}
-      <div className="site-action-row" data-distribution="end">{saveAction}</div>
-    </> : <FloorPlanWorkspace roomManagement={roomManagement} canvasActions={roomManagement ? undefined : resetAction} tools={<>
+    <FloorPlanWorkspace roomManagement={roomManagement} canvasActions={roomManagement ? undefined : resetAction} tools={<>
       {roomManagement && <>
         {roomForm && <div className="site-floor-room-name">{roomForm}</div>}
+        <FloorPlanDesktopNotice returnFocusRef={unplacedTriggerRef} />
         <div className="site-floor-room-registration">
           <div className="site-field-stack">{registrationContent}</div>
           {gridControls}
@@ -409,11 +451,12 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
           </TooltipTrigger><TooltipContent>마지막으로 저장한 배치로 되돌립니다</TooltipContent></Tooltip>
         </div>}
       </>}
-      {(!roomManagement || chosen) && <>
+      {collectionActions}
+      {!roomManagement && <>
         {!roomManagement && <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">미배치 {unplaced.length}개 · 현재 룸 {roomPlacements.length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>테이블·키오스크 추가와 이름·배치는 하단 저장으로 확정합니다. 룸 생성·이름 변경과 보관·복원은 즉시 반영됩니다.</p><p>‘되돌리기’를 누르면 마지막 저장 배치로 돌아갑니다.</p></InfoTooltip></div>}
         {placementTools}
       </>}
-    </>} selection={pointSettings ?? (!roomManagement && renderSelectedPoint ? <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined)} footer={<>
+    </>} selection={!roomManagement ? pointSettings ?? (renderSelectedPoint ? <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined) : undefined} footer={<>
       <div className="site-action-row" data-distribution="between">
         <fieldset disabled={pending || !canChangeLayout || !selectedForMove.length || !targetRoom} className="site-floor-workspace-transfer" aria-describedby={helpId}>
           <legend className="sr-only">선택한 항목을 다른 룸으로 이동</legend>
@@ -440,6 +483,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         {roomPlacements.map(p => {
           const point = visiblePoints.find(point => point.id === p.pointId)!;
           return <FloorPlanObject key={p.pointId} rect={p} label={point.label} typeLabel={point.kind === "kiosk" ? "키오스크" : "테이블"} labelRole={roomManagement ? "item-title" : undefined} icon={roomManagement ? undefined : point.kind === "kiosk" ? <Monitor /> : <Armchair />} pointKind={point.kind ?? "table"}
+            selectedSettings={roomManagement && selected?.pointId === p.pointId ? pointSettings : undefined}
+            onDismissSettings={clearSelection}
             checked={checkedIds.has(p.pointId)}
             selectionControl={requireEdit ? <Checkbox shape="circle" showUncheckedMark={roomManagement} aria-label={`${point.label} 선택`} checked={checkedIds.has(p.pointId)}
               disabled={pending} onCheckedChange={checked => {
@@ -459,7 +504,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
           }} />;
         })}
       </FloorPlanCanvas></FloorPlanViewport>}
-    </FloorPlanWorkspace>}
+    </FloorPlanWorkspace>
     <AlertDialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -491,7 +536,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     </AlertDialog>
     <div className="site-stack-block">
       {feedback && (feedback.name || !dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
-      {pending ? <LoadingState inline label={roomAddPending ? "룸을 추가하고 있습니다." : renamePending ? "룸 이름을 저장하고 있습니다." : view === "list" ? "저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
+      {pending ? <LoadingState inline label={roomAddPending ? "룸을 추가하고 있습니다." : renamePending ? "룸 이름을 저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
     </div>
     </div>
     </TabsContent>

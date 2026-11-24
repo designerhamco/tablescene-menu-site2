@@ -286,7 +286,7 @@ test("editable floor objects keep their selection surface and X actions as separ
 });
 
 
-test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진입을 공유한다", async () => {
+test("배치도에서 기기별 Switch와 연결 팝업을 유지한다", async () => {
   const { OrderPointFeatureControls, OrderPointSelectionDetails, OrderPointConnectionControl } = await import("../components/mypage/OrderPointControls");
   const point = { id: "point", label: "창가", status: "active" as const, kind: "table" as const, policyAvailable: true, policy: { terminalOrderEnabled: true, customerOrderEnabled: false, terminalCallEnabled: false, customerCallEnabled: true } };
   const onUpdate = async () => ({status: "success" as const, message: "예시"}), onConnect = () => {};
@@ -318,12 +318,13 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
   }
   const manager = read("app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
   assert.equal((manager.match(/<OrderPointConnectionDialog /g) ?? []).length, 1);
-  assert.match(manager, /<TableHead>주문<\/TableHead>/); assert.match(manager, /<TableHead>호출<\/TableHead>/);
+  assert.match(manager, /renderSelectedPoint=.*<OrderPointSelectionDetails/);
   const editor = read("components/mypage/floor-plan/FloorPlanEditor.tsx");
   assert.doesNotMatch(editor, /사각형 그리기|setDrawing|사각형을 선택하면/);
   assert.match(editor, /테이블·키오스크 영역을 선택하면/);
   assert.match(editor, /renderSelectedEditor\?\.\(selectedPoint, [^\n]*pointActions/);
   assert.match(editor, /renderSelectedActions\?\.\(selectedPoint/);
+  assert.match(editor, /selectedSettings=\{roomManagement && selected\?\.pointId === p.pointId/);
   assert.match(editor, /마지막으로 저장한 배치로 되돌립니다/);
   assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /intent === "resume"|export async function updateOrderPointStatus/);
 });
