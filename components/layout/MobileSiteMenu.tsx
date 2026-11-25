@@ -35,9 +35,11 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
     <div className={styles.drawerBody}>
       <section className={styles.drawerAccount} aria-label="계정 정보">
         {loading ? <LoadingState label="계정 확인 중입니다." inline /> : authenticated ? <>
-          <div className={styles.drawerAccountHeading}>{userId ? <Link href="/mypage?tab=account" onClick={close} className="site-profile-link" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={account?.avatarUrl} size="identity" /></Link> : null}<Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
+          <div className={styles.drawerAccountHeading}>{userId ? <Link href="/mypage?tab=account" onClick={close} className="site-profile-link" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={account?.avatarUrl} name={account?.name} email={account?.email} size="identity" /></Link> : null}<Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
+            <div className={styles.drawerAccountName}>
             <span className="type-content-title">{account?.name || "내 계정"}</span>
             {account?.role ? <Badge>{account.role}</Badge> : null}
+            </div>
             <span className={styles.drawerEmail}>{account?.email}</span>
           </Link>
           {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-outline">로그아웃</button></form>}</div>

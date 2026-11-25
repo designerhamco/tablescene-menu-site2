@@ -75,6 +75,7 @@ const Navbar = () => {
   });
   const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null; failed?: boolean } | null>(null);
   const scrolledRef = useRef(false);
+  const accountLoadedForUser = useRef<string | null>(null);
   const pathname = usePathname();
   const homeHeaderSurface = useHomeHeaderSurface(pathname);
   const homeHeroHeader = homeHeaderSurface === "dark-overlay";
@@ -153,7 +154,7 @@ const Navbar = () => {
       });
     });
     void loadAuth();
-    const profileUpdated = () => { void loadAuth(); setNavigationAccount(null); setAccountLoadVersion(version => version + 1); };
+    const profileUpdated = () => { void loadAuth(); accountLoadedForUser.current = null; setNavigationAccount(null); setAccountLoadVersion(version => version + 1); };
     window.addEventListener(ACCOUNT_PROFILE_UPDATED_EVENT, profileUpdated);
 
     const {
@@ -183,6 +184,8 @@ const Navbar = () => {
       setUnreadCount(0);
       setIsNotificationOpen(false);
       setIsAccountMenuOpen(false);
+      accountLoadedForUser.current = null;
+      setNavigationAccount(null);
       return;
     }
 
@@ -245,16 +248,16 @@ const Navbar = () => {
   }, [authState.userId]);
 
   useEffect(() => {
-    if ((!isOpen && !isAccountMenuOpen) || !authState.userId) return;
+    if (!authState.userId || (!isOpen && !isAccountMenuOpen && accountLoadedForUser.current === authState.userId)) return;
     const userId = authState.userId;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
         const response = await fetch('/api/account/navigation', { signal: controller.signal, cache: 'no-store' });
         const result = response.ok ? await response.json() as { account: NavigationAccount | null } : { account: null };
-        if (!controller.signal.aborted) setNavigationAccount({ userId, account: result.account, failed: !response.ok });
+        if (!controller.signal.aborted) { accountLoadedForUser.current = userId; setNavigationAccount({ userId, account: result.account, failed: !response.ok }); }
       } catch {
-        if (!controller.signal.aborted) setNavigationAccount({ userId, account: null, failed: true });
+        if (!controller.signal.aborted) { accountLoadedForUser.current = userId; setNavigationAccount({ userId, account: null, failed: true }); }
       }
     }, 0);
     return () => { controller.abort(); window.clearTimeout(timer); };
@@ -400,21 +403,21 @@ const Navbar = () => {
                 </Popover>
               </div>
             ) : null}
-            <Link
-              href="/apply"
-              className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
-            >
-              만들기
-            </Link>
             {authState.isAuthenticated && authState.userId ? <Popover open={isAccountMenuOpen} onOpenChange={open => { setIsAccountMenuOpen(open); if (open) setIsNotificationOpen(false); }}>
               <PopoverTrigger asChild><button type="button" aria-label="프로필 · 계정 메뉴" className={`site-icon-control ${styles.profileTrigger}`} data-site-profile-trigger>
-                <ProfileAvatar userId={authState.userId} imageUrl={authState.avatarUrl} />
+                <ProfileAvatar userId={authState.userId} imageUrl={authState.avatarUrl} name={accountIdentity.name} email={accountIdentity.email} />
               </button></PopoverTrigger>
               <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-account-popover" aria-label="계정 메뉴">
                 <AccountMenuPanel userId={authState.userId} account={accountIdentity} loading={!currentAccount}
                   failed={Boolean(currentAccount?.failed)} retry={() => { setNavigationAccount(null); setAccountLoadVersion(version => version + 1); }} close={() => setIsAccountMenuOpen(false)} />
               </PopoverContent>
             </Popover> : null}
+            <Link
+              href="/apply"
+              className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
+            >
+              만들기
+            </Link>
             {authState.isAuthenticated ? (
               <button
                 type="button"

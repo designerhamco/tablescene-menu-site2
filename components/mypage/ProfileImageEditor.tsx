@@ -9,7 +9,7 @@ import HelpTooltip from "@/components/ui/HelpTooltip";
 import ProfileAvatar from "@/components/account/ProfileAvatar";
 import { ACCOUNT_PROFILE_UPDATED_EVENT, validateAccountAvatarFile } from "@/lib/account-profile";
 
-export default function ProfileImageEditor({ userId, imageUrl }: { userId: string; imageUrl: string | null }) {
+export default function ProfileImageEditor({ userId, imageUrl, name, email }: { userId: string; imageUrl: string | null; name?: string | null; email?: string | null }) {
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const feedbackId = useId();
@@ -53,9 +53,9 @@ export default function ProfileImageEditor({ userId, imageUrl }: { userId: strin
   }
 
   return <form onSubmit={save} className="site-stack-block" aria-busy={pending}>
-    <div className="site-action-row"><h3 className="type-content-title">프로필 사진</h3><HelpTooltip label="프로필 사진 안내">PNG, JPG, WebP · 최대 3MB. 정사각형 사진을 권장하며 가운데를 기준으로 원형으로 표시합니다. 사진이 없으면 계정에 지정된 기본 색상으로 표시합니다.</HelpTooltip></div>
+    <div className="site-action-row"><h3 className="type-content-title">프로필 사진</h3><HelpTooltip label="프로필 사진 안내">PNG, JPG, WebP · 최대 3MB. 정사각형 사진을 권장하며 가운데를 기준으로 원형으로 표시합니다. 사진이 없으면 이름의 첫 글자와 계정의 기본 색상으로 표시합니다.</HelpTooltip></div>
     <div className="site-profile-editor-row">
-      <ProfileAvatar userId={userId} imageUrl={shownUrl} size="editor" />
+      <ProfileAvatar userId={userId} imageUrl={shownUrl} name={name} email={email} size="editor" />
       <div className="site-stack-block">
         <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" aria-label="프로필 사진 파일" disabled={pending}
           aria-invalid={Boolean(error)} aria-describedby={error ? feedbackId : undefined} onChange={event => {

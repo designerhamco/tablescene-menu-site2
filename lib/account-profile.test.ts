@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import sharp from "sharp";
-import { ACCOUNT_AVATAR_COLORS, ACCOUNT_AVATAR_MAX_BYTES, getAccountAvatarColor, getAccountAvatarPath, getAccountAvatarUrl } from "./account-profile";
+import { ACCOUNT_AVATAR_COLORS, ACCOUNT_AVATAR_MAX_BYTES, getAccountAvatarColor, getAccountAvatarPath, getAccountAvatarUrl, getAccountInitial } from "./account-profile";
 import { prepareAccountAvatarImage, readAccountAvatarFile, saveAccountAvatar } from "./account-avatar-image";
 
 const userId = "d795dd7d-bd99-4e7e-a644-600e08643ddd";
 const previousPath = `account-avatars/${userId}/de92d806-4cf3-4acd-b796-dd8f45bc2b43.webp`;
+
+test("프로필은 표시 이름의 첫 글자를 쓰고 이름이 없으면 이메일로 대체한다", () => {
+  assert.equal(getAccountInitial(" 디앤디커머스 ", "owner@example.test"), "디");
+  assert.equal(getAccountInitial("디앤디커머스".normalize("NFD")), "디");
+  assert.equal(getAccountInitial("Alice"), "A");
+  assert.equal(getAccountInitial("王小明"), "王");
+  assert.equal(getAccountInitial("👩‍🍳 셰프"), "👩‍🍳");
+  assert.equal(getAccountInitial("  ", "staff@example.test"), "s");
+  assert.equal(getAccountInitial(null, null), "회");
+});
 
 test("기본 프로필 색상은 계정별로 안정적이며 사진은 본인의 전용 경로만 표시한다", () => {
   assert.ok(ACCOUNT_AVATAR_COLORS.includes(getAccountAvatarColor(userId)));

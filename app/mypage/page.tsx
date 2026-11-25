@@ -20,7 +20,7 @@ import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypa
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import MenuQrDownloadModal from "@/components/mypage/MenuQrDownloadModal";
-import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
+import { MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -1343,7 +1343,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     : null;
   const hasOwnedMenuSites = sites.length > 0 || accessibleMenuSites.some((menuSite) => menuSite.isOwner);
   const isStaffOnlyAccount = staffMenuSites.length > 0 && !hasOwnedMenuSites;
-  const accountRoleLabel = hasOwnedMenuSites ? "사장" : staffMenuSites.length > 0 ? "직원" : null;
 
   if (isStaffOnlyAccount && activeTab === "payments") {
     redirect("/mypage?tab=menus&message=owner-commerce-permission-required");
@@ -1372,7 +1371,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     accountAiCreditBalance = null;
   }
   const aiCreditContextMenuSite = sites.find((site) => site.id && site.name);
-  const accountAiCreditRemaining = Math.max(0, Math.floor(accountAiCreditBalance?.totalRemainingCredits ?? 0));
   const businessProfilesResult = await runMypageQuery(
     "business_profiles",
     supabase
@@ -2445,31 +2443,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
-  let accountStaffCount: number | undefined;
-
-  if (canShowOwnerCommerce) {
-    accountStaffCount = 0;
-
-    if (menuSiteIds.length > 0) {
-      const adminSupabase = createAdminClient();
-      const activeStaffMembershipsResult = await runMypageQuery(
-        "active_staff_memberships",
-        adminSupabase
-          .from("menu_site_members")
-          .select("user_id")
-          .in("menu_site_id", menuSiteIds)
-          .eq("status", "active")
-      );
-
-      if (!activeStaffMembershipsResult?.error) {
-        accountStaffCount = new Set(
-          (activeStaffMembershipsResult?.data ?? [])
-            .map((membership) => getSafeString(membership.user_id))
-            .filter(Boolean)
-        ).size;
-      }
-    }
-  }
   const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "site-button site-button-primary";
@@ -2718,16 +2691,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       />
       <main className="site-management-scope site-account-page site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <AccountPageContent sidebar={<>
-            <MypageAccountCard
-              userId={user.id}
-              avatarUrl={getAccountAvatarUrl(user.id, user.user_metadata)}
-              businessName={businessProfile?.business_name}
-              email={user.email ?? "이메일 정보 없음"}
-              roleLabel={accountRoleLabel}
-              canShowOwnerCommerce={canShowOwnerCommerce}
-              accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
-              staffAccountCount={accountStaffCount}
-            />
             <MypageNavigation
               active={activeNavigationKey}
               totalMenuCount={totalMenuCardCount}
@@ -3319,7 +3282,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </div>
 
               <div className="site-stack-group">
-                <ContentPanel><ProfileImageEditor userId={user.id} imageUrl={getAccountAvatarUrl(user.id, user.user_metadata)} /></ContentPanel>
+                <ContentPanel><ProfileImageEditor userId={user.id} name={businessProfile?.business_name || displayName} email={user.email} imageUrl={getAccountAvatarUrl(user.id, user.user_metadata)} /></ContentPanel>
                 <ContentPanel><DetailGrid><DetailField label={<>로그인 이메일</>}>{user.email ?? "이메일 정보 없음"}</DetailField>
 <DetailField label={<>가입 방식</>}>{getProviderLabel(primaryProvider)}</DetailField>
 <DetailField label={<>연결된 소셜 계정</>}><span className="site-action-row">
