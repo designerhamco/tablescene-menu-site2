@@ -22,6 +22,7 @@ export default function PreviewDecorationOptions({ value, defaults, renderedDesi
   const editable = lines.filter(key => visible(key) && supportsMenuDecorationLine(key, album, device));
   const patternVisible = current.patternBands ?? defaults.decorationVisibilityDefaults?.patternBands ?? false;
   const colorDefault = (key: MenuDecorationLine) => {
+    if (key === "priceLeader" && renderedDesign?.decorationStrokes?.priceLeader?.defaultColor) return renderedDesign.decorationStrokes.priceLeader.defaultColor;
     const group = key === "itemDivider" || key === "priceLeader" ? "supporting" : "category";
     return value.textColors?.[group] ?? defaults.textColors[group] ?? renderedDesign?.nativeTextColors[group] ?? defaults.textColorDefaults[group];
   };
@@ -40,7 +41,7 @@ export default function PreviewDecorationOptions({ value, defaults, renderedDesi
           <label className={optionStyles.choice}><input type="checkbox" aria-label="상·하단 패턴 띠 표시" checked={patternVisible}
             disabled={disabled || !defaults.patternBandsSupported || (!defaults.patternBandsAssetAvailable && !patternVisible)}
             onChange={event => onChange({ ...value, hidePatternBands: undefined, decorations: { ...current, patternBands: event.target.checked } })} />상·하단 패턴 띠</label>
-          <InfoTooltip layer="preview" label="패턴 띠 적용 범위">{!defaults.patternBandsSupported ? "온유와 기본 좌상단 디자인은 패턴 띠를 지원하지 않습니다." : "패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요. 패턴 이미지를 등록한 뒤 표시할 수 있습니다."}</InfoTooltip>
+          <InfoTooltip layer="preview" label="패턴 띠 적용 범위">{!defaults.patternBandsSupported ? "기본 좌상단 디자인은 패턴 띠를 지원하지 않습니다." : "패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요. 패턴 이미지를 등록한 뒤 표시할 수 있습니다."}</InfoTooltip>
         </div>
         {lines.map(key => <div key={key} className={optionStyles.choice}>
           <label className={optionStyles.choice}><input type="checkbox" aria-label={`${MENU_DECORATION_NAMES[key]} 표시`} checked={visible(key)} disabled={disabled || !supportsMenuDecorationLine(key, album, device)} onChange={event => update(key, { visible: event.target.checked })} />{MENU_DECORATION_NAMES[key]}</label>

@@ -30,3 +30,15 @@ test("all nine saved positions select their equivalent option without changing t
   assert.equal(getWidgetImagePositionOnAxis("bottom-right", "vertical"), "bottom-center");
   assert.equal(getWidgetImagePositionOnAxis("bottom-right", "horizontal"), "center-right");
 });
+
+test("contain keeps nine choices for matching, different and not-yet-loaded image ratios", () => {
+  for (const axis of [null, "horizontal", "vertical"] as const) {
+    const options = getWidgetImagePositionOptions(axis, "contain");
+    assert.equal(options.length, 9);
+    assert.ok(options.some(option => option === "top-left"));
+    assert.ok(options.some(option => option === "bottom-right"));
+  }
+  assert.equal(getWidgetImagePositionOptions(null, "cover").length, 0);
+  assert.equal(getWidgetImagePositionOptions("horizontal", "cover").length, 3);
+  assert.equal(getWidgetImagePositionOptions("vertical", "cover").length, 3);
+});

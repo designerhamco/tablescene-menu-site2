@@ -28,6 +28,7 @@ function dashboard(kind: "orders" | "calls") {
     "@/components/mypage/OrderReceipt": orderReceipt, "@/components/mypage/useLiveOrderStatuses": liveOrderStatuses,
     "@/lib/dashboard-arrival-alerts": { shouldRefreshArrivalDashboard: stub }, "@/lib/korean-date-time": { formatKoreanDateTime: () => "2026. 11. 18." },
     "@/lib/order-history-query": { isCurrentOrder: () => true, orderHistoryHref: stub },
+    "./OrderAlimtalkCell": { default: stub },
     "./actions": { mutateOrderAction: stub, mutateCallAction: stub },
     "./action-state": { initialOrderManagementActionState: {}, initialCallManagementActionState: {} },
   };

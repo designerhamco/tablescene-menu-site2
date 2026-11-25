@@ -1489,6 +1489,30 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-basic-category-form { display: flex; flex-direction: column; gap: var(--site-space-block); }
 .site-editor-tree-row { padding-inline: var(--site-space-copy); }
 
+/* Widget image focal point: nine accessible touch targets in one visual grid. */
+.site-editor-image-position {
+  display: grid;
+  grid-template-columns: repeat(3, var(--ui-control-height-header));
+  inline-size: fit-content;
+  background: var(--ui-surface-muted);
+}
+.site-editor-image-position > button {
+  display: grid;
+  place-items: stretch;
+  inline-size: var(--ui-control-height-header);
+  block-size: var(--ui-control-height-header);
+  padding: var(--site-space-copy);
+  border: 0;
+  border-inline-end: 1px dotted var(--ui-button-boundary);
+  border-block-end: 1px dotted var(--ui-button-boundary);
+  cursor: pointer;
+}
+.site-editor-image-position > button:nth-child(3n) { border-inline-end: 0; }
+.site-editor-image-position > button:nth-child(n + 7) { border-block-end: 0; }
+.site-editor-image-position > button[aria-pressed="true"] > span { background: var(--ui-text); }
+.site-editor-image-position > button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+.site-editor-image-position > button:disabled { cursor: default; }
+
 .site-editor-widget-choices > .site-choice-control {
   display: inline-flex;
   align-items: center;
