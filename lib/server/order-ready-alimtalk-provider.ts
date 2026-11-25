@@ -74,8 +74,9 @@ export function createOrderAlimtalkProvider(config: Config) {
       }
       const response = await request(`/senders/${encodeURIComponent(config.senderKey)}/templates/${encodeURIComponent(config.templateCode)}`);
       if (!response.ok) throw new Error("NHN 알림톡 템플릿을 조회하지 못했습니다.");
-      const result = await response.json() as { header?: Header; templates?: Template };
-      const t = result.templates;
+      const result = await response.json() as { header?: Header; template?: Template; templates?: Template };
+      // The live v2.3 API uses `template`; older documentation shows `templates`.
+      const t = result.template ?? result.templates;
       if (result.header?.isSuccessful !== true || result.header.resultCode !== 0
         || t?.plusFriendId !== config.channelId || t.senderKey !== config.senderKey || t.templateCode !== config.templateCode
         || t.status !== "TSC03" || t.block !== false || t.dormant !== false

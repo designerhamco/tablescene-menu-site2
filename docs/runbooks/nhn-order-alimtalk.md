@@ -60,6 +60,8 @@ NHN Cloud KakaoTalk Bizmessage API v2.3용 구현이다. 미배포 SENS 초안�
 3. SQL `20261125041134_add_nhn_order_alimtalk_attempts.sql`은 로컬 Postgres(PGlite)의 최소 주문 스키마에서 RLS·일반 사용자 접근 차단·중복 pending·재시도·연락처/서빙 조건을 확인했다. 운영 적용은 별도다.
 4. 템플릿 승인과 사용자의 키 준비 후 운영 DB 적용 및 배포 승인을 받아 적용한다. 지정 테스트 메뉴판과 수신 동의 번호로 실제 발송·결과 확인·실패·재발송·픽업 분리를 확인한 뒤 운영 발송을 연다.
 
-2026-11-25 현재 코드는 로컬 검수 단계이며, 운영 DB 적용·실제 NHN 호출·운영 배포는 하지 않았다.
+2026-11-25 인증 확인: 사용자 승인으로 테스트 메뉴판 `261113test`의 ID를 읽고 로컬 전용 설정에 연결했다. 저장된 Appkey·Secret Key·발신 키로 NHN 템플릿 GET 조회가 HTTP 200, `isSuccessful=true`, `resultCode=0`을 반환했다. 채널·발신 키·템플릿 코드가 모두 일치했고 기본형/강조 없음, 차단·휴면 없음, 변수 4개가 확인됐다. 템플릿은 `TSC02`(검수 중)였다. 실제 v2.3 응답의 단건 객체는 문서 예시의 `templates`와 달리 `template`으로 반환되어 두 형식을 모두 처리하도록 수정하고 테스트를 추가했다.
+
+실제 인증 키와 메뉴판 연결 값은 Git에서 제외된 `.env.development.local`에만 저장한다. `ORDER_ALIMTALK_ENABLED=false`를 유지했고 SELECT와 템플릿 GET 외 요청은 하지 않았다. 운영 DB 적용·실제 발송·운영 배포는 아직 하지 않았다.
 
 [NHN 알림톡 API](https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-api-guide/) · [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)

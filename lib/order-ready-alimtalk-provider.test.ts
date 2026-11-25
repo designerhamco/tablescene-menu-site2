@@ -31,8 +31,13 @@ test("NHN template preparation checks approval and maps all four actual order va
     assert.equal(new Headers(init.headers).get("X-Secret-Key"), config.secretKey);
     assert.equal(init.cache, "no-store");
     assert.equal(init.redirect, "error");
-    return Response.json({ header: ok, templates: template });
+    return Response.json({ header: ok, template });
   });
+  assert.deepEqual(await provider.prepare(context), prepared);
+});
+
+test("documented legacy plural template envelope remains compatible", async t => {
+  t.mock.method(globalThis, "fetch", async () => Response.json({ header: ok, templates: template }));
   assert.deepEqual(await provider.prepare(context), prepared);
 });
 
