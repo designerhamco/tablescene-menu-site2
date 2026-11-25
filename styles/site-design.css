@@ -1438,18 +1438,19 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-editor-save-error-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 
 /* Account identity: shared header, mobile navigation and profile editor. */
+.site-nav-label { display: inline-flex; align-items: center; gap: var(--site-space-copy); white-space: nowrap; }
 .site-profile-avatar {
   width: var(--ui-control-height-compact);
   height: var(--ui-control-height-compact);
   flex: none;
-  --profile-avatar-color: #2563eb;
+  --profile-avatar-color: var(--ui-profile-orange);
 }
-.site-profile-avatar[data-color="blue"] { --profile-avatar-color: #2563eb; }
-.site-profile-avatar[data-color="violet"] { --profile-avatar-color: #7c3aed; }
-.site-profile-avatar[data-color="pink"] { --profile-avatar-color: #db2777; }
-.site-profile-avatar[data-color="cyan"] { --profile-avatar-color: #007a9f; }
-.site-profile-avatar[data-color="green"] { --profile-avatar-color: #00845a; }
-.site-profile-avatar[data-color="orange"] { --profile-avatar-color: #c54f0a; }
+.site-profile-avatar[data-color="orange"] { --profile-avatar-color: var(--ui-profile-orange); }
+.site-profile-avatar[data-color="terracotta"] { --profile-avatar-color: var(--ui-profile-terracotta); }
+.site-profile-avatar[data-color="rose"] { --profile-avatar-color: var(--ui-profile-rose); }
+.site-profile-avatar[data-color="amber"] { --profile-avatar-color: var(--ui-profile-amber); }
+.site-profile-avatar[data-color="coral"] { --profile-avatar-color: var(--ui-profile-coral); }
+.site-profile-avatar[data-color="wine"] { --profile-avatar-color: var(--ui-profile-wine); }
 .site-profile-avatar[data-size="identity"] { width: var(--ui-control-height-header); height: var(--ui-control-height-header); }
 .site-profile-avatar[data-size="editor"] { width: 5rem; height: 5rem; }
 .site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); color: #fff; font-size: var(--type-label-size); font-weight: var(--font-weight-semibold); }
