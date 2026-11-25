@@ -1544,7 +1544,7 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-profile-avatar[data-color="pink"] { --profile-avatar-color: #db2777; }
 .site-profile-avatar[data-color="cyan"] { --profile-avatar-color: #007a9f; }
 .site-profile-avatar[data-color="green"] { --profile-avatar-color: #00845a; }
-.site-profile-avatar[data-color="orange"] { --profile-avatar-color: #c9530c; }
+.site-profile-avatar[data-color="orange"] { --profile-avatar-color: #c54f0a; }
 .site-profile-avatar[data-size="identity"] { width: 3.5rem; height: 3.5rem; }
 .site-profile-avatar[data-size="editor"] { width: 5rem; height: 5rem; }
 .site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); color: #fff; font-size: var(--type-content-title-size); font-weight: var(--font-weight-semibold); }
