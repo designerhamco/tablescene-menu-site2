@@ -8,20 +8,17 @@ const billingPanelSource = readFileSync(new URL("../components/mypage/BillingHis
 const mypageSource = readFileSync(new URL("../app/mypage/page.tsx", import.meta.url), "utf8");
 const siteDesignSource = readFileSync(new URL("../styles/site-design.css", import.meta.url), "utf8");
 
-test("mypage account card gives business identity and owner metrics a readable hierarchy", () => {
-  assert.match(sidebarSource, /businessName/);
-  assert.match(sidebarSource, /site-account-business-name/);
-  assert.match(sidebarSource, /site-account-email/);
-  assert.match(sidebarSource, /site-account-eyebrow/);
-  assert.match(sidebarSource, /businessName \|\| "내 계정"/);
-  assert.match(sidebarSource, /AI 크레딧/);
-  assert.match(sidebarSource, /직원계정/);
-  assert.match(sidebarSource, /AI 충전\/사용내역/);
-  assert.match(mypageSource, /businessName=\{businessProfile\?\.business_name\}/);
-  assert.match(mypageSource, /active_staff_memberships/);
-  assert.doesNotMatch(sidebarSource, /사용자 ID:/);
-  assert.doesNotMatch(sidebarSource, /bg-emerald-50/);
-  assert.doesNotMatch(sidebarSource, /설명 작성, 메뉴 정리, 번역에 사용할 수 있어요/);
+test("account identity lives in the header while mypage and operations keep their navigation", () => {
+  const operations = readFileSync(new URL("../components/mypage/StoreOperationsShell.tsx", import.meta.url), "utf8");
+  const staff = readFileSync(new URL("../app/mypage/staff/page.tsx", import.meta.url), "utf8");
+  const menu = readFileSync(new URL("../components/account/AccountMenuPanel.tsx", import.meta.url), "utf8");
+  for (const source of [sidebarSource, mypageSource, operations, staff]) assert.doesNotMatch(source, /MypageAccountCard/);
+  assert.match(menu, /account\.name/);
+  assert.match(menu, /account\.email/);
+  assert.match(menu, /AI 크레딧/);
+  assert.match(menu, /billingTab=ai-credits/);
+  assert.match(menu, /직원 계정/);
+  assert.match(sidebarSource, /<MypageNavigationRail/);
 });
 
 test("mypage navigation uses separate surfaces and a sticky single-line rail before the desktop sidebar", () => {
@@ -77,12 +74,13 @@ test("AI history loads and renders credit usage as well as purchases", () => {
 });
 
 
-test("직원 관리에서도 사장 계정 요약의 회사명과 두 지표를 유지한다", () => {
+test("staff management keeps account metrics in the shared header API", () => {
   const source = readFileSync(new URL("../app/mypage/staff/page.tsx", import.meta.url), "utf8");
-  assert.match(source, /getAiCreditBalanceForUser\(user.id\)/);
-  assert.match(source, /businessName=\{businessProfileResult.data\?\.business_name\}/);
-  assert.match(source, /accountAiCreditRemaining=\{accountAiCreditRemaining\}/);
-  assert.match(source, /staffAccountCount=\{new Set\(activeMemberships/);
+  const navigation = readFileSync(new URL("../app/api/account/navigation/route.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /MypageAccountCard/);
+  assert.match(source, /<MypageNavigation/);
+  assert.match(navigation, /getAiCreditBalanceForUser\(user.id\)/);
+  assert.match(navigation, /staffCount = new Set/);
 });
 
 test("기존 변경 예약만 관리 버튼 다음의 독립 창으로 연다", () => {

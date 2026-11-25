@@ -8,9 +8,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
-import { MypageAccountCard, MypageNavigation } from "@/components/mypage/MypageSidebar";
-import { getAccountAvatarUrl } from "@/lib/account-profile";
-import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
+import { MypageNavigation } from "@/components/mypage/MypageSidebar";
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
@@ -157,33 +155,12 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
     menuSiteNames: string[];
   }>()).values()];
   const invitationDeliveryEnabled = isStaffInvitationCreationEnabled();
-  const [creditBalance, businessProfileResult] = await Promise.all([
-    getAiCreditBalanceForUser(user.id).catch(() => null),
-    supabase.from("business_profiles")
-      .select("business_name")
-      .eq("user_id", user.id)
-      .eq("verification_status", "verified")
-      .order("last_verified_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
-  const accountAiCreditRemaining = Math.max(0, Math.floor(creditBalance?.totalRemainingCredits ?? 0));
 
   return (
     <>
       <OfficialSiteNavbar />
       <main className="site-management-scope site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <AccountPageContent sidebar={<>
-            <MypageAccountCard
-              userId={user.id}
-              avatarUrl={getAccountAvatarUrl(user.id, user.user_metadata)}
-              businessName={businessProfileResult.data?.business_name}
-              email={user.email ?? "이메일 정보 없음"}
-              roleLabel="사장"
-              canShowOwnerCommerce
-              accountAiCreditRemaining={accountAiCreditRemaining}
-              staffAccountCount={new Set(activeMemberships.map(member => member.user_id)).size}
-            />
             <MypageNavigation active="staff" totalMenuCount={menuSites.length} canShowOwnerCommerce />
           </>}>
         <ActionFeedbackToast

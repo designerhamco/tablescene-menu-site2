@@ -1,12 +1,8 @@
 import Link from "next/link";
-import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
-import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
-import { Badge } from "@/app/components/ui/badge";
 import { MypageNavigationRail } from "@/components/mypage/MypageNavigationRail";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
-import ProfileAvatar from "@/components/account/ProfileAvatar";
 
 export type MypageNavigationKey =
   | "menus"
@@ -38,74 +34,6 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
       <span>{label}</span>
       <span className="text-support font-medium">권한 없음</span>
     </span>
-  );
-}
-
-export function MypageAccountCard({
-  businessName,
-  email,
-  roleLabel,
-  canShowOwnerCommerce,
-  accountAiCreditRemaining,
-  staffAccountCount,
-  userId,
-  avatarUrl,
-}: {
-  businessName?: string | null;
-  email: string;
-  roleLabel?: "사장" | "직원" | null;
-  canShowOwnerCommerce: boolean;
-  accountAiCreditRemaining?: number;
-  staffAccountCount?: number;
-  userId?: string;
-  avatarUrl?: string | null;
-}) {
-  return (
-    <section className="site-account-summary">
-      <div className="site-account-identity-row">
-      {userId ? <Link href="/mypage?tab=account" className="site-profile-link site-profile-mobile" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={avatarUrl} size="identity" /></Link> : null}
-      <div className="site-account-identity">
-        <p className="site-account-eyebrow">계정</p>
-        <h2 className="type-content-title site-account-business-name" title={businessName || "내 계정"}>
-          {businessName || "내 계정"}
-        </h2>
-        <p className="site-account-email" title={email}>{email}</p>
-        {roleLabel ? (
-          <div className="site-account-role" aria-label="계정 역할">
-            <Badge>{roleLabel}</Badge>
-          </div>
-        ) : null}
-      </div>
-      </div>
-      {canShowOwnerCommerce && (accountAiCreditRemaining !== undefined || staffAccountCount !== undefined) ? (
-        <div className="site-account-metrics">
-          {accountAiCreditRemaining !== undefined ? (
-          <Link
-            href="/mypage?tab=payments&billingTab=ai-credits"
-            className="site-account-metric site-account-metric-link"
-            aria-label={`AI 크레딧 ${accountAiCreditRemaining.toLocaleString("ko-KR")}개. AI 충전/사용내역 보기`}
-          >
-            <span className="site-account-metric-label">AI 크레딧</span>
-            <span className="site-account-metric-value">
-              <strong>{accountAiCreditRemaining.toLocaleString("ko-KR")}개</strong>
-              <ArrowUpRight aria-hidden="true" />
-            </span>
-          </Link>
-          ) : null}
-          {staffAccountCount !== undefined && isStaffManagementAvailable() ? (
-            <Link href="/mypage/staff" className="site-account-metric site-account-metric-link" aria-label={`직원계정 ${staffAccountCount.toLocaleString("ko-KR")}명. 직원 관리 보기`}>
-              <span className="site-account-metric-label">직원계정</span>
-              <span className="site-account-metric-value"><strong>{staffAccountCount.toLocaleString("ko-KR")}명</strong><ArrowUpRight aria-hidden="true" /></span>
-            </Link>
-          ) : null}
-        </div>
-      ) : null}
-      <form action={signOutAction} className="site-account-signout-form">
-        <button type="submit" className="site-button site-button-outline site-account-signout">
-          로그아웃
-        </button>
-      </form>
-    </section>
   );
 }
 

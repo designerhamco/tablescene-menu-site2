@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/badge";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { signOutAction } from "@/app/auth/actions";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
@@ -15,8 +16,8 @@ export default function AccountMenuPanel({ userId, account, loading, failed, ret
   const count = (value: number | null | undefined, suffix: string) => typeof value === "number" ? `${value.toLocaleString("ko-KR")}${suffix}` : "—";
   return <div className="site-account-menu site-management-scope">
     <Link href="/mypage?tab=account" className="site-account-menu-identity" onClick={close} aria-label="회원정보 수정">
-      <ProfileAvatar userId={userId} imageUrl={account.avatarUrl} size="identity" />
-      <div className="site-field-stack">
+      <ProfileAvatar userId={userId} imageUrl={account.avatarUrl} name={account.name} email={account.email} size="identity" />
+      <div className="site-stack-detail">
         <div className="site-action-row"><strong className="type-content-title">{account.name || "내 계정"}</strong>{account.role ? <Badge>{account.role}</Badge> : null}</div>
         <span className="type-body-sm site-copy-muted">{account.email}</span>
       </div>
@@ -24,7 +25,7 @@ export default function AccountMenuPanel({ userId, account, loading, failed, ret
     <div className="site-account-menu-section">
       <Link href="/mypage?tab=menus" onClick={close} className="site-account-menu-row"><span>내 메뉴판</span><strong>{count(account.menuCount, "개")}</strong></Link>
       {owner ? <>
-        <div className="site-account-menu-row"><Link href="/mypage?tab=payments&billingTab=ai-credits" onClick={close}>AI 크레딧</Link><div className="site-action-row"><strong>{count(account.aiCredits, "개")}</strong><Link href="/mypage?tab=payments&billingTab=ai-credits" onClick={close} className="site-button site-button-outline">충전</Link></div></div>
+        <Link href="/mypage?tab=payments&billingTab=ai-credits" onClick={close} className="site-account-menu-row"><span className="site-action-row">AI 크레딧<ArrowUpRight size={16} aria-hidden="true" /></span><strong>{count(account.aiCredits, "개")}</strong></Link>
         {isStaffManagementAvailable() ? <Link href="/mypage/staff" onClick={close} className="site-account-menu-row"><span>직원 계정</span><strong>{count(account.staffCount, "명")}</strong></Link> : null}
       </> : null}
       {loading ? <LoadingState label="계정 정보 확인 중" inline /> : failed ? <div className="site-field-stack" role="status"><p className="type-caption site-copy-muted">계정 정보를 불러오지 못했습니다.</p><button type="button" className="site-button site-button-outline" onClick={retry}>다시 시도</button></div> : null}

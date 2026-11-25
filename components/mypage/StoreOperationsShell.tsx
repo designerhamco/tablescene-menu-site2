@@ -9,7 +9,6 @@ import { operationMenuTargets } from "@/lib/operation-menu-targets";
 import OperationMenuTarget from "./OperationMenuTarget";
 import OrderUpdateRefresh from "./OrderUpdateRefresh";
 
-import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
 import type { MenuSitePermission } from "@/lib/menu-site-permissions";
 import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
@@ -94,13 +93,6 @@ export default async function StoreOperationsShell({
                 ...sites.map(site => ({
                 id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
               }))]} /> : null}
-              account={user ? (
-                <MypageAccountCard
-                  email={user.email ?? "이메일 정보 없음"}
-                  roleLabel={sites.some((site) => site.isOwner) ? "사장" : sites.length > 0 ? "직원" : null}
-                  canShowOwnerCommerce={false}
-                />
-              ) : null}
             >
               {selectedSite || allMenus ? (
                 <Link
