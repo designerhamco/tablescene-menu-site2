@@ -135,6 +135,9 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
     const concurrent = await latest();
     if (concurrent) return summarize(concurrent);
   }
+  if (error?.message.includes("WALLET_INSUFFICIENT")) throw new OrderAlimtalkError("알림톡 잔액이 부족합니다. 사장님 계정에서 충전해 주세요.");
+  if (error?.message.includes("WALLET_FROZEN")) throw new OrderAlimtalkError("알림톡 충전 결제 확인이 필요합니다. 고객지원에 문의해 주세요.");
+  if (error?.message.includes("WALLET_METERING_DISABLED")) throw new OrderAlimtalkError("알림톡 발송 요금을 준비하고 있습니다.");
   if (error?.code === "P0001") throw new OrderAlimtalkError("주문 상태와 매장 채널의 발송 설정을 다시 확인해 주세요.");
   if (error || !attempt) throw new OrderAlimtalkError("알림톡 발송을 시작하지 못했습니다.");
 
