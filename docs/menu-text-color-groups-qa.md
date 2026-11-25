@@ -51,6 +51,8 @@ Sample evidence is under `/private/tmp/price-note-color-matrix.json` and `/priva
 
 ## Category ownership — 2026-11-01
 
+2026-11-25 approved extension: Basic common decorations retain this automatic ownership by default and can explicitly override only the chosen stroke through **직접 지정**. Heading/description text and all other lines retain their own ink. **기본색 유지** restores the existing link. See `docs/basic-menu-decorations-contract.md`; the current rendered checks are in `scripts/qa-menu-decorations.mjs`.
+
 Category descriptions move from menu-area supporting ink to the actual category-heading ink. Category-owned lines and ornaments above/below/beside a heading share that exact ink through `currentColor`, including REAL MATCHA's underline, retained category dividers, Dining course rules and Display category rules. Basic description hooks also cover retained shared preview/multi-page primitives. Existing supporting overrides no longer recolor category descriptions. Description fonts, sizes, line heights, spacing and unrelated colors remain independent.
 
 The rendered-design sampler excludes category descriptions when reading the menu-description picker default. New standalone category ornaments use `data-menu-category-decoration`; future template authors must preserve this ownership as specified in AGENTS.md and the shared spacing contract. No new saved field or customer-data migration is required.

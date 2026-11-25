@@ -18,17 +18,19 @@ export default function MenuPatternBandsForm({ menuId, initial, hasDefault, disa
   basic?: boolean;
 }) {
   const [enabled, setEnabled] = useState(initial.enabled);
+  const [enabledChanged, setEnabledChanged] = useState(false);
   const [uploadPending, setUploadPending] = useState(false);
   const usage = (
     <div className="site-action-row" data-wrap="nowrap">
       <label htmlFor="menu-pattern-bands-enabled" className="type-label">{basic ? "사용 여부" : "패턴 띠 사용"}</label>
-      <Switch id="menu-pattern-bands-enabled" size="sm" checked={enabled} disabled={disabled} onCheckedChange={setEnabled} />
+      <Switch id="menu-pattern-bands-enabled" size="sm" checked={enabled} disabled={disabled} onCheckedChange={value => { setEnabled(value); setEnabledChanged(true); }} />
     </div>
   );
   const fields = (
     <fieldset disabled={disabled} className={basic ? "site-basic-editor-fields site-content-divider site-editor-section-rule" : "site-field-stack"}>
       <input type="hidden" name="pattern_bands_present" value="1" />
       <input type="hidden" name="pattern_bands_enabled" value={enabled ? "1" : "0"} />
+      <input type="hidden" name="pattern_bands_enabled_changed" value={enabledChanged ? "1" : "0"} />
       <input type="hidden" name="pattern_bands_upload_pending" value={uploadPending ? "1" : "0"} />
       {!basic && usage}
       <ImageUploadField
@@ -44,7 +46,7 @@ export default function MenuPatternBandsForm({ menuId, initial, hasDefault, disa
         optimizationGuidance={basic ? undefined : ""}
         emptyPreview={hasDefault ? <span className="type-label">기본 체크무늬</span> : undefined}
         onUploadPendingChange={setUploadPending}
-        onDraftImageChange={({ imageAction }) => { if (imageAction === "delete" && !hasDefault) setEnabled(false); }}
+        onDraftImageChange={({ imageAction }) => { if (imageAction === "delete" && !hasDefault) { setEnabled(false); setEnabledChanged(true); } }}
       />
       <label className="site-field-stack type-label">
         <span className={basic ? "site-basic-editor-label-row" : undefined}>띠 두께</span>

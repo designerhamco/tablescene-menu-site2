@@ -123,3 +123,38 @@
 
 /* Product rules share the resolved menu-description ink, even when copy is hidden. */
 .scope[data-text-color-supporting] :global([data-menu-item-separator]) { --menu-item-separator-ink: var(--menu-text-supporting); }
+
+/* Opt-in decoration overrides. With no saved overrides none of these selectors
+   match, so native strokes, transparent spacers and dotted artwork stay intact. */
+.scope.scope[data-decoration-underline="off"] :global(.cafe-a-category-heading) { border-bottom: 0 !important; }
+.scope.scope[data-decoration-underline-stroke] :global(.cafe-a-category-heading) { border-bottom: var(--decoration-underline-width, var(--cafe-a-native-underline-width, 1px)) var(--decoration-underline-style, solid) currentColor !important; }
+.scope.scope[data-decoration-neutral][data-decoration-underline-stroke] :global(.cafe-a-category-heading) { border-bottom-width: var(--decoration-underline-width, 1px) !important; }
+.scope.scope[data-decoration-underline-color] :global(.cafe-a-category-heading) { border-bottom-color: var(--decoration-underline-color) !important; }
+
+.scope.scope[data-decoration-column-stroke] :global([data-menu-column-divider]) { width: var(--menu-column-divider-width, 1px); box-sizing: border-box; background: none; border-inline-start: var(--decoration-column-width, 1px) var(--decoration-column-style, solid) currentColor; }
+.scope.scope[data-decoration-column-color] :global([data-menu-column-divider]) { color: var(--decoration-column-color) !important; }
+
+.scope.scope[data-decoration-category="off"] :global(.cafe-a-menu-category-top-divider) { display: none !important; }
+.scope.scope[data-decoration-category="on"] :global(:is([data-kind="heading"], [data-cafe-a-category-block], [data-album-category])) { position: relative; }
+.scope.scope[data-decoration-category="on"] :global(.cafe-a-menu-category-top-divider) { display: block !important; position: absolute; inset-inline: 0; top: calc(-.5 * var(--native-section-gap, calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)))); height: 0; margin: 0; pointer-events: none; }
+.scope.scope[data-decoration-category="on"] :global([data-cafe-a-mobile-style="true"] .cafe-a-menu-category-top-divider) { top: calc(-.5 * var(--cafe-a-mobile-section-gap)); }
+.scope.scope[data-decoration-category="on"] :global([data-menu-column-start] .cafe-a-menu-category-top-divider) { display: none !important; }
+.scope.scope[data-decoration-category-stroke] :global(.cafe-a-menu-category-top-divider) { background: none; border-top: var(--decoration-category-width, 1px) var(--decoration-category-style, solid) currentColor !important; }
+.scope.scope[data-decoration-category-color] :global(.cafe-a-menu-category-top-divider) { border-top-color: var(--decoration-category-color) !important; }
+
+.scope.scope[data-decoration-item-stroke] :global([data-menu-item-separator])::after { height: 0; top: calc(100% + (var(--decoration-item-gap, var(--menu-item-separator-gap)) - var(--decoration-item-width, 1px)) / 2); background: none; border-top: var(--decoration-item-width, 1px) var(--decoration-item-style, solid) currentColor; }
+.scope.scope[data-decoration-item-color] :global([data-menu-item-separator])::after { color: var(--decoration-item-color); }
+/* The physical track, rather than source order, owns the last-item boundary. */
+.scope[data-menu-appearance-basic="true"] :global([data-scroll-template] [data-paged-block][data-kind="item"][data-next-kind="item"] [data-menu-item-separator])::after { content: ""; }
+
+.scope.scope[data-decoration-leader="off"] :global(.cafe-a-round-focus-price-leader) { display: none !important; }
+.scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] .cafe-a-menu-title-row) { flex-wrap: nowrap; }
+.scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] [data-cafe-a-menu-name]) { min-width: 0; }
+.scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] .cafe-a-round-focus-price-leader) { display: block !important; align-self: start; flex: 1 1 0; min-width: .75em; max-width: none; margin: .65em 0 0; height: 0; background: none; border: 0; border-top: var(--decoration-leader-width, 1px) var(--decoration-leader-style, dotted) currentColor; }
+.scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-item:not([data-menu-leader-eligible]) .cafe-a-round-focus-price-leader) { display: none !important; }
+.scope.scope:is([data-decoration-leader="on"], [data-decoration-leader-color]) :global(.cafe-a-menu-item:not([data-menu-leader-eligible]) .cafe-a-round-focus-price-leader) { display: none !important; }
+.scope.scope[data-decoration-leader-color] :global(.cafe-a-round-focus-price-leader) { color: var(--decoration-leader-color); opacity: 1; }
+.scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"]) { grid-template-columns: minmax(0, max-content) minmax(.75em, 1fr); }
+.scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"]:has(> :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader))) { grid-template-columns: minmax(0, max-content) minmax(.75em, 1fr) auto; }
+.scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > .cafe-a-round-focus-price-leader) { grid-column: 2; grid-row: 1; width: 100%; }
+.scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader)) { grid-column: 3; }

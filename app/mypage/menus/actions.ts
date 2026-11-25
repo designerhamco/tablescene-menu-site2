@@ -1,6 +1,7 @@
 "use server";
 
 import { applyBasicEditorPreviewDesign } from "@/lib/basic-editor-preview-design";
+import { readMenuDecorations } from "@/lib/menu-decorations";
 import { readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
 import { mergeMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
@@ -3001,7 +3002,10 @@ export async function updateDesignSettingsAction(formData: FormData) {
   }
   if (formData.get("pattern_bands_present") === "1" && supportsMenuPatternBands(menuSite.template_key, menuSite.settings)) {
     if (formData.get("pattern_bands_upload_pending") === "1") fail("패턴 이미지 업로드가 끝난 뒤 저장해주세요.");
-    const enabled = formData.get("pattern_bands_enabled") === "1";
+    const patternEnabledChanged = formData.get("pattern_bands_enabled_changed") === "1";
+    const enabled = patternEnabledChanged ? formData.get("pattern_bands_enabled") === "1"
+      : readMenuDecorations(pageSettings).patternBands ?? formData.get("pattern_bands_enabled") === "1";
+    if (patternEnabledChanged) designSettings.decorations = { ...readMenuDecorations(pageSettings), patternBands: enabled };
     const thicknessField = getString(formData, "pattern_bands_thickness");
     const thickness = thicknessField ? Number(thicknessField) : undefined;
     if (thicknessField && !isMenuPatternBandThickness(thickness)) fail("패턴 띠 두께를 확인해주세요.");
