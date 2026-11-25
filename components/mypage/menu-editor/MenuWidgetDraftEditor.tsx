@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Switch } from "@/app/components/ui/switch";
 import { AlignLeft, AlignCenter, AlignRight } from "@/app/components/ui/site-icon";
 import HelpTooltip from "@/components/ui/HelpTooltip";
@@ -215,10 +216,10 @@ export default function MenuWidgetDraftEditor({
     const feedbackId = `${fieldId}-save-feedback`;
     const issueFieldIds: Record<string, string> = { title: `${fieldId}-title`, description: `${fieldId}-body`, imageUrl: `${fieldId}-image-choose`, "settings.aspectRatio": `${fieldId}-ratio`, "settings.objectFit": `${fieldId}-fit` };
 
-    return <div className="site-stack-block" data-basic-widget-form>
+    return <div className="site-stack-group" data-basic-widget-form>
       <h3 className="type-subsection-title">위젯 설정</h3>
-      <fieldset disabled={busy} className="site-stack-group site-content-divider site-editor-section-rule" aria-busy={busy}>
-        <div className="site-field-stack">
+      <fieldset disabled={busy} className="site-stack-block" aria-busy={busy}>
+        <ContentPanel surface="muted" aria-labelledby={`${fieldId}-type`}>
           <div className="site-content-heading-row" data-layout="toolbar">
             <div className="site-action-row">
               <span className="type-label" id={`${fieldId}-type`}>위젯 유형</span>
@@ -229,43 +230,47 @@ export default function MenuWidgetDraftEditor({
             </label>
           </div>
           <MenuWidgetTypePicker value={draft.type} onChange={changeType} compact />
-        </div>
-        {usesImage && <>
+        </ContentPanel>
+        {usesImage && <ContentPanel surface="muted" aria-label="위젯 이미지 설정">
           <MenuWidgetImageField invalid={validationErrors.some(error => error.field === "imageUrl")} errorId={feedbackId} inputId={`${fieldId}-image`} menuSiteId={menuSiteId} menuPageId={draft.menuPageId} widgetId={draft.id}
             widgetType={draft.type === "image_text" ? "image_text" : "image"} imageUrl={draft.imageUrl}
             imagePath={draft.imagePath} persistedImagePath={persistedImagePath} editorLayout
             onPendingChange={setImagePending} onChange={image => patchDraft(image)} />
-          <div className="site-basic-editor-fields">
-            {imageSettingFields}
-            {positionField}
-          </div>
-        </>}
-        {usesText && <>
-          <div className="site-field-stack">
-            <label htmlFor={`${fieldId}-title`} className="type-label">위젯 제목 텍스트</label>
-            <input id={`${fieldId}-title`} aria-invalid={validationErrors.some(error => error.field === "title") || undefined} aria-describedby={validationErrors.some(error => error.field === "title") ? feedbackId : undefined} className="site-field site-input" value={draft.title} maxLength={MAX_MENU_WIDGET_TITLE_LENGTH}
-              onChange={event => patchDraft({ title: event.currentTarget.value })} placeholder="예: 매장 이용 안내" />
-            <p className="type-caption site-copy-muted text-right">{draft.title.length}/{MAX_MENU_WIDGET_TITLE_LENGTH}</p>
-          </div>
-          <div className="site-field-stack">
-            <label htmlFor={`${fieldId}-body`} className="type-label">위젯 본문 텍스트</label>
-            <textarea id={`${fieldId}-body`} aria-invalid={validationErrors.some(error => error.field === "description") || undefined} aria-describedby={validationErrors.some(error => error.field === "description") ? feedbackId : undefined} className="site-field site-textarea" rows={3} value={draft.description} maxLength={MAX_MENU_WIDGET_DESCRIPTION_LENGTH}
-              onChange={event => patchDraft({ description: event.currentTarget.value })} placeholder="예: 계절 메뉴와 매장 소식을 확인해 주세요." />
-            <p className="type-caption site-copy-muted text-right">{draft.description.length}/{MAX_MENU_WIDGET_DESCRIPTION_LENGTH}</p>
-          </div>
-          <div className="site-field-stack">
-            <span className="type-label">텍스트 정렬</span>
-            <div className="site-action-row site-editor-widget-choices" role="group" aria-label="텍스트 정렬">
-              {MENU_WIDGET_TEXT_ALIGNS.map(align => {
-                const Icon = { left: AlignLeft, center: AlignCenter, right: AlignRight }[align];
-                return <button key={align} type="button" className="site-choice site-choice-control"
-                  aria-pressed={draft.settings.textAlign === align} onClick={() => patchSettings({ textAlign: align })}>
-                  <Icon />{TEXT_ALIGN_LABELS[align]} 정렬
-                </button>;
-              })}
+          <div className="site-content-divider">
+            <div className="site-basic-editor-fields">
+              {imageSettingFields}
+              {positionField}
             </div>
           </div>
-        </>}
+        </ContentPanel>}
+        {usesText && <ContentPanel surface="muted" aria-label="위젯 텍스트 설정">
+          <div className="site-stack-block">
+            <div className="site-field-stack">
+              <label htmlFor={`${fieldId}-title`} className="type-label">위젯 제목 텍스트</label>
+              <input id={`${fieldId}-title`} aria-invalid={validationErrors.some(error => error.field === "title") || undefined} aria-describedby={validationErrors.some(error => error.field === "title") ? feedbackId : undefined} className="site-field site-input" value={draft.title} maxLength={MAX_MENU_WIDGET_TITLE_LENGTH}
+                onChange={event => patchDraft({ title: event.currentTarget.value })} placeholder="예: 매장 이용 안내" />
+              <p className="type-caption site-copy-muted text-right">{draft.title.length}/{MAX_MENU_WIDGET_TITLE_LENGTH}</p>
+            </div>
+            <div className="site-field-stack">
+              <label htmlFor={`${fieldId}-body`} className="type-label">위젯 본문 텍스트</label>
+              <textarea id={`${fieldId}-body`} aria-invalid={validationErrors.some(error => error.field === "description") || undefined} aria-describedby={validationErrors.some(error => error.field === "description") ? feedbackId : undefined} className="site-field site-textarea" rows={3} value={draft.description} maxLength={MAX_MENU_WIDGET_DESCRIPTION_LENGTH}
+                onChange={event => patchDraft({ description: event.currentTarget.value })} placeholder="예: 계절 메뉴와 매장 소식을 확인해 주세요." />
+              <p className="type-caption site-copy-muted text-right">{draft.description.length}/{MAX_MENU_WIDGET_DESCRIPTION_LENGTH}</p>
+            </div>
+            <div className="site-field-stack">
+              <span className="type-label">텍스트 정렬</span>
+              <div className="site-action-row site-editor-widget-choices" role="group" aria-label="텍스트 정렬">
+                {MENU_WIDGET_TEXT_ALIGNS.map(align => {
+                  const Icon = { left: AlignLeft, center: AlignCenter, right: AlignRight }[align];
+                  return <button key={align} type="button" className="site-choice site-choice-control"
+                    aria-pressed={draft.settings.textAlign === align} onClick={() => patchSettings({ textAlign: align })}>
+                    <Icon />{TEXT_ALIGN_LABELS[align]} 정렬
+                  </button>;
+                })}
+              </div>
+            </div>
+          </div>
+        </ContentPanel>}
         <MenuEditorActionBar pending={finalSavePending} dirty={hasChanges}>
           <button type="button" className="site-button site-button-primary" data-editor-save-action disabled={finalSaveDisabled || validationErrors.length > 0 || countExceeded}
             onClick={onFinalSave}>{finalSavePending ? "저장 중…" : "최종 저장"}</button>
