@@ -29,7 +29,7 @@ export default function MenuEditorToastBridge({ message, error, description }: {
   }, [message, error, description]);
 
   useEffect(() => {
-    if (!message && !error) return;
+    if (!message || error) return;
     if (!searchParams.has("message") && !searchParams.has("error")) return;
 
     const nextParams = new URLSearchParams(searchParams.toString());

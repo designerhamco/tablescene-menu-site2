@@ -7,6 +7,7 @@ import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { ArrowDown, ArrowUp } from "@/app/components/ui/site-arrow";
 import HelpTooltip from "@/components/ui/HelpTooltip";
+import MenuEditorSaveFeedback from "./MenuEditorSaveFeedback";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 
 export type FeaturedSlideDraft = {
@@ -220,7 +221,14 @@ export default function FeaturedSlidesEditor({
             }}>삭제</button>
           )}
           <button type="button" className="site-button site-button-outline" disabled={uploadPending} onClick={() => setEditing(null)}>취소</button>
-        </div>
+          <MenuEditorSaveFeedback issues={[
+          ...(!editing.imageUrl ? [{ message: "대표 이미지를 등록해 주세요." }] : []),
+          ...(editing.mode === "linked" && !linkedItemId ? [{ message: "연결할 대표 상품을 선택해 주세요." }] : []),
+          ...(itemUnavailable ? [{ message: "선택한 상품을 사용할 수 없습니다. 다른 상품을 선택해 주세요." }] : []),
+          ...(itemTaken ? [{ message: "이미 다른 이미지에 연결된 상품입니다. 다른 상품을 선택해 주세요." }] : []),
+        ]} />
+      </div>
+
       </ContentPanel>
     );
 

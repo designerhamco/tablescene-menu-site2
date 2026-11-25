@@ -23,6 +23,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import MenuEditorSaveFeedback from "@/components/mypage/menu-editor/MenuEditorSaveFeedback";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import { Switch } from "@/app/components/ui/switch";
@@ -2442,6 +2443,7 @@ function MenuPageForm({
               </button>
             )}
             {deleteAction}
+      <MenuEditorSaveFeedback issues={titleInvalid ? [{ message: `${labels.pageLabel} 이름을 입력해 주세요.`, fieldName: "page_title" }] : []} />
           </div>
           <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">
             변경 내용은 메뉴 관리 탭에 임시 반영됩니다.
@@ -2453,8 +2455,10 @@ function MenuPageForm({
           <SubmitButton tone="final" disabled={titleInvalid}>
             수정 내용 반영
           </SubmitButton>
+      <MenuEditorSaveFeedback issues={titleInvalid ? [{ message: `${labels.pageLabel} 이름을 입력해 주세요.`, fieldName: "page_title" }] : []} />
         </div>
       )}
+
     </form>
   );
 }
@@ -2466,6 +2470,7 @@ function MenuCategoryForm({
   basicEditor = false,
   onFinalSave,
   finalSavePending = false,
+  finalSaveError,
   categoryOrder = [],
   onCategoryOrderChange,
   formId,
@@ -2499,6 +2504,7 @@ function MenuCategoryForm({
   basicEditor?: boolean;
   onFinalSave?: () => void;
   finalSavePending?: boolean;
+  finalSaveError?: string | null;
   categoryOrder?: string[];
   onCategoryOrderChange?: (index: number) => void;
   formId: string;
@@ -3085,7 +3091,13 @@ function MenuCategoryForm({
         {copyAction}
         {deleteAction}
         {resetAction}
+      <MenuEditorSaveFeedback error={finalSaveError} issues={[
+        ...(nameInvalid ? [{ message: `${labels.categoryLabel} 이름을 입력해 주세요.`, fieldName: "category_name" }] : []),
+        ...(editingPriceColumn ? [{ message: "수정 중인 가격 옵션을 먼저 등록해 주세요." }] : []),
+        ...(categoryPriceColumnValidationMessage ? [{ message: categoryPriceColumnValidationMessage }] : []),
+      ]} />
       </div>
+
       {!basicEditor && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {draftOnly && !basicEditor && (
         <>
@@ -3117,6 +3129,7 @@ function MenuItemForm({
   basicEditor = false,
   onFinalSave,
   finalSavePending = false,
+  finalSaveError,
   categories,
   capabilities,
   aiDescriptionUsage,
@@ -3160,6 +3173,7 @@ function MenuItemForm({
   basicEditor?: boolean;
   onFinalSave?: () => void;
   finalSavePending?: boolean;
+  finalSaveError?: string | null;
   categories: MenuCategory[];
   capabilities: TemplateCapabilities;
   aiDescriptionUsage: { used: number; limit: number };
@@ -5224,11 +5238,7 @@ function MenuItemForm({
               </SubmitButton>
             )}
             {deleteAction}
-            {itemSaveDisabledReason && (
-              <p className="basis-full break-keep text-right text-support font-medium leading-relaxed text-amber-700">
-                {itemSaveDisabledReason}
-              </p>
-            )}
+
           </>
         ) : (
           <SubmitButton
@@ -5242,7 +5252,12 @@ function MenuItemForm({
             수정 내용 반영
           </SubmitButton>
         )}
+      <MenuEditorSaveFeedback error={finalSaveError} formId={formId} issues={itemSaveDisabledReason ? [{
+        message: itemSaveDisabledReason,
+        fieldName: nameInvalid ? "item_name" : categoryInvalid ? "item_category_id" : singlePriceInvalid ? isDirectPriceTextMode ? "item_price_label" : "item_price" : undefined,
+      }] : []} />
       </div>
+
       {draftOnly && !basicEditor && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {descriptionOverwritePending ? (
         <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -9403,7 +9418,7 @@ export default function MenuManagementSection({
             </div>
             {hasActiveWidgetEditorChanges && (
               <p className="site-notice site-notice-warning mt-3 px-3 py-2 text-support font-medium leading-relaxed">
-                현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
+                {basicEditor ? "위젯을 최종 저장한 뒤 순서를 변경해 주세요." : "현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요."}
               </p>
             )}
             {!basicEditor && menuWidgetCapability.enabled && (
@@ -9772,8 +9787,8 @@ export default function MenuManagementSection({
                 mode={activeWidgetEditor.mode}
                 basicEditor={basicEditor}
                 finalSavePending={basicFinalSavePending}
+                  finalSaveError={basicEditor ? menuFinalSaveError || (timeSaleLimitExceeded ? timeSaleLimitMessage : null) : undefined}
                 finalSaveDisabled={timeSaleLimitExceeded || (!menuManagementDirty && !hasWidgetEditorChanges(activeWidgetEditor))}
-                finalSaveError={menuFinalSaveError}
                 onFinalSave={() => {
                   if (!basicFinalSavePending && commitActiveWidgetEditor(false)) requestBasicFinalSave();
                 }}
@@ -9862,6 +9877,7 @@ export default function MenuManagementSection({
                   basicEditor={basicEditor}
                   onFinalSave={requestBasicFinalSave}
                   finalSavePending={basicFinalSavePending}
+                  finalSaveError={basicEditor ? menuFinalSaveError || (timeSaleLimitExceeded ? timeSaleLimitMessage : null) : undefined}
                   labels={labels}
                   draftOnly
                   draftName={draftTarget?.type === "category" ? draftTarget.title : undefined}
@@ -9910,6 +9926,7 @@ export default function MenuManagementSection({
                   basicEditor={basicEditor}
                   onFinalSave={requestBasicFinalSave}
                   finalSavePending={basicFinalSavePending}
+                  finalSaveError={basicEditor ? menuFinalSaveError || (timeSaleLimitExceeded ? timeSaleLimitMessage : null) : undefined}
                   labels={labels}
                   draftOnly
                   draftName={categoryBasicDrafts[selectedCategory.id]?.name ?? selectedCategory.name}
@@ -9981,6 +9998,7 @@ export default function MenuManagementSection({
                   basicEditor={basicEditor}
                   onFinalSave={requestBasicFinalSave}
                   finalSavePending={basicFinalSavePending}
+                  finalSaveError={basicEditor ? menuFinalSaveError || (timeSaleLimitExceeded ? timeSaleLimitMessage : null) : undefined}
                   menuId={menuId}
                   categories={categoriesForPage}
                   capabilities={capabilities}
@@ -10061,6 +10079,7 @@ export default function MenuManagementSection({
                   basicEditor={basicEditor}
                   onFinalSave={requestBasicFinalSave}
                   finalSavePending={basicFinalSavePending}
+                  finalSaveError={basicEditor ? menuFinalSaveError || (timeSaleLimitExceeded ? timeSaleLimitMessage : null) : undefined}
                   cancelLabel={basicEditor || itemEditorEntryMode === "list" ? "목록으로" : "취소"}
                   isConfirmingDelete={confirmingDeleteKey === `item:${selectedEditingItem.id}`}
                   onEdit={(trigger) => startEditItem(selectedEditingItem.id, trigger)}
@@ -10311,28 +10330,19 @@ export default function MenuManagementSection({
                 <DisplayMenuQualityNoticeBox notice={selectedPageDisplayQualityNotice} />
               </div>
             ) : null}
-            {timeSaleLimitExceeded ? (
-              <p className="site-notice site-notice-warning mb-4 px-4 py-3 text-center text-support font-medium leading-relaxed">
-                {timeSaleLimitMessage}
-              </p>
-            ) : null}
+
             {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem && !activeWidgetEditor)) && <FinalActionRow>
               {sampleResetButton}
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 {finalSaveLabel}
               </SubmitButton>
-              {menuFinalSaveError && (
-                <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
-                  {menuFinalSaveError}
-                </p>
-              )}
+              <MenuEditorSaveFeedback error={menuFinalSaveError} issues={timeSaleLimitExceeded ? [{ message: timeSaleLimitMessage }] : []} />
               {menuManagementDirty && (
                 <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
                   아직 저장되지 않은 변경사항이 있습니다. {finalSaveLabel}을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
                 </p>
               )}
             </FinalActionRow>}
-            {basicEditor && (showCategorySettings || editingItemId) && menuFinalSaveError && <p role="alert" className="type-body-sm text-red-600">{menuFinalSaveError}</p>}
           </form>
         </div>
         {isMenuCleanupOpen && (
@@ -10619,6 +10629,7 @@ function MenuItemCard({
   basicEditor = false,
   onFinalSave,
   finalSavePending = false,
+  finalSaveError,
   cancelLabel,
   draftItem,
   committedDraftItem,
@@ -10659,6 +10670,7 @@ function MenuItemCard({
   basicEditor?: boolean;
   onFinalSave?: () => void;
   finalSavePending?: boolean;
+  finalSaveError?: string | null;
   cancelLabel: string;
   draftItem?: ItemBasicDraft;
   committedDraftItem?: ItemBasicDraft;
@@ -10728,6 +10740,7 @@ function MenuItemCard({
             basicEditor={basicEditor}
             onFinalSave={onFinalSave}
             finalSavePending={finalSavePending}
+            finalSaveError={finalSaveError}
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}

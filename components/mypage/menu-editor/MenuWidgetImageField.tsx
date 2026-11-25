@@ -16,6 +16,9 @@ type WidgetImageUploadResponse = {
 };
 
 type MenuWidgetImageFieldProps = {
+  inputId?: string;
+  invalid?: boolean;
+  errorId?: string;
   menuSiteId: string;
   menuPageId: string;
   widgetId: string;
@@ -30,6 +33,9 @@ type MenuWidgetImageFieldProps = {
 };
 
 export default function MenuWidgetImageField({
+  inputId,
+  invalid,
+  errorId,
   menuSiteId,
   menuPageId,
   widgetId,
@@ -42,7 +48,8 @@ export default function MenuWidgetImageField({
   editorLayout = false,
   onPendingChange,
 }: MenuWidgetImageFieldProps) {
-  const fileNameId = useId();
+  const generatedId = useId();
+  const fileNameId = inputId ?? generatedId;
   const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -137,9 +144,9 @@ export default function MenuWidgetImageField({
         disabled={isUploading || isRemoving} aria-label="위젯 이미지 파일 선택"
         onChange={event => { const file = event.currentTarget.files?.[0]; if (file) void uploadImage(file); }} />
       <div className="site-editor-file-row">
-        <input id={fileNameId} className="site-field site-input" readOnly value={hasImage ? fileName || "등록된 이미지" : ""} placeholder="선택한 파일 없음" />
-        <button type="button" className="site-button site-button-primary" disabled={isUploading || isRemoving}
-          onClick={() => fileInputRef.current?.click()}>{isUploading ? "업로드 중…" : "파일 선택"}</button>
+        <input id={fileNameId} aria-invalid={invalid || undefined} aria-describedby={invalid ? errorId : undefined} className="site-field site-input" readOnly value={hasImage ? fileName || "등록된 이미지" : ""} placeholder="선택한 파일 없음" />
+        <button id={`${fileNameId}-choose`} aria-describedby={invalid ? errorId : undefined} type="button" className="site-button site-button-primary" disabled={isUploading || isRemoving}
+          onClick={() => fileInputRef.current?.click()}>{isUploading ? "업로드 중…" : hasImage ? "이미지 교체" : "파일 선택"}</button>
       </div>
       {hasImage && <div className="site-editor-image-preview">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -181,8 +188,11 @@ export default function MenuWidgetImageField({
                 const file = event.currentTarget.files?.[0];
                 if (file) void uploadImage(file);
               }}
-              className="block max-w-full text-support font-medium text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-support file:font-bold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="hidden"
             />
+            <button type="button" disabled={isUploading || isRemoving} className="site-button site-button-primary" onClick={() => fileInputRef.current?.click()}>
+              {isUploading ? "업로드 중…" : hasImage ? "이미지 교체" : "파일 선택"}
+            </button>
             {hasImage && (
               <button
                 type="button"

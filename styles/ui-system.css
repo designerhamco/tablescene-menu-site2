@@ -714,7 +714,7 @@ textarea.site-field,
     [type="hidden"]
   ):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):read-only:not(:disabled) {
   cursor: text;
-  border-color: var(--ui-border);
+  border-color: var(--ui-readonly-field-border, var(--ui-border));
   background: var(--ui-surface-muted);
   color: var(--ui-text-muted);
   box-shadow: none;
@@ -723,7 +723,7 @@ textarea.site-field,
 
 :is(input, textarea).site-field:read-only:not(:disabled):focus:not(:focus-visible),
 :where(input, textarea):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):read-only:not(:disabled):focus:not(:focus-visible) {
-  border-color: var(--ui-border);
+  border-color: var(--ui-readonly-field-border, var(--ui-border));
   outline: none;
   box-shadow: none;
 }
@@ -750,6 +750,7 @@ textarea.site-field,
 
 .site-field[aria-invalid="true"]:not(:disabled),
 :where(input, textarea, select):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *)[aria-invalid="true"]:not(:disabled) {
+  --ui-readonly-field-border: var(--ui-danger);
   border-color: var(--ui-danger);
   outline-color: var(--ui-danger);
 }

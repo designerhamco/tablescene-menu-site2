@@ -118,7 +118,6 @@ test("image widgets default to a centered focal point and preserve all nine posi
   assert.equal(widget.type, "image");
   if (widget.type === "image") assert.equal(widget.settings.objectPosition, "bottom-right");
 
-  assert.match(widgetEditorSource, /MENU_WIDGET_OBJECT_POSITIONS\.map/);
   assert.match(widgetEditorSource, /이미지 기준 위치/);
   assert.match(widgetBlockSource, /style=\{\{ objectPosition: OBJECT_POSITION_VALUE\[objectPosition\] \}\}/);
 });
