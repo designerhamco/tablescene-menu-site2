@@ -36,9 +36,8 @@ export function getCatalogIndustryLabel(categories: readonly TemplateCategoryKey
   return CATALOG_INDUSTRIES.filter(industry=>industry.key!=='all'&&industry.categories.some(category=>categories.includes(category)))
     .map(industry=>industry.label).join(' · ') || fallback;
 }
-export function getCatalogPricing(service: 'basic'|'dining', kind: CatalogKind) {
-  const access=kind==='standard'?'standard':'all';
-  return {regularMonthly:getMenuPlanMonthlyPrice(service,access,'regular'),earlyBirdMonthly:getMenuPlanMonthlyPrice(service,access,'earlyBird')};
+export function getCatalogPricing(service: 'basic'|'dining', _kind: CatalogKind) {
+  return {regularMonthly:getMenuPlanMonthlyPrice(service,'all','regular'),earlyBirdMonthly:getMenuPlanMonthlyPrice(service,'all','earlyBird')};
 }
 export function getCatalogStartHref(service: CatalogService, templateKey: string, designId: string) {
   if(service==='display') return `/apply/display?template=${templateKey}`;

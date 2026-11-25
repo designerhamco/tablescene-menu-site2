@@ -2,6 +2,7 @@
 import { menuPatternBandRenderProps } from "@/lib/menu-pattern-bands";
 import { measureMenuHeaderContentHeight } from "@/lib/menu-header-measurement";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
+import { readMenuDecorations } from "@/lib/menu-decorations";
 import { getRepresentativeRailGeometry, getRelocatedCenterRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 
@@ -64,8 +65,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   const top = shell === "brand_top_band";
   const leftLogo = top && getOnePageTopRowAlignment(key) === "left";
   const panel = shell === "brand_panel_flow";
-  const columnDividers = hasMenuColumnDivider(key);
-  const dividerGeometry = getMenuColumnDividerGeometry("var(--native-gap)");
+  const columnDividers = !center && hasMenuColumnDivider(key, data.menuSite.page_settings);
+  const dividerGeometry = getMenuColumnDividerGeometry("var(--native-gap)", readMenuDecorations(data.menuSite.page_settings).columnDivider?.width);
   const mocha = data.templateSkin === "mocha_forest";
   const capabilities = useMemo(() => getTemplateCapabilities(key), [key]);
   const typography = mergeTypographySettings(key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
@@ -104,7 +105,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       }
       const columns = getCategoryPriceRailColumns({ category: block.category, items: block.items, timeSaleByItemId: sales, templateKey: key, priceDisplayMode: priceMode, nowMs: now });
       result.push({ id: `heading-${block.key}`, group: block.key, kind: "heading", node: <>
-        {block.showDividerBeforeCategory ? <div className="cafe-a-menu-category-top-divider" aria-hidden="true" /> : null}
+        {block.showDividerBeforeCategory ? <div className="cafe-a-menu-category-top-divider" data-cafe-a-category-divider="" aria-hidden="true" /> : null}
         <CafeACategoryTitle category={block.category} density="default" priceRailColumns={columns} />
       </> });
       for (const item of block.items) result.push({ id: item.id, group: block.key, kind: "item", node: <CafeAMenuItemRow item={item} category={block.category} priceOptions={data.priceOptions} traits={data.traits.filter(trait => trait.menu_item_id === item.id && trait.visible !== false)} capabilities={capabilities} density="default" templateKey={key} timeSale={sales.get(item.id)} customBadgeStyles={badges} locale={data.locale} priceDisplayMode={priceMode} priceRailColumns={columns} previewDevice={device} pagePresentation="one" onOpenImage={openImage} /> });
@@ -311,7 +312,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
               <div ref={tracks} className={styles.tracks} data-native-tracks>
                 {layout.columns.map((column, index) => <div key={index} className={styles.column} data-native-column={index + 1} data-mocha-panel={mocha ? index === layout.columns.length - 1 ? "green" : "ivory" : undefined}>
                   {columnDividers && index > 0 ? <span className={styles.columnRule} data-menu-category-decoration="" data-menu-column-divider="" aria-hidden="true" /> : null}
-                  {column.map((block, i) => <div key={block.id} className={styles.unit} data-native-unit={block.id} data-kind={block.kind} style={{ paddingBottom: i === column.length - 1 ? 0 : block.gapAfter }}>{units.find(unit => unit.id === block.id)?.node}</div>)}
+                  {column.map((block, i) => <div key={block.id} className={styles.unit} data-native-unit={block.id} data-kind={block.kind} data-menu-column-start={i === 0 ? "" : undefined} style={{ paddingBottom: i === column.length - 1 ? 0 : block.gapAfter, "--decoration-item-gap": `${block.gapAfter ?? 0}px` } as CSSProperties}>{units.find(unit => unit.id === block.id)?.node}</div>)}
                   {index === layout.footerColumn ? noticeNode : null}
                 </div>)}
                 {!units.length ? <p>{t("메뉴를 준비하고 있어요.")}</p> : null}

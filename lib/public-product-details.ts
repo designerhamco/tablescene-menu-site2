@@ -13,8 +13,6 @@ export type PublicBasicProduct = {
   summary: string;
   price: number;
   regularPrice: number;
-  designPrice: number;
-  designRegularPrice: number;
   standardDesignId: string;
   billingLabel: string;
   servicePeriod: string;
@@ -28,12 +26,10 @@ export const publicBasicProducts: readonly PublicBasicProduct[] = [
     slug: "dining-single-monthly",
     productKey: businessBasicMonthlyProduct.product_key,
     name: businessBasicMonthlyProduct.name,
-    shortName: "베이직 기본 디자인 월 구독",
-    summary: "베이직 메뉴판 1개를 매월 구독합니다. 기본 디자인끼리 교체할 수 있으며, 디자인 포함 이용권을 선택하면 디자인 템플릿도 사용할 수 있습니다. 계정당 최초 1회는 30일간 무료로 이용할 수 있습니다.",
+    shortName: "베이직 월 구독",
+    summary: "베이직 메뉴판 1개를 매월 구독합니다. 같은 서비스의 기본 디자인과 디자인 템플릿을 추가 요금 없이 교체할 수 있습니다. 계정당 최초 1회는 30일간 무료로 이용할 수 있습니다.",
     price: getMenuPlanMonthlyPrice("basic", "standard", "earlyBird"),
     regularPrice: getMenuPlanMonthlyPrice("basic", "standard", "regular"),
-    designPrice: getMenuPlanMonthlyPrice("basic", "all", "earlyBird"),
-    designRegularPrice: getMenuPlanMonthlyPrice("basic", "all", "regular"),
     standardDesignId: "basic-first-column",
     billingLabel: "매월 자동결제",
     servicePeriod: "무료체험 대상은 등록일부터 30일, 이후 첫 결제일부터 1개월 단위로 자동 갱신",
@@ -48,12 +44,10 @@ export const publicBasicProducts: readonly PublicBasicProduct[] = [
     slug: "dining-multi-monthly",
     productKey: businessBasicMultiMonthlyProduct.product_key,
     name: businessBasicMultiMonthlyProduct.name,
-    shortName: "다이닝 기본 디자인 월 구독",
-    summary: "다이닝 메뉴판 1개를 매월 구독합니다. 기본 디자인끼리 교체할 수 있으며, 디자인 포함 이용권을 선택하면 디자인 템플릿도 사용할 수 있습니다. 계정당 최초 1회는 30일간 무료로 이용할 수 있습니다.",
+    shortName: "다이닝 월 구독",
+    summary: "다이닝 메뉴판 1개를 매월 구독합니다. 같은 서비스의 기본 디자인과 디자인 템플릿을 추가 요금 없이 교체할 수 있습니다. 계정당 최초 1회는 30일간 무료로 이용할 수 있습니다.",
     price: getMenuPlanMonthlyPrice("dining", "standard", "earlyBird"),
     regularPrice: getMenuPlanMonthlyPrice("dining", "standard", "regular"),
-    designPrice: getMenuPlanMonthlyPrice("dining", "all", "earlyBird"),
-    designRegularPrice: getMenuPlanMonthlyPrice("dining", "all", "regular"),
     standardDesignId: "dining-full-page",
     billingLabel: "매월 자동결제",
     servicePeriod: "무료체험 대상은 등록일부터 30일, 이후 첫 결제일부터 1개월 단위로 자동 갱신",

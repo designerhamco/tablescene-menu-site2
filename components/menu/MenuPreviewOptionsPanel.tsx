@@ -9,12 +9,14 @@ import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-de
 import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import PreviewDesignOptions from "./PreviewDesignOptions";
+import PreviewDecorationOptions from "./PreviewDecorationOptions";
+import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 import designStyles from "./PreviewDesignOptions.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, patternBandsAvailable, alignmentDisabled = false, featureContent, designContent, designOnly = false }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, device, patternBandsAvailable, alignmentDisabled = false, featureContent, designContent, designOnly = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -31,6 +33,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   design: PreviewDesign;
   onDesignChange: (value: PreviewDesign) => void;
   album: boolean;
+  device?: MenuPreviewDevice;
   patternBandsAvailable?: boolean;
   alignmentDisabled?: boolean;
   featureContent?: ReactNode;
@@ -40,7 +43,8 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
   const count = choices.filter(([key]) => values[key]).length;
-  const patternOption = patternBandsAvailable ? <fieldset data-preview-pattern-bands>
+  const decorationsAvailable = Boolean(defaults?.decorations);
+  const patternOption = !decorationsAvailable && patternBandsAvailable ? <fieldset data-preview-pattern-bands>
     <legend className={designStyles.legend}>상·하단 패턴 띠<InfoTooltip layer="preview" label="패턴 띠 도움말">패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요.</InfoTooltip></legend>
     <div className={styles.choices}>
       <label className={`${styles.choice} ${designStyles.choice}`}>
@@ -66,12 +70,13 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       <Palette className={styles.palette} size={22} aria-hidden="true" /><span className={styles.label}>보기 옵션</span><span className={styles.count}>{groups.length && tab === "features" ? `${count}/${choices.length} 선택` : "디자인 미리보기"}</span><ChevronLeft className={styles.chevron} size={16} aria-hidden="true" />
     </button>
     <div id="preview-display-options" className={styles.body} hidden={!open}>
-      {designOnly ? designPanel : !groups.length ? <div className={designStyles.panel}>{patternOption}</div> : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
+      {designOnly && !decorationsAvailable ? designPanel : !groups.length && !decorationsAvailable ? <div className={designStyles.panel}>{patternOption}</div> : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
         <TabsList size="sm" distribution="equal" aria-label="미리보기 옵션 종류" className="w-full">
-          <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger>
+          {!designOnly && groups.length > 0 ? <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger> : null}
           <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>
+          {decorationsAvailable ? <TabsTrigger value="decorations" id="preview-decorations-tab" aria-controls="preview-decorations-panel">장식 기능</TabsTrigger> : null}
         </TabsList>
-        <TabsContent value="features" id="preview-features-panel" aria-labelledby="preview-features-tab" data-preview-display-options>
+        {!designOnly && groups.length > 0 ? <TabsContent value="features" id="preview-features-panel" aria-labelledby="preview-features-tab" data-preview-display-options>
         <div className="site-stack-block">
           <div className="site-action-row" data-distribution="end"><Button type="button" variant="outline" size="compact" onClick={onFeatureReset} disabled={pending || !canResetFeatures} data-preview-feature-reset>기능 초기화</Button></div>
         <div className={styles.groups}>{groups.map(group => <fieldset key={group.label} className={styles.group}>
@@ -81,10 +86,13 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         </fieldset>)}</div>
         {featureContent}
         </div>
-        </TabsContent>
+        </TabsContent> : null}
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
         {designPanel}
         </TabsContent>
+        {decorationsAvailable && defaults ? <TabsContent value="decorations" id="preview-decorations-panel" aria-labelledby="preview-decorations-tab">
+          <PreviewDecorationOptions value={design} defaults={defaults} renderedDesign={renderedDesign} album={album} device={device} disabled={pending} savedFallback={designOnly} onChange={onDesignChange} />
+        </TabsContent> : null}
       </Tabs>}
     </div>
   </aside>;

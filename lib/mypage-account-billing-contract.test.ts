@@ -85,14 +85,14 @@ test("직원 관리에서도 사장 계정 요약의 회사명과 두 지표를 
   assert.match(source, /staffAccountCount=\{new Set\(activeMemberships/);
 });
 
-test("구독 변경은 서버의 실제 자격 확인 후 관리 버튼 다음의 독립 창으로 연다", () => {
+test("기존 변경 예약만 관리 버튼 다음의 독립 창으로 연다", () => {
   const management = readFileSync(new URL("../components/mypage/SubscriptionManagementModal.tsx", import.meta.url), "utf8");
   const modal = readFileSync(new URL("../components/mypage/MenuPlanChangeModal.tsx", import.meta.url), "utf8");
   assert.match(mypageSource, /getMenuPlanChangeDetail\(admin, subscription.id!, user.id\)/);
-  assert.match(mypageSource, /detail\?\.eligible && detail.pending\?\.state !== "processing"/);
+  assert.match(mypageSource, /detail\?\.pending/);
   assert.match(management, /canChangePlan && canManage && status === "active" && !cancelAtPeriodEnd && !restoredNotice/);
   assert.doesNotMatch(management, /<MenuPlanChangePanel/);
   assert.match(modal, /<DialogTrigger asChild>/);
-  assert.match(modal, /<DialogTitle>구독 변경<\/DialogTitle>/);
+  assert.match(modal, /<DialogTitle>기존 변경 예약<\/DialogTitle>/);
   assert.match(modal, /<MenuPlanChangePanel subscriptionId=\{subscriptionId\}/);
 });

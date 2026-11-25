@@ -16,9 +16,18 @@ type MenuWidgetTypePickerProps = {
   value: MenuWidgetType;
   onChange: (value: MenuWidgetType) => void;
   disabled?: boolean;
+  compact?: boolean;
 };
 
-export default function MenuWidgetTypePicker({ value, onChange, disabled = false }: MenuWidgetTypePickerProps) {
+export default function MenuWidgetTypePicker({ value, onChange, disabled = false, compact = false }: MenuWidgetTypePickerProps) {
+  if (compact) {
+    return <div className="site-action-row site-editor-widget-choices" role="group" aria-label="위젯 유형">
+      {TYPE_OPTIONS.map(option => <button key={option.value} type="button" disabled={disabled}
+        className="site-choice site-choice-control" aria-pressed={value === option.value}
+        onClick={() => onChange(option.value)}>{option.label}</button>)}
+    </div>;
+  }
+
   return (
     <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="위젯 유형">
       {TYPE_OPTIONS.map((option) => {

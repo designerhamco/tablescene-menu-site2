@@ -56,7 +56,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             {info.selectable ? <div className={styles.purchase}>
               <div className={styles.priceHeader}><span className="type-plan-title">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
               <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
-              {!info.display && <p className="type-body-sm mt-3 text-zinc-600">{standard ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>}
+              {!info.display && <p className="type-body-sm mt-3 text-zinc-600">같은 서비스의 모든 지원 템플릿으로 추가 요금 없이 교체할 수 있습니다.</p>}
             </div> : null}
           </TemplateDetailSidebar>
           <TemplateDetailStory template={template} />

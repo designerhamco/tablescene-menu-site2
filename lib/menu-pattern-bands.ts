@@ -1,5 +1,6 @@
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { usesOnePageProportionPolicy } from "./one-page-proportion-policy";
+import { readMenuDecorations } from "./menu-decorations";
 
 export const MENU_PATTERN_BAND_THICKNESSES = [8, 12, 16, 20, 24, 28, 32] as const;
 export const MENU_PATTERN_DEFAULT_THICKNESS = 16;
@@ -43,7 +44,7 @@ function readPatternImage(value: unknown): PatternImage | undefined {
 export function getMenuPatternBands(templateKey: string | null | undefined, pageSettings: unknown): MenuPatternBands {
   const saved = record(record(record(pageSettings).design).patternBands);
   return {
-    enabled: typeof saved.enabled === "boolean" ? saved.enabled : templateKey === "fast_food_loop_bagel_a",
+    enabled: readMenuDecorations(pageSettings).patternBands ?? (typeof saved.enabled === "boolean" ? saved.enabled : templateKey === "fast_food_loop_bagel_a"),
     thickness: isMenuPatternBandThickness(saved.thickness) ? saved.thickness : undefined,
     image: readPatternImage(saved.image),
   };

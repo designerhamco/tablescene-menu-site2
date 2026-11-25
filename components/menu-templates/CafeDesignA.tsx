@@ -69,6 +69,8 @@ import { resolvedMenuTextColors } from "@/lib/menu-text-colors";
 import { getMenuDesignBackgrounds, getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateContentSeparatorRules, shouldShowCategoryContentDivider } from "@/lib/template-content-separator-rules";
+import { readMenuDecorations, supportsMenuDecorations } from "@/lib/menu-decorations";
+import { useMenuDecorations } from "./shared/MenuDecorationContext";
 import { getMenuLayoutDensity, getTemplateLayoutRules, type MenuLayoutDensity } from "@/lib/template-layout-rules";
 import {
   getCustomTypographySettings,
@@ -925,6 +927,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
   const shouldRenderWidgets = getTemplateCapabilities(data.menuSite.template_key).menuWidgets.enabled;
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
+  const categoryDivider = supportsMenuDecorations(data.menuSite.template_key, data.pagePresentation) ? readMenuDecorations(data.menuSite.page_settings).categoryDivider?.visible : undefined;
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 
   return visiblePages
@@ -981,7 +984,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
               ...block,
               previousVisibleBlockType,
               nextVisibleBlockType,
-              showDividerBeforeCategory: shouldShowCategoryContentDivider(separatorRules, previousVisibleBlockType !== null),
+              showDividerBeforeCategory: categoryDivider === undefined ? shouldShowCategoryContentDivider(separatorRules, previousVisibleBlockType !== null) : categoryDivider && previousVisibleBlockType === "category",
             }
           : {
               ...block,
@@ -1563,6 +1566,7 @@ function MenuItemRow({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
+  const { decorations, album } = useMenuDecorations();
   const referenceDevice = useMenuCoverRenderDevice(previewDevice);
   const isSoldOut = item.is_sold_out === true;
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
@@ -1828,7 +1832,8 @@ function MenuItemRow({
       data-cafe-a-image-title-only={hasItemImage && !hasContentAfterTitle ? "" : undefined}
       data-cafe-a-item-rhythm={usesOnePageProportionFitPolicy(templateKey, previewDevice) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
       data-cafe-a-menu-item=""
-      data-menu-item-separator={pagePresentation === "one" && getTemplateContentSeparatorRules(templateKey).itemDivider === "between-items" ? "" : undefined}
+      data-menu-leader-eligible={priceTokens.length > 0 && item.price_visible !== false && !stackPriceOption && !(referenceDevice === "mobile" && hasItemImage && usesPriceColumns && priceTokens.length === 3) ? "" : undefined}
+      data-menu-item-separator={!album && pagePresentation === "one" && (decorations.itemDivider?.visible ?? getTemplateContentSeparatorRules(templateKey).itemDivider === "between-items") ? "" : undefined}
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
       data-cafe-a-tablet-price-layout={stackPriceOption ? "stacked" : undefined}
     >

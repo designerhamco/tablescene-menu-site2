@@ -1,6 +1,5 @@
 import { getCatalogDesign, catalogDesigns } from './catalog-designs';
-import { getMenuPlanMonthlyPrice, menuPlanPricebook } from './menu-plan-pricing';
-import { MENU_PLAN_CONTRACT_VERSION, canSelectMenuDesign } from './menu-plan-contract';
+import { getLegacyMenuPlanMonthlyPrice, legacyMenuPlanPricebook } from './menu-plan-pricing';
 import { isOpenDiscountPeriod } from './promotion-policy';
 import type { MenuDesignAccess, MenuService } from './menu-design-policy';
 
@@ -28,14 +27,16 @@ export function planChangeEligibility(subscription:PlanChangeSubscription,site:P
   if(!subscription.next_billing_at||!Number.isFinite(Date.parse(subscription.next_billing_at))||Date.parse(subscription.next_billing_at)<=now.getTime())return '결제 처리 중에는 변경을 예약할 수 없습니다.';
   return null;
 }
+/** Historical consent validation only. New reservations are retired. */
 export function quoteMenuPlanChange(subscription:PlanChangeSubscription,site:PlanChangeSite,access:unknown,designId:unknown,now=new Date()):MenuPlanChangeQuote {
   const reason=planChangeEligibility(subscription,site,now);if(reason)throw new Error(reason);
   const service=getPlanChangeService(site)!;
-  if((access!=='standard'&&access!=='all')||!canSelectMenuDesign(service,access,designId))throw new Error('선택한 이용권에서 사용할 디자인을 확인해 주세요.');
+  const design=getCatalogDesign(designId);
+  if((access!=='standard'&&access!=='all')||!design||design.service!==service||(access==='standard'&&design.kind!=='standard'))throw new Error('선택한 이용권에서 사용할 디자인을 확인해 주세요.');
   // An unbroken new-plan early-bird contract retains its offer when changing access.
-  const retainedEarlyBird=subscription.menu_plan_version&&subscription.menu_design_access&&subscription.amount===getMenuPlanMonthlyPrice(service,subscription.menu_design_access,'earlyBird');
+  const retainedEarlyBird=subscription.menu_plan_version&&subscription.menu_design_access&&subscription.amount===getLegacyMenuPlanMonthlyPrice(service,subscription.menu_design_access,'earlyBird');
   const offer=isOpenDiscountPeriod(now)||retainedEarlyBird?'earlyBird':'regular';
-  return {productKey:service==='basic'?'business_basic_single_monthly':'business_basic_multi_monthly',service,access,designId:String(designId),amount:getMenuPlanMonthlyPrice(service,access,offer),currency:'KRW',billingCycle:'monthly',effectiveAt:subscription.next_billing_at!,contractVersion:MENU_PLAN_CONTRACT_VERSION,pricebookVersion:menuPlanPricebook.version,offer};
+  return {productKey:service==='basic'?'business_basic_single_monthly':'business_basic_multi_monthly',service,access,designId:String(designId),amount:getLegacyMenuPlanMonthlyPrice(service,access,offer),currency:'KRW',billingCycle:'monthly',effectiveAt:subscription.next_billing_at!,contractVersion:'2026-10-21',pricebookVersion:legacyMenuPlanPricebook.version,offer};
 }
 export function planChangeDesignChoices(service:MenuService) {return catalogDesigns.filter(d=>d.service===service).map(d=>({id:d.id,name:d.name,kind:d.kind,previewHref:d.previewHref}));}
 export function matchesPlanChangeConsent(quote:MenuPlanChangeQuote,consent:unknown) {

@@ -47,7 +47,7 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
     set({ chipColors: Object.values(next).some(Boolean) ? next : undefined });
   };
   return <div className={styles.panel} data-preview-design-options>
-    <div className={styles.intro}><button type="button" onClick={() => onChange({})} disabled={disabled || !Object.keys(value).length} className="site-button site-button-outline site-button-compact">{resetLabel}</button></div>
+    <div className={styles.intro}><button type="button" onClick={() => onChange(value.decorations === undefined ? {} : { decorations: value.decorations })} disabled={disabled || !Object.keys(value).some(key => key !== "decorations")} className="site-button site-button-outline site-button-compact">{resetLabel}</button></div>
     <fieldset><legend className={styles.legend}>배경색</legend><div className={styles.colorGrid} data-preview-backgrounds>
       <PreviewColorPicker savedFallback={savedFallback} label={dining ? "본문 페이지 배경색" : "페이지 배경색"} value={value.pageBackground} defaultColor={defaults.colors.page} onChange={pageBackground => set({ pageBackground })} disabled={disabled} />
       {dining ? <>

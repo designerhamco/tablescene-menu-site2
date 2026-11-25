@@ -11,10 +11,14 @@ import { readPreviewChipColors, resolvePreviewChipColors } from "@/lib/menu-prev
 import { getDefaultRepresentativeAlignment, menuSurfaceRecord, readMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
 import { MENU_TEXT_COLOR_GROUPS, resolvedMenuTextColors } from "@/lib/menu-text-colors";
 import { useRegularPriceColors } from "./useRegularPriceColors";
+import { menuDecorationScopeProps, readMenuDecorations, supportsMenuDecorations } from "@/lib/menu-decorations";
+import { MenuDecorationContext } from "./MenuDecorationContext";
 import styles from "./MenuAppearanceScope.module.css";
-export default function MenuAppearanceScope({ pageSettings, templateKey, designId, children }: { pageSettings: unknown; templateKey: string; designId?: string; children: ReactNode }) {
+export default function MenuAppearanceScope({ pageSettings, templateKey, designId, pagePresentation, children }: { pageSettings: unknown; templateKey: string; designId?: string; pagePresentation?: "one" | "multi"; children: ReactNode }) {
   const album = useDefaultAlbum(), basic = getTemplateCapabilities(templateKey).menuCover.coverMode === "section";
   const defaultLayout = useDefaultDesignLayout();
+  const decorations = supportsMenuDecorations(templateKey, pagePresentation) ? readMenuDecorations(pageSettings) : {};
+  const decorationProps = menuDecorationScopeProps(decorations, templateKey, Boolean(defaultLayout), album);
   const squareRepresentative = basic && (templateKey === "restaurant_onue_a" || defaultLayout === "basic-upper-left");
   const supportsShapes = basic || isAubeTableTemplate(templateKey);
   const supportsCorners = supportsShapes || templateKey === "display_menu_a";
@@ -40,11 +44,11 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
   const titleColors = getTypographyTitleColorOverrides(templateKey,pageSettings);
   const sidebarInk = backgrounds.sidebar && menuColorContrast(backgrounds.sidebar,"#ffffff") >= 4.5 ? "#ffffff" : "#191c1b";
   const style = { ...textColorStyle, ...chipColorStyle, ...menuAppearanceStyle(appearance,supportsCorners,album), ...(alignment ? {"--menu-representative-align":alignment,"--menu-representative-justify":alignment === "left" ? "flex-start" : alignment === "right" ? "flex-end" : "center","--menu-representative-logo-start":alignment === "left" ? "0px" : "auto","--menu-representative-logo-end":alignment === "right" ? "0px" : "auto"}:{}), ...(isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? {"--menu-cover-description-ink":surfaces.coverDescriptionColor}:{}), ...(titleColors.brand ? {"--menu-design-brand-ink":titleColors.brand}:{}), ...(titleColors.category ? {"--menu-design-category-ink":titleColors.category}:{}), ...(backgrounds.page ? {"--menu-design-page-bg":backgrounds.page}:{}), ...(backgrounds.auxiliary ? {"--menu-design-aux-bg":backgrounds.auxiliary}:{}), ...(backgrounds.sidebar ? {"--menu-design-sidebar-bg":backgrounds.sidebar,"--menu-design-sidebar-ink":sidebarInk}:{}) } as CSSProperties;
-  return <div ref={scopeRef} className={styles.scope} data-menu-appearance={templateKey}
+  return <MenuDecorationContext value={{ decorations, album }}><div ref={scopeRef} className={styles.scope} data-menu-appearance={templateKey} data-decoration-neutral={basic && defaultLayout ? "true" : undefined} {...decorationProps.attributes}
     data-text-color-brand={supportsShapes && textColors.brand ? "custom" : undefined} data-text-color-category={supportsShapes && textColors.category ? "custom" : undefined}
     data-text-color-page-title={isAubeTableTemplate(templateKey) && textColors.pageTitle ? "custom" : undefined}
     data-text-color-price={isAubeTableTemplate(templateKey) && textColors.price ? "custom" : undefined}
-    data-text-color-product={supportsShapes && textColors.product ? "custom" : undefined} data-text-color-representative={supportsShapes && textColors.representative ? "custom" : undefined} data-text-color-supporting={supportsShapes && textColors.supporting ? "custom" : undefined} data-text-color-information={supportsShapes && textColors.information ? "custom" : undefined} style={style} data-menu-appearance-basic={basic ? "true" : undefined} data-representative-align={alignment} data-cover-description-ink={isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? "custom" : undefined}
+    data-text-color-product={supportsShapes && textColors.product ? "custom" : undefined} data-text-color-representative={supportsShapes && textColors.representative ? "custom" : undefined} data-text-color-supporting={supportsShapes && textColors.supporting ? "custom" : undefined} data-text-color-information={supportsShapes && textColors.information ? "custom" : undefined} style={{ ...style, ...decorationProps.style }} data-menu-appearance-basic={basic ? "true" : undefined} data-representative-align={alignment} data-cover-description-ink={isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? "custom" : undefined}
     data-preview-chip-background={previewChipColors.generalBackground ? "custom" : undefined} data-preview-chip-text={previewChipColors.generalText ? "custom" : undefined}
     data-preview-sale-chip-background={previewChipColors.saleBackground ? "custom" : undefined} data-preview-sale-chip-text={previewChipColors.saleText ? "custom" : undefined}
     data-design-brand-ink={supportsShapes && titleColors.brand ? "custom" : undefined} data-design-category-ink={supportsShapes && titleColors.category ? "custom" : undefined}
@@ -52,5 +56,5 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
     data-square-representative={squareRepresentative ? "true" : undefined}
     data-radius-cover={basic && appearance.imageRadii.cover != null ? "custom" : undefined} data-radius-item={supportsCorners && appearance.imageRadii.item != null ? "custom" : undefined}
     data-radius-widget={supportsCorners && appearance.imageRadii.widget != null ? "custom" : undefined} data-radius-logo={supportsCorners && appearance.imageRadii.logo != null ? "custom" : undefined}
-    data-chip-shape={supportsCorners && appearance.chipShape !== "template" ? appearance.chipShape : undefined} data-album-image-ratio={album ? appearance.albumImageRatio : undefined}>{children}</div>;
+    data-chip-shape={supportsCorners && appearance.chipShape !== "template" ? appearance.chipShape : undefined} data-album-image-ratio={album ? appearance.albumImageRatio : undefined}>{children}</div></MenuDecorationContext>;
 }

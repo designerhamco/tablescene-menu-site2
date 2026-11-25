@@ -1,12 +1,48 @@
 import { IMAGE_RADIUS_PRESETS, MENU_SHAPE_PRESETS } from "./menu-appearance";
 import { MENU_TEXT_COLOR_GROUPS, type MenuTextColors, type MenuTextColorGroup } from "./menu-text-colors";
+import { MENU_DECORATION_STYLES, type MenuDecorationLine, type MenuLineDecoration } from "./menu-decorations";
 
 export type PreviewDesignSelection = { value: string; label?: string };
 export type PreviewRenderedDesign = {
   nativeTextColors: MenuTextColors;
   alignment: PreviewDesignSelection;
   radius: PreviewDesignSelection;
+  decorationStrokes?: Partial<Record<MenuDecorationLine, { width: number; style: NonNullable<MenuLineDecoration["style"]> }>>;
 };
+
+/** Read physical CSS pixels, including native responsive widths and dotted
+ * gradient artwork. These values describe the preview; they are never saved. */
+export function previewDecorationStroke(style: Pick<CSSStyleDeclaration, "borderTopWidth" | "borderTopStyle" | "borderBottomWidth" | "borderBottomStyle" | "borderInlineStartWidth" | "borderInlineStartStyle" | "width" | "height" | "backgroundImage">, key: MenuDecorationLine) {
+  const edge = key === "categoryUnderline" ? [style.borderBottomWidth, style.borderBottomStyle]
+    : key === "columnDivider" ? [style.borderInlineStartWidth, style.borderInlineStartStyle] : [style.borderTopWidth, style.borderTopStyle];
+  const border = parseFloat(edge[0]);
+  if (border > 0 && MENU_DECORATION_STYLES.includes(edge[1] as NonNullable<MenuLineDecoration["style"]>)) {
+    return { width: border, style: edge[1] as NonNullable<MenuLineDecoration["style"]> };
+  }
+  if (key === "categoryUnderline" || key === "categoryDivider") return;
+  const width = parseFloat(key === "columnDivider" ? style.width : style.height);
+  if (!(width > 0)) return;
+  return { width, style: key === "priceLeader" && style.backgroundImage.includes("radial-gradient") ? "dotted" as const : "solid" as const };
+}
+
+function readDecorationStrokes(root: Element, win: Window): NonNullable<PreviewRenderedDesign["decorationStrokes"]> {
+  const selectors: Record<MenuDecorationLine, string> = {
+    categoryUnderline: ".cafe-a-category-heading", columnDivider: "[data-menu-column-divider]",
+    categoryDivider: ".cafe-a-menu-category-top-divider", itemDivider: "[data-menu-item-separator]",
+    priceLeader: ".cafe-a-round-focus-price-leader",
+  };
+  const strokes: NonNullable<PreviewRenderedDesign["decorationStrokes"]> = {};
+  for (const key of Object.keys(selectors) as MenuDecorationLine[]) {
+    for (const element of root.querySelectorAll(selectors[key])) {
+      if (element.closest('[data-cafe-a-reference-copy], [data-native-measure], [data-paged-measure]')) continue;
+      const base = win.getComputedStyle(element);
+      if (base.visibility === "hidden" || base.display === "none" || !element.getBoundingClientRect().width) continue;
+      const stroke = previewDecorationStroke(key === "itemDivider" ? win.getComputedStyle(element, "::after") : base, key);
+      if (stroke) { strokes[key] = stroke; break; }
+    }
+  }
+  return strokes;
+}
 
 /** The picker edits RGB ink; native alpha/opacity stays in the renderer until edited. */
 export function previewCssColorHex(color: string): string | undefined {
@@ -138,5 +174,5 @@ export function readPreviewRenderedDesign(doc: Document): PreviewRenderedDesign 
   const resolvedImages = ["advertisement", ...(root.hasAttribute("data-radius-cover") ? ["cover"] : []), "item", "widget"]
     .map(key => style.getPropertyValue(`--menu-image-radius-${key}`).trim()).filter(Boolean);
   const resolvedChip = style.getPropertyValue("--menu-chip-radius").trim();
-  return { nativeTextColors, alignment, radius: previewRadiusSelection(resolvedImages.length ? resolvedImages : images, resolvedChip ? [resolvedChip] : chips) };
+  return { nativeTextColors, alignment, radius: previewRadiusSelection(resolvedImages.length ? resolvedImages : images, resolvedChip ? [resolvedChip] : chips), decorationStrokes: readDecorationStrokes(root, win) };
 }

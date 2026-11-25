@@ -1,7 +1,6 @@
-/** Product policy is independent of renderer keys and of mutable price amounts.
- * This registry is a review foundation; it does not enable production switching.
- */
+/** Template appearance/classification is independent of service pricing. */
 export type MenuService = "basic" | "dining";
+export type MenuTemplateService = MenuService | "display";
 export type MenuDesignAccess = "standard" | "all";
 export const MENU_LAYOUTS = {
   "basic-first-column": { service: "basic", label: "1열 고정형" },
@@ -22,9 +21,8 @@ export type MenuDesign = {
 };
 
 /** Access only; publication, ownership and payment checks remain separate gates. */
-export function canUseMenuDesign(service: MenuService, access: MenuDesignAccess, design: MenuDesign) {
-  return MENU_LAYOUTS[design.layout].service === service
-    && (design.kind === "standard" || access === "all");
+export function canUseMenuDesign(service: MenuService, _access: MenuDesignAccess, design: MenuDesign) {
+  return MENU_LAYOUTS[design.layout].service === service;
 }
 
 // Keep the legacy design entry so saved menus still resolve their original layout.

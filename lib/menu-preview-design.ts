@@ -11,11 +11,14 @@ import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getTemplateTimeSaleBadgeTextC
 import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
 import { getDiningTextColorDefaults, normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
+import { MENU_DECORATION_LINES, nativeMenuDecorationVisible, normalizeMenuDecorations, readMenuDecorations, supportsMenuDecorations, type MenuDecorationLine, type MenuDecorations } from "./menu-decorations";
+import { getMenuPatternBands, supportsMenuPatternBands } from "./menu-pattern-bands";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
 export type PreviewFontGroup = typeof PREVIEW_FONT_GROUPS[number];
 export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: EnglishFontValue };
 export type PreviewDesign = {
+  decorations?: MenuDecorations;
   hidePatternBands?: true;
   textColors?: MenuTextColors;
   textColorGroupsVersion?: 2;
@@ -38,6 +41,8 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   let source: Record<string, unknown>;
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
+  // An explicit empty snapshot clears saved overrides; an absent key preserves them.
+  if (source.decorations && typeof source.decorations === "object" && !Array.isArray(source.decorations)) result.decorations = normalizeMenuDecorations(source.decorations);
   if (source.hidePatternBands === true) result.hidePatternBands = true;
   if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
   if (source.diningTextColorGroupsVersion === 1 || source.diningTextColorGroupsVersion === 2 || source.diningTextColorGroupsVersion === 3) result.diningTextColorGroupsVersion = source.diningTextColorGroupsVersion;
@@ -81,6 +86,7 @@ export function previewDesignDefaults(data: MenuPageData) {
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
   const savedChips = readPreviewChipColors(record(record(data.menuSite.page_settings).design).chipColors);
   const saleBackground = savedChips.saleBackground ?? data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
+  const nativeDecorationPage = { ...record(data.menuSite.page_settings), design: { ...record(record(data.menuSite.page_settings).design), decorations: undefined } };
   return {
     textColors: resolvedMenuTextColors(data.menuSite.page_settings, key?.startsWith("dining_aube_table_") === true),
     textColorDefaults: {
@@ -107,6 +113,15 @@ export function previewDesignDefaults(data: MenuPageData) {
       coverDescription: normalizeBackgroundColor(record(record(data.menuSite.page_settings).design).coverDescriptionColor) ?? (neutral ? "#606561" : "#FFFFFF") },
     ...(resolveMenuPatternBands(key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation) ? { patternBandsAvailable: true } : {}),
     appearance: resolveMenuAppearance(data.menuSite.page_settings, key, typeof savedDesignId === "string" ? savedDesignId : undefined),
+    ...(supportsMenuDecorations(key, data.pagePresentation) ? {
+      decorations: readMenuDecorations(data.menuSite.page_settings),
+      decorationVisibilityDefaults: {
+        ...Object.fromEntries(MENU_DECORATION_LINES.map(line => [line, nativeMenuDecorationVisible(line, key ?? "", neutral)])) as Record<MenuDecorationLine, boolean>,
+        patternBands: Boolean(resolveMenuPatternBands(key, data.menuSite.settings, nativeDecorationPage, data.pagePresentation)),
+      },
+      patternBandsSupported: supportsMenuPatternBands(key, data.menuSite.settings, data.pagePresentation),
+      patternBandsAssetAvailable: Boolean(getMenuPatternBands(key, data.menuSite.page_settings).image || key === "fast_food_loop_bagel_a"),
+    } : {}),
   };
 }
 export type PreviewDesignDefaults = ReturnType<typeof previewDesignDefaults>;
@@ -126,9 +141,15 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
     return data;
   }
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
+  if (overrides.decorations && supportsMenuDecorations(data.menuSite.template_key, data.pagePresentation)) design.decorations = overrides.decorations;
   if (overrides.hidePatternBands) {
     const pattern = resolveMenuPatternBands(data.menuSite.template_key, data.menuSite.settings, page, data.pagePresentation);
-    if (pattern) design.patternBands = { ...pattern, enabled: false };
+    if (pattern) {
+      design.patternBands = { ...pattern, enabled: false };
+      // The saved-preview visibility control takes precedence over a saved ON.
+      const decorations = readMenuDecorations(page);
+      if (decorations.patternBands === true) design.decorations = { ...decorations, patternBands: false };
+    }
   }
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.

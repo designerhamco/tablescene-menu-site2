@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createElement } from "react";
+import { createElement, type ComponentProps } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 import PreviewDesignOptions from "../components/menu/PreviewDesignOptions";
+import PreviewDecorationOptions from "../components/menu/PreviewDecorationOptions";
+import MenuPreviewOptionsPanel from "../components/menu/MenuPreviewOptionsPanel";
+import MenuAppearanceScope from "../components/menu-templates/shared/MenuAppearanceScope";
+import { getDefaultDesignOptions } from "./default-design-options";
 import { buildSavedMenuPreview } from "./saved-menu-preview";
 import { buildMenuPreviewUrl } from "./menu-preview-devices";
 import { serializePreviewDesign } from "./menu-preview-design";
@@ -96,6 +100,69 @@ test("preview design conditions stay in shared help instead of permanent paragra
   assert.match(html,/aria-label="정렬 변경 제한"/);
   assert.match(html,/디자인 초기화/);
   assert.match(html,/aria-label="가게명·가게 설명 정렬"[^>]*disabled/);
+});
+
+test("Basic editor viewing options keep design and decoration tabs without catalog feature controls", () => {
+  const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+    open: true, onToggle() {}, tab: "decorations", onTabChange() {}, groups: [],
+    values: getDefaultDesignOptions({}), onFeatureChange() {}, onFeatureReset() {}, canResetFeatures: false,
+    pending: false, templateKey: "cafe_design_a", defaults: previewDesignDefaults(fixture()),
+    design: { decorations: { categoryUnderline: { visible: true }, columnDivider: { visible: true } } }, onDesignChange() {}, album: false, device: "pc", designOnly: true,
+  }));
+  assert.match(html, /디자인 옵션/); assert.match(html, /장식 기능/);
+  assert.match(html, /카테고리명 아래 선 두께/); assert.match(html, /열 사이 구분선 스타일/);
+  assert.match(html, /type="checkbox" aria-label="카테고리명 아래 선 표시" checked/);
+  assert.match(html, /카테고리명 아래 선 색상 선택/); assert.match(html, /카테고리명 아래 선 색상 기본색 복원/);
+  assert.doesNotMatch(html, /메뉴 아이템 사이 구분선 두께|색상 방식/);
+  assert.doesNotMatch(html, /기능 옵션|기능 초기화|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
+});
+
+test("untouched neutral decoration options show unchecked choices and an empty design area", () => {
+  const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+    open: true, onToggle() {}, tab: "decorations", onTabChange() {}, groups: [],
+    values: getDefaultDesignOptions({}), onFeatureChange() {}, onFeatureReset() {}, canResetFeatures: false,
+    pending: false, templateKey: "cafe_design_a", defaults: previewDesignDefaults(fixture()),
+    design: {}, onDesignChange() {}, album: false, device: "pc", designOnly: true,
+  }));
+  assert.equal((html.match(/type="checkbox"/g) ?? []).length, 6);
+  assert.doesNotMatch(html, /type="checkbox"[^>]*checked|data-preview-decoration="/);
+  assert.match(html, /선 장식을 선택하면 디자인 설정이 표시됩니다/);
+});
+
+test("decoration selects show actual native values without an inheritance option or an implicit save", () => {
+  const design = {}, defaults = previewDesignDefaults(fixture());
+  defaults.decorationVisibilityDefaults = { ...defaults.decorationVisibilityDefaults!, categoryUnderline: true };
+  let writes = 0;
+  const before = structuredClone(design);
+  const html = renderToStaticMarkup(createElement(PreviewDecorationOptions, {
+    value: design, defaults, renderedDesign: { nativeTextColors: {}, alignment: { value: "left" }, radius: { value: "square" }, decorationStrokes: { categoryUnderline: { width: 1.6, style: "solid" } } },
+    album: false, device: "pc", disabled: false, savedFallback: false, onChange() { writes++; },
+  }));
+  assert.doesNotMatch(html, /템플릿 기본|value="template"/);
+  assert.match(html, /value="1.6"[^>]*selected/);
+  assert.match(html, /value="solid"[^>]*selected/);
+  assert.equal(writes, 0);
+  assert.deepEqual(design, before);
+});
+
+test("Basic album decoration options omit column, item and price-leader controls", () => {
+  const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+    open: true, onToggle() {}, tab: "decorations", onTabChange() {}, groups: [],
+    values: getDefaultDesignOptions({}), onFeatureChange() {}, onFeatureReset() {}, canResetFeatures: false,
+    pending: false, templateKey: "cafe_design_a", defaults: previewDesignDefaults(fixture()),
+    design: {}, onDesignChange() {}, album: true, device: "mobile", designOnly: true,
+  }));
+  assert.match(html, /카테고리명 아래 선 표시/);
+  assert.match(html, /카테고리 사이 구분선 표시/);
+  assert.doesNotMatch(html, /열 사이 구분선 표시|메뉴 아이템 사이 구분선 표시|메뉴명–가격 연결선 표시/);
+});
+
+test("common decoration scope leaves multi-page and other service renderers untouched", () => {
+  const pageSettings = { design: { decorations: { categoryUnderline: { visible: true, color: "#123456" } } } };
+  for (const props of [{ templateKey: "cafe_design_a", pagePresentation: "multi" as const }, { templateKey: "dining_aube_table_a" }, { templateKey: "display_menu_a" }]) {
+    const html = renderToStaticMarkup(createElement(MenuAppearanceScope, { ...props, pageSettings } as ComponentProps<typeof MenuAppearanceScope>, createElement("p", null, "기존 화면")));
+    assert.doesNotMatch(html, /data-decoration-underline|--decoration-underline/);
+  }
 });
 
 test("Basic editor links keep the draft in its own preview mode", () => {

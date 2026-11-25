@@ -9,16 +9,16 @@ test("design access spans layouts inside one service but never crosses services"
     const standard: MenuDesign = { id, label: id, layout: id as MenuLayoutId, kind: "standard" };
     const designer = { ...standard, kind: "designer" as const };
     assert.equal(canUseMenuDesign(layout.service, "standard", standard), true);
-    assert.equal(canUseMenuDesign(layout.service, "standard", designer), false);
+    assert.equal(canUseMenuDesign(layout.service, "standard", designer), true);
     assert.equal(canUseMenuDesign(layout.service, "all", designer), true);
     assert.equal(canUseMenuDesign(layout.service === "basic" ? "dining" : "basic", "all", standard), false);
   }
 });
 
 test("price amounts can change independently of design access", () => {
-  assert.deepEqual(["regular", "earlyBird"].flatMap(offer => ["basic", "dining"].flatMap(service => ["standard", "all"].map(access => getMenuPlanMonthlyPrice(service as "basic" | "dining", access as "standard" | "all", offer as "regular" | "earlyBird")))), [5900, 7800, 8900, 10800, 4900, 6800, 6900, 8800]);
+  assert.deepEqual(["regular", "earlyBird"].flatMap(offer => ["basic", "dining"].flatMap(service => ["standard", "all"].map(access => getMenuPlanMonthlyPrice(service as "basic" | "dining", access as "standard" | "all", offer as "regular" | "earlyBird")))), [5900, 5900, 8900, 8900, 4900, 4900, 6900, 6900]);
   const changed = { basic: { regular: 7000, earlyBird: 5000 }, dining: { regular: 10000, earlyBird: 8000 }, designMonthly: 2000 };
-  assert.equal(getMenuPlanMonthlyPrice("basic", "all", "earlyBird", changed), 7000);
+  assert.equal(getMenuPlanMonthlyPrice("basic", "all", "earlyBird", changed), 5000);
   assert.equal(canUseMenuDesign("basic", "all", DEFAULT_DESIGN_REVIEWS[0]), true);
 });
 

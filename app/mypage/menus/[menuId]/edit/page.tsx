@@ -1731,8 +1731,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     !isAubeTable && editorServiceType !== "screen" && isTemplateSupportedForService(site.template_key, "basic");
   const pendingDesign = useBasicEditorLayout ? serializePreviewDesign(readPreviewDesign(designDraft)) : undefined;
   const pendingDesignReset = useBasicEditorLayout && !isReadOnly && designReset === "1";
-  const patternBands = supportsMenuPatternBands(site.template_key, site.settings)
+  const savedPatternBands = supportsMenuPatternBands(site.template_key, site.settings)
     ? getMenuPatternBands(site.template_key, pendingDesignReset ? undefined : site.page_settings) : undefined;
+  const patternBands = savedPatternBands ? { ...savedPatternBands, enabled: readPreviewDesign(pendingDesign).decorations?.patternBands ?? savedPatternBands.enabled } : undefined;
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
@@ -2607,7 +2608,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
                         <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
-                          {menuDesignPlan ? "현재 구독 이용권에 포함된 디자인을 위에서 선택해 교체할 수 있습니다." : "이 메뉴판은 기존 템플릿별 구독 계약을 유지합니다."}
+                          {menuDesignPlan ? "같은 서비스의 모든 지원 템플릿을 위에서 선택해 교체할 수 있습니다." : "현재 이용 상태에서는 템플릿을 교체할 수 없습니다."}
                         </p>
                       </div>
                       <div className="mt-5 space-y-4">
@@ -2615,7 +2616,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getMenuDesignDisplayName(site.template_key, site.template_category, site.settings)}</strong>
                         </p>
                         <p className="break-keep text-copy font-semibold leading-relaxed text-zinc-500">
-                          {menuDesignPlan ? "디자인을 바꾸어도 메뉴 데이터와 공개 주소는 그대로 유지됩니다." : "새 요금제는 기본 디자인 또는 디자인 포함 이용권을 선택해 시작할 수 있습니다."}
+                          {menuDesignPlan ? "디자인을 바꾸어도 메뉴 데이터와 공개 주소는 그대로 유지됩니다." : "이용 중인 서비스의 모든 지원 템플릿을 추가 요금 없이 교체할 수 있습니다."}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <Link

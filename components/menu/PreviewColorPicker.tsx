@@ -8,7 +8,7 @@ import { RotateCcw } from "@/app/components/ui/site-arrow";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
 
-export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled, loading = false, savedFallback = false }: {
+export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled, loading = false, savedFallback = false, resetTarget: resetTargetOverride }: {
   label: string;
   accessibleLabel?: string;
   value?: string;
@@ -17,6 +17,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
   disabled: boolean;
   loading?: boolean;
   savedFallback?: boolean;
+  resetTarget?: string;
 }) {
   const id = useId(), current = value ?? defaultColor;
   const [draftEmpty, setDraftEmpty] = useState(current === null);
@@ -64,7 +65,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     const rect = event.currentTarget.getBoundingClientRect();
     update({ ...colorRef.current, s: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), v: 1 - Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) });
   };
-  const resetTarget = savedFallback ? "저장된 색상" : "템플릿 기본색";
+  const resetTarget = resetTargetOverride ?? (savedFallback ? "저장된 색상" : "템플릿 기본색");
   return <div className={styles.field} data-preview-color-field aria-busy={loading || undefined}>
     <span className={styles.fieldLabel}>{label}</span>
     <Popover.Root open={open} onOpenChange={next => {
