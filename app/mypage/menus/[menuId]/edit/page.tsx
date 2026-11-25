@@ -2481,7 +2481,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </CoverDraftToggleSection>
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
+                      <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} representativeArea={menuCoverCapabilities.coverMode === "section"} />
                       <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                     </FinalActionRow>
