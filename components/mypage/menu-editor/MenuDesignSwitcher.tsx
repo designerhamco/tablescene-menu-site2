@@ -7,12 +7,13 @@ import { ImageCarousel } from '@/app/components/ui/image-carousel';
 import { Check } from '@/app/components/ui/site-icon';
 import HelpTooltip from '@/components/ui/HelpTooltip';
 import { SitePagination } from '@/app/components/ui/site-pagination';
-import { CATALOG_INDUSTRIES, catalogDesigns, getCatalogDesign, getSelectableCatalogDesign } from '@/lib/catalog-designs';
-import type { MenuDesignAccess, MenuService } from '@/lib/menu-design-policy';
-export default function MenuDesignSwitcher({ menuId, current, service, access, basic = false, industryCategory, industryLabel, disabled = false }: {
+import { catalogDesigns, getCatalogDesign, getSelectableCatalogDesign } from '@/lib/catalog-designs';
+import type { MenuDesignAccess, MenuTemplateService } from '@/lib/menu-design-policy';
+import { ContentPanel } from '@/app/components/ui/content-panel';
+export default function MenuDesignSwitcher({ menuId, current, service, basic = false, industryLabel, disabled = false }: {
   menuId: string;
   current: string;
-  service: MenuService;
+  service: MenuTemplateService;
   access: MenuDesignAccess;
   basic?: boolean;
   industryCategory?: string | null;
@@ -24,13 +25,8 @@ export default function MenuDesignSwitcher({ menuId, current, service, access, b
   const router=useRouter(),design=getCatalogDesign(selection);
   const currentDesign = getCatalogDesign(current);
   const showCurrentDesign = currentDesign && !getSelectableCatalogDesign(current);
-  const industry = CATALOG_INDUSTRIES.find((entry) => entry.categories.some((category) => category === industryCategory));
-  const choices = catalogDesigns.filter((candidate) => candidate.service === service && (access === "all" || candidate.kind === "standard") && (
-    !basic || !industryCategory || candidate.categories.some((category) => industry?.categories.some((key) => key === category) ?? category === industryCategory)
-  ));
-  const help = access === "all"
-    ? "같은 서비스의 기본 디자인과 디자인 템플릿으로 교체할 수 있습니다."
-    : "같은 서비스의 기본 디자인끼리 교체할 수 있습니다.";
+  const choices = catalogDesigns.filter((candidate) => candidate.service === service);
+  const help = "같은 서비스의 모든 지원 템플릿으로 추가 요금 없이 교체할 수 있습니다. 메뉴·사진·공개 주소는 유지됩니다.";
 
   async function applyDesign() {
     if (pending || disabled || selection === current || !choices.some((choice) => choice.id === selection)) return;
@@ -61,7 +57,7 @@ export default function MenuDesignSwitcher({ menuId, current, service, access, b
       <section className="site-stack-copy">
         <div className="site-action-row">
           <h3 className="type-subsection-title">템플릿 교체</h3>
-          <HelpTooltip label="템플릿 교체 도움말">베이직 편집기에서 현재 업종에 맞는 템플릿을 보여줍니다. {help} 메뉴·사진·공개 주소는 유지됩니다.</HelpTooltip>
+          <HelpTooltip label="템플릿 교체 도움말">{help}</HelpTooltip>
         </div>
         <div className="site-stack-block site-content-divider site-editor-section-rule" data-density="compact">
           {industryLabel && <p className="type-body-sm">현재 업종 · {industryLabel}</p>}
@@ -95,11 +91,11 @@ export default function MenuDesignSwitcher({ menuId, current, service, access, b
     );
   }
 
-  return <section className="site-section site-editor-subpanel mb-5 p-5"><h3 className="type-content-title">디자인 교체</h3><p className="site-body-support mt-2 mb-4 text-zinc-600">{access==='all'?'같은 서비스의 기본 디자인과 디자인 템플릿을 교체할 수 있습니다.':'같은 서비스의 기본 디자인끼리 교체할 수 있습니다.'} 메뉴·사진·공개 주소는 유지됩니다.</p>
-    <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => { event.preventDefault(); void applyDesign(); }}>
-      <label className="type-label grid min-w-0 gap-2">디자인<select className="site-field site-input" value={selection} onChange={e=>setSelection(e.target.value)} disabled={pending}>{showCurrentDesign ? <option value={current}>{currentDesign.name} (현재 디자인)</option> : null}{choices.map(d=><option key={d.id} value={d.id}>{d.kind==='standard'?'기본 · ':''}{d.name}</option>)}</select></label>
+  return <ContentPanel><div className="site-stack-copy"><div className="site-action-row"><h3 className="type-content-title">디자인 교체</h3><HelpTooltip label="디자인 교체 도움말">{help}</HelpTooltip></div>
+    <form className="site-form-row" onSubmit={(event) => { event.preventDefault(); void applyDesign(); }}>
+      <label className="site-field-stack type-label">디자인<select className="site-field site-input" value={selection} onChange={e=>setSelection(e.target.value)} disabled={pending || disabled}>{showCurrentDesign ? <option value={current}>{currentDesign.name} (현재 디자인)</option> : null}{choices.map(d=><option key={d.id} value={d.id}>{d.kind==='standard'?'기본 · ':''}{d.name}</option>)}</select></label>
       {design?<Link href={design.previewHref} target="_blank" className="site-button site-button-outline">미리보기</Link>:null}
-      <button type="submit" className="site-button site-button-primary" disabled={pending||selection===current}>{pending?'변경 중…':'선택한 디자인 적용'}</button>
-    </form>{errorMessage && <p role="alert" className="type-body-sm text-destructive mt-3">{errorMessage}</p>}
-  </section>;
+      <button type="submit" className="site-button site-button-primary" disabled={pending||disabled||selection===current||!choices.some(choice=>choice.id===selection)}>{pending?'변경 중…':'선택한 디자인 적용'}</button>
+    </form>{errorMessage && <p role="alert" className="type-body-sm text-destructive">{errorMessage}</p>}
+  </div></ContentPanel>;
 }

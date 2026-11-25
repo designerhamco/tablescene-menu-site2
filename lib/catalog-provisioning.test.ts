@@ -58,7 +58,7 @@ for (const design of catalogDesigns) {
       if (slide.image_url?.startsWith("/")) assert.ok(existsSync(`public${slide.image_url}`), slide.image_url);
     }
     assert.ok((client.rows.get("menu_site_translations") ?? []).every(row => row.restaurant_name == null), "language switching must retain the merchant's entered store name");
-    assert.deepEqual(getMenuPlanSelection(product, design.id, design.templateKey)?.access, design.kind === "standard" ? "standard" : "all");
+    assert.deepEqual(getMenuPlanSelection(product, design.id, design.templateKey)?.access, "all");
     const start = new URL(design.startHref, "https://menu.test");
     assert.equal(start.searchParams.get("design"), design.id);
     assert.equal(start.searchParams.get("template"), design.templateKey);

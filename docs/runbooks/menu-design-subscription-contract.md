@@ -1,6 +1,6 @@
 # 아티메뉴 디자인 이용권 도입·운영 적용 기록 (2026-10-21)
 
-> 아래는 도입 당시의 운영 적용/검수 기록이다. 현행 가격·이용권은 [서비스·요금 기준](../service-pricing-contract.md), 현재 디자인 개수는 [템플릿 등록표](../template-docs-index.md), 이후 변경 예약은 [다음 결제일 이용권 전환](menu-plan-change-reservations.md)을 먼저 확인한다.
+> 아래는 도입 당시의 운영 적용/검수 기록이다. 2026-11-25부터 서비스별 단일 요금으로 모든 지원 템플릿에 접근하며 신규 이용권 전환 접수는 종료한다. 현행 가격·권한은 [서비스·요금 기준](../service-pricing-contract.md), 현재 디자인 개수는 [템플릿 등록표](../template-docs-index.md), 과거 변경 예약 호환은 [전환 원장](menu-plan-change-reservations.md)을 먼저 확인한다.
 
 ## 적용 범위
 

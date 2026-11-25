@@ -209,6 +209,25 @@ async function checkboxDefaults() {
       const checked = await p.locator("[data-preview-decoration-choices] input:checked").evaluateAll(nodes => nodes.map(e => e.getAttribute("aria-label")));
       assert.deepEqual(checked, nativeEnabled[key] ? [nativeEnabled[key]] : []);
       assert.equal(new URL(p.url()).searchParams.get("designPreview"), null, "opening native choices never creates an override");
+      await settlePreview(p);
+      assert.equal(await p.locator('[data-preview-decoration] option[value="template"]').count(), 0);
+      const line = { cafe_design_a: "categoryUnderline", cafe_mocha_forest_a: "columnDivider", cafe_van_gogh_a: "itemDivider", cafe_round_focus_a: "priceLeader" }[key];
+      if (line) {
+        const controls = p.locator(`[data-preview-decoration="${line}"]`);
+        await expect(controls.locator("select").first()).toBeEnabled();
+        const actual = await p.locator("iframe").evaluate((frame, key) => {
+          const doc = frame.contentDocument, win = frame.contentWindow;
+          const selector = { cafe_design_a: ".cafe-a-category-heading", cafe_mocha_forest_a: "[data-menu-column-divider]", cafe_van_gogh_a: "[data-menu-item-separator]", cafe_round_focus_a: ".cafe-a-round-focus-price-leader" }[key];
+          const element = [...doc.querySelectorAll(selector)].find(e => e.getBoundingClientRect().width && win.getComputedStyle(e).visibility !== "hidden");
+          if (!element) return 1;
+          const style = win.getComputedStyle(element, key === "cafe_van_gogh_a" ? "::after" : null);
+          const width = key === "cafe_design_a" ? style.borderBottomWidth : key === "cafe_mocha_forest_a" ? parseFloat(style.borderInlineStartWidth) ? style.borderInlineStartWidth : style.width : parseFloat(style.borderTopWidth) ? style.borderTopWidth : style.height;
+          return parseFloat(width);
+        }, key);
+        await expect(controls.locator("select").first()).toHaveValue(String(actual));
+        await expect(controls.locator("select").nth(1)).toHaveValue(key === "cafe_round_focus_a" ? "dotted" : "solid");
+      }
+      assert.equal(new URL(p.url()).searchParams.get("designPreview"), null, "reading actual stroke values never saves an override");
       await expect(p.locator("[data-preview-decoration]")).toHaveCount(nativeEnabled[key] && key !== "fast_food_loop_bagel_a" ? 1 : 0);
     }
     for (const [device, width, height] of [["mobile", 390, 844], ["tablet", 820, 1180], ["tablet", 1180, 820]]) {

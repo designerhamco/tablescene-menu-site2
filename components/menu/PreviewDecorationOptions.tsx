@@ -51,14 +51,17 @@ export default function PreviewDecorationOptions({ value, defaults, renderedDesi
     <div className="site-stack-block site-content-divider" data-preview-decoration-design>
     {editable.length ? editable.map(key => {
       const line = current[key] ?? {}, label = MENU_DECORATION_NAMES[key];
+      const stroke = renderedDesign?.decorationStrokes?.[key];
+      const width = line.width ?? stroke?.width ?? 1;
+      const style = line.style ?? stroke?.style ?? (key === "priceLeader" ? "dotted" : "solid");
       return <fieldset key={key} disabled={disabled} data-preview-decoration={key}>
         <legend className={styles.legend}>{label}</legend>
         <div className={styles.colorGrid}>
-          <label className={styles.option}>두께<select aria-label={`${label} 두께`} className={styles.select} value={line.width ?? "template"} onChange={event => update(key, { width: event.target.value === "template" ? undefined : Number(event.target.value) as MenuLineDecoration["width"] })}>
-            <option value="template">템플릿 기본</option>{MENU_DECORATION_WIDTHS.map(width => <option key={width} value={width}>{width}px</option>)}
+          <label className={styles.option}>두께<select aria-label={`${label} 두께`} className={styles.select} disabled={!renderedDesign} value={width} onChange={event => update(key, { width: Number(event.target.value) as MenuLineDecoration["width"] })}>
+            {!MENU_DECORATION_WIDTHS.some(option => option === width) && <option value={width} disabled>{width}px</option>}{MENU_DECORATION_WIDTHS.map(width => <option key={width} value={width}>{width}px</option>)}
           </select></label>
-          <label className={styles.option}>선 스타일<select aria-label={`${label} 스타일`} className={styles.select} value={line.style ?? "template"} onChange={event => update(key, { style: event.target.value === "template" ? undefined : event.target.value as MenuLineDecoration["style"] })}>
-            <option value="template">템플릿 기본</option>{MENU_DECORATION_STYLES.map(style => <option key={style} value={style}>{{ solid: "실선", dashed: "파선", dotted: "점선" }[style]}</option>)}
+          <label className={styles.option}>선 스타일<select aria-label={`${label} 스타일`} className={styles.select} disabled={!renderedDesign} value={style} onChange={event => update(key, { style: event.target.value as MenuLineDecoration["style"] })}>
+            {MENU_DECORATION_STYLES.map(style => <option key={style} value={style}>{{ solid: "실선", dashed: "파선", dotted: "점선" }[style]}</option>)}
           </select></label>
           <PreviewColorPicker label="선 색상" accessibleLabel={`${label} 색상`} value={line.color} defaultColor={colorDefault(key)} onChange={color => update(key, { color })} disabled={disabled} loading={!renderedDesign} resetTarget="기본 연결색" />
         </div>
