@@ -88,8 +88,8 @@ export default function PickupQueueDashboard({
             {createPending ? "등록 중" : "등록"}
           </button>
         </form>
-        {createState.message ? (
-          <p className={createState.status === "error" ? "site-notice site-notice-error mt-3 p-3" : "site-notice site-notice-success mt-3 p-3"} role="status">
+        {createState.status === "error" && createState.message ? (
+          <p className="site-notice site-notice-error mt-3 p-3" role="alert">
             {createState.message}
           </p>
         ) : null}
@@ -174,8 +174,8 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
           </button>
         </form>
       </div>
-      {state.message ? (
-        <p className={state.status === "error" ? "site-notice site-notice-error mt-2 p-3" : "site-notice site-notice-success mt-2 p-3"} role="status">
+      {state.status === "error" && state.message ? (
+        <p className="site-notice site-notice-error mt-2 p-3" role="alert">
           {state.message}
         </p>
       ) : null}

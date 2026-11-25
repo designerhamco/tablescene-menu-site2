@@ -163,7 +163,7 @@ export function InquirySection({
 
   return (
     <section className="space-y-6 sm:space-y-8">
-      <ActionFeedbackToast message={noticeMessage} tone="success" />
+      <ActionFeedbackToast message={noticeMessage} tone="success" eventKey={{ noticeMessage }} />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       {showIntro ? (
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -172,12 +172,6 @@ export function InquirySection({
           </div>
         </div>
       ) : null}
-
-      {noticeMessage && (
-        <div className="site-notice site-notice-success p-4 sm:p-5">
-          {noticeMessage}
-        </div>
-      )}
 
       {errorMessage && (
         <div className="site-notice site-notice-error p-4 sm:p-5">

@@ -47,7 +47,7 @@ test("마이페이지 본체는 공통 카드·탭·피드백 표면을 사용�
   assert.match(source, /<AccountPageContent sidebar=/);
   assert.match(readSource("../components/mypage/AccountPageContent.tsx"), /className="site-container"/);
   assert.match(source, /<NavigationTabs label="내 메뉴판 탭"/);
-  assert.match(source, /site-notice site-notice-success/);
+  assert.match(source, /<ActionFeedbackToast\s+message=\{mypageNotice\}/);
   assert.match(source, /site-notice site-notice-warning/);
   assert.match(source, /site-notice site-notice-error/);
   assert.doesNotMatch(source, /shadow-sm/);

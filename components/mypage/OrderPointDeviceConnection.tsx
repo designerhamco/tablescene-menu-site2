@@ -34,7 +34,6 @@ export default function OrderPointDeviceConnection({ menuSiteId, point, publishe
   return <div className={embedded ? "site-stack-group" : "site-stack-group site-content-divider"}>
     <ActionFeedbackToast message={state.message} tone={state.status === "success" ? "success" : "error"} eventKey={state} />
     {activeEnableRequest || setup.currentTableId !== point.id ? <p className="type-body-sm site-copy-muted">{activeEnableRequest ? `설정 저장 시 이 기기를 연결하고 ${activeEnableRequest.feature === "orders" ? "주문" : "호출"}을 켭니다.` : "사용할 기기에서 연결해 주세요. 연결 후에도 관리자 화면이 유지됩니다."}</p> : null}
-    {state.status === "success" ? <p className="type-body-sm" role="status">{state.message}</p> : null}
     <TableTerminalConnections menuSiteId={menuSiteId} table={point} connections={setup.connections.filter(connection => connection.tableId === point.id)}
       available={setup.connectionsAvailable} currentTableId={setup.currentTableId} currentKnown={setup.connectionStatusAvailable}
       published={published} showMenuOpen={!embedded} enableRequest={activeEnableRequest} device={device} pending={pending} action={action} deviceEditor={editor}

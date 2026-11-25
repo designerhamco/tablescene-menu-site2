@@ -6,6 +6,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { Link2, MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import OrderStage from "@/components/mypage/OrderStage";
 import { formatAmount, PAYMENT_LABELS } from "@/components/mypage/OrderReceipt";
 import { getKitchenOptionLabels } from "@/lib/kitchen-order";
@@ -128,6 +129,7 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
 
   return (
     <>
+      <ActionFeedbackToast message={feedback.status === "success" ? feedback.message : undefined} eventKey={feedback} />
       <div className={styles.layout}>
         <header className="site-stack-copy">
           <DialogHeader reserveCloseButton className="text-left">
@@ -153,7 +155,7 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
         </header>
         {!ordered.length ? (
           <div className="site-stack-copy">
-            {feedback.message && <p role="status" className="type-body-sm">{feedback.message}</p>}
+            {feedback.status === "error" && feedback.message && <p role="alert" className="type-body-sm">{feedback.message}</p>}
             <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
           </div>
         ) : (
@@ -214,7 +216,7 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
                 </span></span>
                 <strong className={styles.amount}>{formatAmount(total)}</strong>
               </div>
-              {feedback.message && !operation && <p role="status" className="type-body-sm">{feedback.message}</p>}
+              {feedback.status === "error" && feedback.message && !operation && <p role="alert" className="type-body-sm">{feedback.message}</p>}
               <div className="site-action-row" data-distribution="end">
                 {group && permissions.canMarkManualPayment && (
                   <Button type="button" variant="secondary" disabled={pending || !canPayGroup}

@@ -293,7 +293,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   return (
     <>
-      <ActionFeedbackToast message={noticeMessage} tone="success" />
+      <ActionFeedbackToast message={noticeMessage} tone="success" eventKey={{ noticeMessage }} />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-zinc-950 py-16 text-white">
@@ -320,12 +320,6 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             </Link>
           </div>
         </header>
-
-        {noticeMessage && (
-          <div className="site-notice site-notice-success mb-6 p-5 text-copy">
-            {noticeMessage}
-          </div>
-        )}
 
         {errorMessage && (
           <div className="mb-6 rounded-3xl border border-red-400/20 bg-red-400/10 p-5 text-copy font-medium text-red-100">

@@ -1073,23 +1073,12 @@ function FinalActionRow({ children }: { children: ReactNode }) {
   );
 }
 
-function FinalSaveFeedback({ message, error }: { message?: string | null; error?: string | null }) {
-  if (!message && !error) return null;
-
-  return (
-    <>
-      {message && (
-        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-emerald-700">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
-          {error}
-        </p>
-      )}
-    </>
-  );
+function FinalSaveFeedback({ error }: { error?: string | null }) {
+  return error ? (
+    <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
+      {error}
+    </p>
+  ) : null;
 }
 
 function normalizeFinalSaveError(error?: string | null) {
@@ -2141,7 +2130,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
@@ -2155,7 +2144,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "advertising" && site.template_key !== "display_menu_a" ? (
               <SectionCard title="광고">
                 <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} />
-                <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                <FinalSaveFeedback error={finalSaveError} />
               </SectionCard>
             ) : null}
 
@@ -2175,7 +2164,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="page-settings-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
@@ -2216,7 +2205,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="intro-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
@@ -2407,7 +2396,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FinalActionRow>
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
                       <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
                       </p>
@@ -2485,7 +2474,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <div className="md:col-span-2">
                       <FinalActionRow>
                         <SubmitButton tone="final" dirtyFormId="about-form" disabled={isReadOnly}>저장</SubmitButton>
-                        <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                        <FinalSaveFeedback error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                         </p>
@@ -2507,7 +2496,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                       <FinalActionRow>
                         <SubmitButton tone="final" dirtyFormId="events-form" disabled={isReadOnly}>저장</SubmitButton>
-                        <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                        <FinalSaveFeedback error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
                         </p>
@@ -2605,7 +2594,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
                       </p>
@@ -2736,7 +2725,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div>
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>저장</SubmitButton>
-                      <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+                      <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.
                       </p>
