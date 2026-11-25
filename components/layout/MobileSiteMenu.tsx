@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus } from "@/app/components/ui/site-icon";
 import { NotificationBellIcon } from "@/app/components/ui/notification-bell-icon";
 import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { signOutAction } from "@/app/auth/actions";
@@ -37,16 +38,16 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
         {loading ? <LoadingState label="계정 확인 중입니다." inline /> : authenticated ? <>
           <div className={styles.drawerAccountHeading}>{userId ? <Link href="/mypage?tab=account" onClick={close} className="site-profile-link" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={account?.avatarUrl} name={account?.name} email={account?.email} size="identity" /></Link> : null}<Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
             <div className={styles.drawerAccountName}>
-            <span className="type-content-title">{account?.name || "내 계정"}</span>
+            <span className="type-menu-title">{account?.name || "내 계정"}</span>
             {account?.role ? <Badge>{account.role}</Badge> : null}
             </div>
             <span className={styles.drawerEmail}>{account?.email}</span>
           </Link>
-          {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-outline">로그아웃</button></form>}</div>
+          </div>
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
           <div className={styles.drawerAccountLinks}>
             <Link href="/mypage" onClick={close} className="site-button site-button-secondary">내 메뉴판</Link>
-            {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-primary">매장 운영 <NewWindowIndicator /></Link> : null}
+            {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-primary">매장 운영 <NewWindowIndicator showIcon={false} /></Link> : null}
           </div>
         </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerAccountLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
       </section>
@@ -57,7 +58,7 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
         </Collapsible> : <ServiceHomeLink key={item.path} href={item.path} instant onClick={close} className={styles.drawerNavLink} aria-current={isSiteNavItemActive(item, pathname, activeSection) ? item.sectionId ? "location" : "page" : undefined} data-active={isSiteNavItemActive(item, pathname, activeSection) || undefined}><SiteNavigationLabel item={item} /></ServiceHomeLink>)}
       </nav>
       <div className={styles.drawerFooter}>
-        <div className={styles.drawerSupportLinks}><Link href="/mypage/inquiries" onClick={close}>1:1 문의</Link><Link href="/support/chat" onClick={close}>채팅상담</Link></div>
+        <div className={styles.drawerSupportLinks}><Link href="/mypage/inquiries" onClick={close}>1:1 문의</Link><Link href="/support/chat" onClick={close}>채팅상담</Link>{authenticated && !loading ? signOutControl ?? <form action={signOutAction}><Button type="submit" variant="link" data-purpose="navigation">로그아웃</Button></form> : null}</div>
       </div>
     </div>
   </>;

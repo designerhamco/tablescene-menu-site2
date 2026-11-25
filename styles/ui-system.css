@@ -1296,7 +1296,8 @@ textarea.site-field,
 .site-filter-inverse:hover:not(:disabled) { background: #4b515b; color: #fff; }
 .site-filter-inverse[aria-pressed="true"]:hover:not(:disabled) { background: var(--ui-surface-soft); color: var(--ui-text); }
 
-.site-button-header { --ui-button-height: var(--ui-header-action-height); min-height: var(--ui-header-action-height); padding-block: var(--ui-menu-section-gap); padding-inline: var(--ui-control-padding-inline); border-radius: var(--ui-radius-control); }
+.site-button-header { --ui-button-height: var(--ui-header-action-height); min-height: var(--ui-header-action-height); padding-block: var(--ui-menu-section-gap); padding-inline: var(--ui-control-padding-inline); border-radius: var(--ui-radius-control-rounded); }
+.site-button-link[data-purpose="navigation"] { min-height: var(--ui-control-height-header); padding-inline: 0; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); font-weight: var(--font-weight-regular); }
 /* Provider identity is explicit; it shares action geometry and disabled behavior. */
 .site-button-kakao { border-color: #fee500; background: #fee500; color: #15181e; }
 .site-button-kakao:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { border-color: #f5dc00; background: #f5dc00; }

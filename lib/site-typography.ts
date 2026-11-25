@@ -169,11 +169,23 @@ export const SITE_TYPE_ROLES = [
     "letterSpacing": "-0.025em"
   },
   {
-    "key": "menu-nav",
-    "label": "레이어 탐색",
+    "key": "menu-title",
+    "label": "레이어 이름·제목",
     "mobile": 16,
     "tablet": 16,
     "desktop": 16,
+    "weight": 600,
+    "lineHeight": 1.4,
+    "className": "type-menu-title",
+    "usage": "헤더 계정 레이어·전체 메뉴의 계정 이름",
+    "letterSpacing": "-0.025em"
+  },
+  {
+    "key": "menu-nav",
+    "label": "레이어 탐색",
+    "mobile": 14,
+    "tablet": 14,
+    "desktop": 14,
     "weight": 500,
     "lineHeight": 1.4,
     "className": "type-menu-nav",
