@@ -1,5 +1,6 @@
 "use client";
 
+import { ChoiceControl } from "@/app/components/ui/choice-tile";
 import { useEffect, useRef, useState } from "react";
 
 import { CafeAStarterFeaturedEnabledSwitch } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
@@ -154,10 +155,10 @@ export default function FeaturedSlidesEditor({
         <fieldset className="site-field-stack">
           <legend className="type-label site-editor-choice-legend">표시 방식</legend>
           <div className="site-action-row">
-            <button type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "image"}
-              onClick={() => setEditing((current) => current && { ...current, mode: "image" })}>이미지만</button>
-            <button type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "linked"}
-              onClick={() => setEditing((current) => current && { ...current, mode: "linked" })}>이미지 + 대표 상품</button>
+            <ChoiceControl type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "image"}
+              onClick={() => setEditing((current) => current && { ...current, mode: "image" })}>이미지만</ChoiceControl>
+            <ChoiceControl type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "linked"}
+              onClick={() => setEditing((current) => current && { ...current, mode: "linked" })}>이미지 + 대표 상품</ChoiceControl>
           </div>
         </fieldset>
         <div className="site-basic-editor-fields">
