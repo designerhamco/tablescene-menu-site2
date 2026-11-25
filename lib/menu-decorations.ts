@@ -70,7 +70,10 @@ export function menuDecorationScopeProps(value: MenuDecorations, templateKey: st
     if (line.visible !== undefined) attributes[`data-decoration-${name}`] = line.visible ? "on" : "off";
     const visible = line.visible ?? nativeMenuDecorationVisible(key, templateKey, neutral);
     if (!visible) continue;
-    if (line.width || line.style || line.visible === true && !nativeMenuDecorationVisible(key, templateKey, neutral)) attributes[`data-decoration-${name}-stroke`] = "custom";
+    const customStroke = line.width || line.style || line.visible === true && !nativeMenuDecorationVisible(key, templateKey, neutral);
+    if (customStroke) attributes[`data-decoration-${name}-stroke`] = "custom";
+    if (customStroke && (line.style === "dotted" || key === "priceLeader" && !line.style)) attributes[`data-decoration-${name}-dots`] = "true";
+    if (key === "priceLeader" && !nativeMenuDecorationVisible(key, templateKey, neutral)) attributes["data-decoration-leader-ink"] = "supporting";
     if (line.width) style[`--decoration-${name}-width`] = `${line.width}px`;
     if (line.style) style[`--decoration-${name}-style`] = line.style;
     if (line.color) {

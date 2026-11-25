@@ -197,6 +197,8 @@ test("이전 기기별 설정 주소는 설정 데이터를 읽기 전에 테이
     "@/components/mypage/OperationalSoundSettings": {},
     "@/components/mypage/OperationFeatureNavigation": {},
     "../../order-settings/OrderSettingsForm": {},
+    "@/lib/server/merchant-alimtalk-channel-service": { loadMerchantChannelPage: async () => { settingsReads++; throw new Error("Unexpected channel read"); } },
+    "./alimtalk-channel-actions": { updateMerchantAlimtalkChannel: async () => { throw new Error("Unexpected channel write"); } },
     "@/lib/server/operation-settings-page": { loadOperationSettingsPage: async () => { settingsReads++; throw new Error("Unexpected settings read"); } },
   });
   for (const tab of ["devices", ["devices"], ["devices", "settings"]]) {

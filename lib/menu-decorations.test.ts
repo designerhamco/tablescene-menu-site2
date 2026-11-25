@@ -107,3 +107,18 @@ test("design switching restores per-design decorations and reset removes only pr
   assert.equal((reset.pageSettings.design as Record<string, unknown>).customUnrelated, "keep");
   assert.equal(original.design.decorations.itemDivider.width, 3);
 });
+
+
+test("generated leaders use supporting ink while untouched native leaders retain their palette", () => {
+  assert.equal(menuDecorationScopeProps({ priceLeader: { visible: true } }, "cafe_mocha_forest_a", false, false).attributes["data-decoration-leader-ink"], "supporting");
+  assert.equal(menuDecorationScopeProps({ priceLeader: { width: 2 } }, "cafe_round_focus_a", false, false).attributes["data-decoration-leader-ink"], undefined);
+  assert.equal(menuDecorationScopeProps({}, "cafe_round_focus_a", false, false).attributes["data-decoration-leader-dots"], undefined);
+});
+
+test("spaced dots apply only to edited dotted strokes, without changing saved data or native defaults", () => {
+  const dotted = { categoryUnderline: { visible: true, width: 2 as const, style: "dotted" as const } };
+  const before = structuredClone(dotted);
+  assert.equal(menuDecorationScopeProps(dotted, "cafe_design_a", false, false).attributes["data-decoration-underline-dots"], "true");
+  assert.equal(menuDecorationScopeProps({ categoryUnderline: { style: "solid" } }, "cafe_design_a", false, false).attributes["data-decoration-underline-dots"], undefined);
+  assert.deepEqual(dotted, before);
+});

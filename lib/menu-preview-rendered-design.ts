@@ -7,7 +7,7 @@ export type PreviewRenderedDesign = {
   nativeTextColors: MenuTextColors;
   alignment: PreviewDesignSelection;
   radius: PreviewDesignSelection;
-  decorationStrokes?: Partial<Record<MenuDecorationLine, { width: number; style: NonNullable<MenuLineDecoration["style"]> }>>;
+  decorationStrokes?: Partial<Record<MenuDecorationLine, { width: number; style: NonNullable<MenuLineDecoration["style"]>; defaultColor?: string }>>;
 };
 
 /** Read physical CSS pixels, including native responsive widths and dotted
@@ -38,7 +38,7 @@ function readDecorationStrokes(root: Element, win: Window): NonNullable<PreviewR
       const base = win.getComputedStyle(element);
       if (base.visibility === "hidden" || base.display === "none" || !element.getBoundingClientRect().width) continue;
       const stroke = previewDecorationStroke(key === "itemDivider" ? win.getComputedStyle(element, "::after") : base, key);
-      if (stroke) { strokes[key] = stroke; break; }
+      if (stroke) { strokes[key] = { ...stroke, ...(key === "priceLeader" ? { defaultColor: nativeColor(element, "priceLeader", root.ownerDocument) } : {}) }; break; }
     }
   }
   return strokes;
@@ -86,10 +86,11 @@ const samples: Record<MenuTextColorGroup, string[]> = {
 };
 
 /** Read a native color without changing the live menu, its data, or its fit inputs. */
-function nativeColor(element: Element, group: MenuTextColorGroup, doc: Document): string | undefined {
+function nativeColor(element: Element, group: MenuTextColorGroup | "priceLeader", doc: Document): string | undefined {
   const win = doc.defaultView;
   if (!win) return;
-  if (!element.closest(`[data-text-color-${group === "pageTitle" ? "page-title" : group === "sectionDescription" ? "section-description" : group}]`)) return previewCssColorHex(win.getComputedStyle(element).color);
+  const attribute = group === "priceLeader" ? "data-decoration-leader-color" : `data-text-color-${group === "pageTitle" ? "page-title" : group === "sectionDescription" ? "section-description" : group}`;
+  if (!element.closest(`[${attribute}]`)) return previewCssColorHex(win.getComputedStyle(element).color);
   const ancestors: Element[] = [];
   for (let node: Element | null = element; node && node !== doc.body; node = node.parentElement) ancestors.unshift(node);
   if (!ancestors.length) return;
@@ -98,7 +99,8 @@ function nativeColor(element: Element, group: MenuTextColorGroup, doc: Document)
     const copy = ancestor.cloneNode(ancestor === element) as HTMLElement;
     copy.removeAttribute("id");
     if (group === "pageTitle" || group === "sectionDescription" || group === "price" || group === "supporting") copy.style.removeProperty(`--menu-text-${group}`);
-    copy.removeAttribute(`data-text-color-${group === "pageTitle" ? "page-title" : group === "sectionDescription" ? "section-description" : group}`);
+    if (group === "priceLeader") copy.style.removeProperty("--decoration-leader-color");
+    copy.removeAttribute(attribute);
     if (!sample) sample = copy; else cursor!.append(copy);
     cursor = copy;
   }
