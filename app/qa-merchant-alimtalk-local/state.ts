@@ -2,14 +2,18 @@ import "server-only";
 import { cookies } from "next/headers";
 import { randomUUID } from "node:crypto";
 import { notFound } from "next/navigation";
-import { MerchantChannelInputError, normalizeMerchantAdminPhone, normalizeMerchantChannelId, normalizeMerchantToken,
-  type AlimtalkCategory, type MerchantChannelInput, type MerchantChannelResult, type MerchantChannelView } from "@/lib/merchant-alimtalk-channel";
+import { MerchantChannelInputError, findAlimtalkCategory, normalizeMerchantAdminPhone, normalizeMerchantChannelId, normalizeMerchantToken,
+  type MerchantChannelInput, type MerchantChannelResult, type MerchantChannelView } from "@/lib/merchant-alimtalk-channel";
+import { createMerchantChannelProvider, getMerchantChannelCredentials } from "@/lib/server/merchant-alimtalk-channel-provider";
 
-// Public NHN category examples. The preview never calls NHN or the operating DB.
-export const demoCategories: AlimtalkCategory[] = [{ code: "011", name: "음식점", children: [
-  { code: "0110001", name: "음식점", children: [{ code: "01100010001", name: "음식점", children: [] }] },
-  { code: "0110004", name: "카페", children: [{ code: "01100040001", name: "카페", children: [] }] },
-] }];
+// Use the same read-only category API as the real settings page.
+// Registration, OTP verification and customer messaging remain simulated.
+export async function loadMerchantDemoCategories() {
+  if (process.env.NODE_ENV !== "development") notFound();
+  const credentials = getMerchantChannelCredentials();
+  if (!credentials) throw new Error("채널 연결 인증키를 확인해 주세요.");
+  return createMerchantChannelProvider(credentials).categories();
+}
 const path = "/qa-merchant-alimtalk-local";
 const name = "qa-merchant-alimtalk-local";
 export async function readMerchantDemo() {
@@ -30,7 +34,8 @@ export async function merchantDemo(input: MerchantChannelInput): Promise<Merchan
       if (connection && Date.now() - Date.parse(connection.requestedAt) < 60_000) return { error: "인증번호는 60초 뒤 다시 요청할 수 있습니다." };
       const channelId = normalizeMerchantChannelId(input.channelId);
       const phone = normalizeMerchantAdminPhone(input.adminPhone);
-      if (!["01100010001", "01100040001"].includes(input.categoryCode)) throw new MerchantChannelInputError("업종의 소분류까지 선택해 주세요.", "categoryCode");
+      const category = findAlimtalkCategory(await loadMerchantDemoCategories(), input.categoryCode);
+      if (!/^\d{11}$/.test(input.categoryCode) || !category || category.children.length) throw new MerchantChannelInputError("업종의 소분류까지 선택해 주세요.", "categoryCode");
       const next: MerchantChannelView = { challengeId: randomUUID(), channelId, categoryCode: input.categoryCode,
         maskedPhone: `${phone.slice(0, 3)}-****-${phone.slice(-4)}`, state: "pending", requestedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 600_000).toISOString(), verifiedAt: null, attemptsRemaining: 5, sendingEnabled: false };
