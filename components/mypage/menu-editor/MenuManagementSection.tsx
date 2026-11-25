@@ -26,6 +26,7 @@ import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import { Switch } from "@/app/components/ui/switch";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
 import HelpTooltip from "@/components/ui/HelpTooltip";
@@ -2488,6 +2489,8 @@ function MenuCategoryForm({
   cancelLabel = "취소",
   copyAction,
   deleteAction,
+  beforeActions,
+  resetAction,
   cancelHelperText,
 }: {
   menuId: string;
@@ -2519,6 +2522,8 @@ function MenuCategoryForm({
   cancelLabel?: string;
   copyAction?: ReactNode;
   deleteAction?: ReactNode;
+  beforeActions?: ReactNode;
+  resetAction?: ReactNode;
   cancelHelperText?: string;
 }) {
   const [name, setName] = useState(draftName ?? category?.name ?? "");
@@ -3052,6 +3057,7 @@ function MenuCategoryForm({
           }}
         />
       </div>}
+      {beforeActions}
       <div className={basicEditor ? "site-editor-action-row" : "flex flex-wrap items-center justify-end gap-3"}>
         {draftOnly ? (
           <SubmitButton
@@ -3074,6 +3080,7 @@ function MenuCategoryForm({
         )}
         {copyAction}
         {deleteAction}
+        {resetAction}
       </div>
       {!basicEditor && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {draftOnly && !basicEditor && (
@@ -9141,9 +9148,7 @@ export default function MenuManagementSection({
       템플릿 샘플로 되돌리기
     </button>
   );
-  const registeredItems = itemsForCategory.length > 0 && (
-    <section className="site-content-divider site-stack-block">
-      <h3 className="type-item-title text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
+  const registeredItemsList = (
       <div className={basicEditor ? "site-editor-registered-items" : "mt-4 grid gap-3"}>
         {itemsForCategory.map((item) => (
           <MenuItemCard
@@ -9188,8 +9193,20 @@ export default function MenuManagementSection({
           />
         ))}
       </div>
-    </section>
   );
+  const registeredItems = itemsForCategory.length > 0 && (basicEditor ? (
+    <Accordion key={selectedCategory?.id} type="single" collapsible className="site-content-divider" data-editor-registered-items>
+      <AccordionItem value="registered-items" className="border-0">
+        <AccordionTrigger>등록된 {labels.itemPluralLabel}</AccordionTrigger>
+        <AccordionContent>{registeredItemsList}</AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  ) : (
+    <section className="site-content-divider site-stack-block">
+      <h3 className="type-item-title text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
+      {registeredItemsList}
+    </section>
+  ));
   const pcTabletLayoutSettings = canConfigurePcTabletLayoutMode && (
     <div className={basicEditor ? "site-stack-block" : "site-section site-editor-subpanel p-4"}>
       <div className="site-action-row">
@@ -9888,6 +9905,8 @@ export default function MenuManagementSection({
                   draftFeedback={categoryDraftFeedback}
                   onCancel={resetModes}
                   cancelLabel={isCopiedCategory ? "목록으로" : "취소"}
+                  beforeActions={basicEditor ? registeredItems : undefined}
+                  resetAction={basicEditor ? sampleResetButton : undefined}
                   copyAction={basicEditor ? (
                     <button type="button" className="site-button site-button-outline" disabled={reachedCategoryLimit || reachedItemsPerSiteLimit} onClick={() => copyCategoryDraft(selectedCategory.id)}>
                       복사
@@ -9913,12 +9932,6 @@ export default function MenuManagementSection({
                       : undefined
                   }
                 />
-                {basicEditor && (
-                  <div className="site-stack-block">
-                    {registeredItems}
-                    <div className="site-action-row" data-distribution="end">{sampleResetButton}</div>
-                  </div>
-                )}
                 {selectedCategoryDisplayQualityNotice ? (
                   <div className="mt-4">
                     <DisplayMenuCategoryQualityNoticeBox notice={selectedCategoryDisplayQualityNotice} />
