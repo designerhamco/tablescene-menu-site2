@@ -12,6 +12,12 @@ export type BusinessProvisioningSnapshot = {
   hasEntitlement: boolean;
 };
 
+/** A paid recovery verifies the owned saved purchase, even if the current form
+ * quote has changed. New purchases still validate their requested amount. */
+export function getBusinessProvisioningAmount(requested: unknown, savedRecovery?: { amount: number }) {
+  return savedRecovery ? savedRecovery.amount : typeof requested === "number" ? requested : Number(requested);
+}
+
 export function normalizePurchaseAttemptId(value: unknown) {
   if (typeof value !== "string") return null;
 
