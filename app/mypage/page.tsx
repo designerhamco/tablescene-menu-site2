@@ -1,3 +1,4 @@
+import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
@@ -35,7 +36,7 @@ import { isDeletedAccountStatus } from "@/lib/account-status";
 import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
-import { getMenuPlanChangeDetail, menuPlanChangesEnabled } from "@/lib/server/menu-plan-change-service";
+import { getMenuPlanChangeDetail, menuPlanChangeLedgerReady } from "@/lib/server/menu-plan-change-service";
 import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
 import {
   getAccessibleMenuSiteList,
@@ -132,6 +133,8 @@ type BusinessSubscription = {
   billing_cycle: string | null;
   status: string | null;
   amount: number | null;
+  menu_design_access?: string | null;
+  menu_plan_version?: string | null;
   currency: string | null;
   portone_payment_id: string | null;
   next_billing_at: string | null;
@@ -1562,7 +1565,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       "business_subscriptions_for_menu_cards",
       adminSupabase
         .from("business_subscriptions" as never)
-        .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, cancel_requested_at, canceled_at, cancellation_reason, current_period_start, current_period_end, created_at")
+        .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, menu_design_access, menu_plan_version, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, cancel_requested_at, canceled_at, cancellation_reason, current_period_start, current_period_end, created_at")
         .eq("user_id" as never, user.id as never)
         .order("created_at" as never, { ascending: false } as never)
     );
@@ -1574,7 +1577,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         "business_subscriptions_for_menu_cards_fallback",
         adminSupabase
           .from("business_subscriptions" as never)
-          .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
+          .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, menu_design_access, menu_plan_version, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
           .eq("user_id" as never, user.id as never)
           .order("created_at" as never, { ascending: false } as never)
       );
@@ -1602,7 +1605,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           "business_subscriptions",
           adminSupabase
             .from("business_subscriptions" as never)
-            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, cancel_requested_at, canceled_at, cancellation_reason, current_period_start, current_period_end, created_at")
+            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, menu_design_access, menu_plan_version, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, cancel_requested_at, canceled_at, cancellation_reason, current_period_start, current_period_end, created_at")
             .eq("user_id" as never, user.id as never)
             .order("created_at" as never, { ascending: false } as never)
         ),
@@ -1647,7 +1650,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           "business_subscriptions_fallback",
           adminSupabase
             .from("business_subscriptions" as never)
-            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
+            .select("id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, status, amount, menu_design_access, menu_plan_version, currency, portone_payment_id, next_billing_at, last_paid_at, created_at")
             .eq("user_id" as never, user.id as never)
             .order("created_at" as never, { ascending: false } as never)
         );
@@ -1916,7 +1919,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
   const displayedAiCreditTransactions = aiCreditTransactions.slice(0, 20);
   const changeableSubscriptionIds = new Set<string>();
-  if (activeTab === "payments" && menuPlanChangesEnabled()) {
+  if (activeTab === "payments" && menuPlanChangeLedgerReady()) {
     const candidates = businessSubscriptions.filter((subscription) =>
       subscription.id && subscription.status === "active" && !subscription.cancel_at_period_end
     );
@@ -1924,7 +1927,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     await Promise.all(candidates.map(async (subscription) => {
       try {
         const detail = await runMypageQuery("plan_change_eligibility", getMenuPlanChangeDetail(admin, subscription.id!, user.id));
-        if (detail?.eligible && detail.pending?.state !== "processing") changeableSubscriptionIds.add(subscription.id!);
+        if (detail?.pending) changeableSubscriptionIds.add(subscription.id!);
       } catch {
         // A failed eligibility lookup must not expose an unavailable change action.
       }
@@ -2071,7 +2074,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               productName: getServiceName(matchingSubscription.plan_type, matchingSubscription.billing_cycle, matchingSubscription.product_key, resolvedMenuSite?.template_key),
               menuName: resolvedMenuSite?.name ?? "연결된 메뉴판 확인 필요",
               menuStatus: resolvedMenuSite?.status ? getStatusLabel(resolvedMenuSite.status) : "상태 확인 필요",
-              amountLabel: typeof matchingSubscription.amount === "number" ? formatKrw(matchingSubscription.amount) : "-",
+              amountLabel: typeof matchingSubscription.amount === "number" ? formatKrw(getMenuPlanRenewalAmount({ ...matchingSubscription, product_key: matchingSubscription.product_key ?? "", billing_cycle: matchingSubscription.billing_cycle ?? "" }, matchingSubscription.amount)) : "-",
               billingCycleLabel: getBillingCycleLabel(matchingSubscription.billing_cycle),
               nextBillingLabel: formatDate(matchingSubscription.next_billing_at ?? null),
               periodEndLabel: formatDate(subscriptionPeriodEnd),
@@ -2864,13 +2867,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const productKey = subscription?.product_key ?? entitlement?.product_key ?? null;
                         const product = productKey ? getSubscriptionProduct(productKey) : null;
                         const isPersonalTrial = planType === "personal_trial" || planType === "personal_trial_basic_1month";
-                        const amount = subscription?.amount ?? product?.amount ?? (isPersonalTrial ? personalTrialBasicProduct.amount : null);
+                        const amount = subscription ? getMenuPlanRenewalAmount({ ...subscription, product_key: subscription.product_key ?? "", billing_cycle: subscription.billing_cycle ?? "" }, product?.amount ?? 0) : product?.amount ?? (isPersonalTrial ? personalTrialBasicProduct.amount : null);
                         const latestPayment = getLatestPaymentForService({ menuSiteId: menuSite?.id, productKey });
                         const latestPaymentStatus = latestPayment?.payment.status ?? null;
                         const isBusinessSubscription = Boolean(subscription?.id && !isPersonalTrial);
                         const isBusinessFreeTrial = isActiveBusinessFreeTrial(subscription);
                         const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle, productKey, menuSite?.template_key);
-                        const paymentDetailAmount = latestPayment?.payment.amount ?? amount;
+                        const paymentDetailAmount = latestPayment?.payment.amount ?? subscription?.amount ?? amount;
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
                         const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
                         const paymentDetailPgLabel = isPersonalTrial ? "PortOne 일반 결제" : "NHN KCP 카드 정기결제";

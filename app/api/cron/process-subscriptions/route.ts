@@ -1,4 +1,5 @@
 import { findNotificationDeliveryKey } from "@/lib/server/notification-delivery-key";
+import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { menuPlanChangeLedgerReady, menuPlanChangeRenewalsEnabled, processMenuPlanChangeRenewal } from "@/lib/server/menu-plan-change-service";
@@ -51,6 +52,8 @@ type DueSubscription = {
   billing_key_ref: string | null;
   status: string;
   amount: number | null;
+  menu_design_access?: string | null;
+  menu_plan_version?: string | null;
   currency: string | null;
   portone_payment_id: string | null;
   next_billing_at: string | null;
@@ -790,12 +793,14 @@ async function markSubscriptionRenewed({
   paymentId,
   periodStart,
   periodEnd,
+  amount,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscription: DueSubscription;
   paymentId: string;
   periodStart: Date;
   periodEnd: Date;
+  amount: number;
 }) {
   const nowIso = new Date().toISOString();
   const { error: subscriptionError } = await adminSupabase
@@ -807,6 +812,7 @@ async function markSubscriptionRenewed({
       next_billing_at: periodEnd.toISOString(),
       current_period_start: periodStart.toISOString(),
       current_period_end: periodEnd.toISOString(),
+      amount,
     }) as never)
     .eq("id" as never, subscription.id as never);
 
@@ -879,9 +885,7 @@ async function processDueSubscription({
     return { subscriptionId: subscription.id, productKey: subscription.product_key, action: "skipped_invalid_product", nextBillingAt: subscription.next_billing_at };
   }
 
-  const renewalAmount = typeof subscription.amount === "number" && subscription.amount >= 0
-    ? subscription.amount
-    : product.amount;
+  const renewalAmount = getMenuPlanRenewalAmount(subscription, product.amount);
 
   const renewalDisposition = getSubscriptionRenewalDisposition({
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -957,7 +961,7 @@ async function processDueSubscription({
       },
     });
     await createRenewalRecords({ adminSupabase, subscription, product, amount: renewalAmount, paymentId, businessProfile, portonePayment: billingPayment.rawPayment });
-    await markSubscriptionRenewed({ adminSupabase, subscription, paymentId, periodStart, periodEnd });
+    await markSubscriptionRenewed({ adminSupabase, subscription, paymentId, periodStart, periodEnd, amount: renewalAmount });
 
     return {
       subscriptionId: subscription.id,
@@ -1006,7 +1010,7 @@ async function processSubscriptions({ dryRun, execute, trigger, planChangeExecut
 
   const { data, error } = await adminSupabase
     .from("business_subscriptions" as never)
-    .select("id, user_id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, billing_key_ref, status, amount, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, current_period_start, current_period_end, created_at")
+    .select("id, user_id, menu_site_id, business_profile_id, product_key, plan_type, billing_cycle, billing_key_ref, status, amount, menu_design_access, menu_plan_version, currency, portone_payment_id, next_billing_at, last_paid_at, cancel_at_period_end, current_period_start, current_period_end, created_at")
     .eq("status" as never, "active" as never)
     .lte("next_billing_at" as never, now.toISOString() as never)
     .in("product_key" as never, [...SUBSCRIPTION_PRODUCT_KEYS] as never)

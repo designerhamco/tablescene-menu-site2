@@ -26,7 +26,7 @@ export function getTemplateDetailInfo(template:PublicTemplateDetail) {
   const productKey=display?'business_display_monthly':multiPage?'business_basic_multi_monthly':'business_basic_single_monthly';
   const serviceLabel=getServiceCategoryLabel(display?'display':multiPage?'dining':'basic');
   return {display,multiPage,features,pricing,serviceLabel,selectable: Boolean(getSelectableCatalogDesign(template.key)),
-    formatLabel:`${serviceLabel} ${design?.kind==='standard'?'기본 디자인':'디자인 포함'}`,
+    formatLabel:`${serviceLabel} ${design?.kind==='standard'?'기본 디자인':'디자인 템플릿'}`,
     previewHref:design?.previewHref??`${getTemplateDetailHref(template.key)}/preview`,
     startHref:design?.startHref??(display?`/apply/display?template=${template.key}`:`/apply/basic?product=${productKey}&template=${template.key}`),
     listHref:display?'/templates?plan=display':`/templates?plan=${multiPage?'dining':'basic'}&category=${design?.kind??'designer'}`,

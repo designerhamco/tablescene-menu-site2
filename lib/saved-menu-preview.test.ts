@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 import PreviewDesignOptions from "../components/menu/PreviewDesignOptions";
+import PreviewDecorationOptions from "../components/menu/PreviewDecorationOptions";
 import MenuPreviewOptionsPanel from "../components/menu/MenuPreviewOptionsPanel";
 import MenuAppearanceScope from "../components/menu-templates/shared/MenuAppearanceScope";
 import { getDefaultDesignOptions } from "./default-design-options";
@@ -126,6 +127,22 @@ test("untouched neutral decoration options show unchecked choices and an empty d
   assert.equal((html.match(/type="checkbox"/g) ?? []).length, 6);
   assert.doesNotMatch(html, /type="checkbox"[^>]*checked|data-preview-decoration="/);
   assert.match(html, /선 장식을 선택하면 디자인 설정이 표시됩니다/);
+});
+
+test("decoration selects show actual native values without an inheritance option or an implicit save", () => {
+  const design = {}, defaults = previewDesignDefaults(fixture());
+  defaults.decorationVisibilityDefaults = { ...defaults.decorationVisibilityDefaults!, categoryUnderline: true };
+  let writes = 0;
+  const before = structuredClone(design);
+  const html = renderToStaticMarkup(createElement(PreviewDecorationOptions, {
+    value: design, defaults, renderedDesign: { nativeTextColors: {}, alignment: { value: "left" }, radius: { value: "square" }, decorationStrokes: { categoryUnderline: { width: 1.6, style: "solid" } } },
+    album: false, device: "pc", disabled: false, savedFallback: false, onChange() { writes++; },
+  }));
+  assert.doesNotMatch(html, /템플릿 기본|value="template"/);
+  assert.match(html, /value="1.6"[^>]*selected/);
+  assert.match(html, /value="solid"[^>]*selected/);
+  assert.equal(writes, 0);
+  assert.deepEqual(design, before);
 });
 
 test("Basic album decoration options omit column, item and price-leader controls", () => {

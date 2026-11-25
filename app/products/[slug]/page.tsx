@@ -70,7 +70,6 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="mt-2 text-copy font-semibold text-zinc-400">
                 정상가 월 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>
-              <p className="mt-3 text-copy font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
               <Link
                 href={purchaseHref}
                 data-purpose="primary-action"
@@ -110,7 +109,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 <li>• 모바일·태블릿·PC 반응형 메뉴판</li>
               </ul>
               <p className="mt-6 rounded-2xl bg-zinc-50 p-4 break-keep text-support font-medium leading-relaxed text-zinc-500">
-                메뉴판 1개당 월 구독 1건이 적용됩니다. 같은 서비스 안에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다.
+                메뉴판 1개당 월 구독 1건이 적용됩니다. 같은 서비스의 모든 지원 템플릿을 추가 요금 없이 교체할 수 있습니다.
               </p>
             </section>
           </div>

@@ -7,11 +7,11 @@ export default function MenuPlanChangeModal({ subscriptionId, menuName }: { subs
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button type="button" className="site-button site-button-outline">구독 변경</button>
+        <button type="button" className="site-button site-button-outline">기존 변경 예약</button>
       </DialogTrigger>
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
-          <DialogTitle>구독 변경</DialogTitle>
+          <DialogTitle>기존 변경 예약</DialogTitle>
           <DialogDescription className="mt-2">{menuName}</DialogDescription>
         </div>
         <MenuPlanChangePanel subscriptionId={subscriptionId} />

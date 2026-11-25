@@ -306,8 +306,8 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 아티메뉴는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 아티메뉴 베이직과 다이닝은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[메뉴판별 월 구독] 베이직·다이닝은 메뉴판 1개당 월 구독 1건이 적용됩니다. 기본 이용권은 같은 서비스의 기본 디자인끼리, 디자인 포함 이용권은 기본 디자인과 디자인 템플릿을 교체할 수 있습니다. 기존 구독은 기존 계약을 유지합니다.",
-    "[정기 결제 갱신] 월 정기 결제가 갱신되면 구독한 메뉴판의 이용기간이 연장되며, 디자인은 선택한 이용권 범위 안에서 교체할 수 있습니다. 새 메뉴판은 추가되지 않습니다.",
+    "[메뉴판별 월 구독] 베이직·다이닝은 메뉴판 1개당 월 구독 1건이 적용됩니다. 같은 서비스의 기본 디자인과 디자인 템플릿을 추가 요금 없이 교체할 수 있으며, 템플릿 교체로 구독은 변경되지 않습니다.",
+    "[정기 결제 갱신] 월 정기 결제가 갱신되면 구독한 메뉴판의 이용기간이 연장되며, 디자인은 같은 서비스의 모든 지원 템플릿으로 추가 요금 없이 교체할 수 있습니다. 새 메뉴판은 추가되지 않습니다.",
     "[30일 무료체험] 베이직·다이닝·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 요금제의 월 이용료가 처음 자동결제됩니다.",
     "[무료체험 해지] 무료체험 종료 전 언제든 해지를 예약할 수 있습니다. 중도 해지해도 30일 종료일까지 이용할 수 있으며, 종료 시점의 첫 결제는 실행되지 않습니다.",
     "[메뉴 데이터 이동] 별도로 구매한 다른 템플릿 메뉴판에는 기존 메뉴판의 메뉴 데이터를 가져올 수 있습니다. 템플릿별 디자인, 레이아웃, 위젯, 할인 설정은 새 템플릿에 맞게 별도로 설정해야 합니다.",
@@ -414,7 +414,7 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["디스플레이 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
+    bullets: ["디스플레이 메뉴판 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
 ] as const satisfies readonly {
   product: DisplayPaymentProduct;
@@ -858,7 +858,7 @@ export default function ApplyOrderForm({
     if (isMenuService) {
       const base = getBasicPaymentProduct(selectedBasicProductKey) ?? businessBasicMonthlyProduct;
       const quote = getMenuPlanSelection(base.product_key, selectedMenuDesignId);
-      return quote ? {...base, amount: quote.regularAmount, regular_amount: quote.regularAmount, label: `${quote.service === "basic" ? "베이직" : "다이닝"} ${quote.access === "standard" ? "기본 디자인" : "디자인 포함"}`} : base;
+      return quote ? {...base, amount: quote.regularAmount, regular_amount: quote.regularAmount, label: `${quote.service === "basic" ? "베이직" : "다이닝"} 월 구독`} : base;
     }
     if (isScreenService && displayCheckoutQaEnabled) {
       return displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey)
@@ -2280,7 +2280,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 구독</h2>
               <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                선택한 디스플레이 디자인 1개를 월 단위로 구독합니다.
+                디스플레이 메뉴판 1개를 월 단위로 구독하며 모든 지원 디스플레이 템플릿을 이용합니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
@@ -2347,8 +2347,8 @@ export default function ApplyOrderForm({
             const design = catalogDesigns.find(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === kind);
             if (!design) return; setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
-          }}>{kind === "standard" ? "기본 디자인" : "디자인 템플릿 포함 (+1,900원/월)"}</button>)}</div>
-          <p className="site-body-support mb-5 text-zinc-600">{selectedDesignKind === "standard" ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>
+          }}>{kind === "standard" ? "기본 디자인" : "디자인 템플릿"}</button>)}</div>
+          <p className="site-body-support mb-5 text-zinc-600">같은 서비스의 기본 디자인과 디자인 템플릿을 추가 요금 없이 교체할 수 있습니다.</p>
           <div className="site-checkout-template-grid">{catalogDesigns.filter(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === selectedDesignKind).map(design => <button type="button" key={design.id} className="site-choice site-checkout-template" aria-pressed={selectedMenuDesignId === design.id} onClick={() => {
             setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
@@ -2710,7 +2710,7 @@ export default function ApplyOrderForm({
             )}
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
-            {isMenuService && <SummaryRow label="디자인 이용권" value={selectedDesignKind === "standard" ? "기본 디자인" : "기본·디자인 템플릿"} />}
+            {isMenuService && <SummaryRow label="템플릿 이용 범위" value="같은 서비스의 모든 템플릿" />}
             {(isMenuService || isScreenService) && <SummaryRow label="제공 메뉴판" value="1개" />}
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
@@ -2791,7 +2791,7 @@ export default function ApplyOrderForm({
                     ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${monthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
                     : "사업자 인증과 결제수단 등록 후 자동결제를 진행합니다."}
                 </p>
-                <p>{isMenuService ? "같은 서비스에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다. 표시 금액은 VAT 포함입니다." : "디스플레이 메뉴판마다 별도 월 구독이 적용되며, 표시 금액은 VAT 포함입니다."}</p>
+                <p>{isMenuService ? "같은 서비스의 모든 템플릿을 추가 요금 없이 교체할 수 있습니다. 표시 금액은 VAT 포함입니다." : "디스플레이 메뉴판마다 별도 월 구독이 적용되며, 표시 금액은 VAT 포함입니다."}</p>
                 <p>별도로 구독한 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.</p>
                 {activePromotion ? <p>{openDiscountPolicy.note}</p> : null}
               </div>

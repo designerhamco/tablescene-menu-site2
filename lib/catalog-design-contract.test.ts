@@ -7,10 +7,10 @@ import { getOpenPromotionSnapshot, getPromotionAwareChargeAmount, validatePromot
 import { readTemplateFavorites, setTemplateFavorite, TEMPLATE_FAVORITES_KEY } from './template-favorites';
 
 const offers = [
-  ['business_basic_single_monthly', 'basic-first-column', 4900, 5900, 'standard'],
-  ['business_basic_single_monthly', 'cafe_mocha_forest_a', 6800, 7800, 'all'],
-  ['business_basic_multi_monthly', 'dining-full-page', 6900, 8900, 'standard'],
-  ['business_basic_multi_monthly', 'dining_aube_table_a', 8800, 10800, 'all'],
+  ['business_basic_single_monthly', 'basic-first-column', 4900, 5900, 'all'],
+  ['business_basic_single_monthly', 'cafe_mocha_forest_a', 4900, 5900, 'all'],
+  ['business_basic_multi_monthly', 'dining-full-page', 6900, 8900, 'all'],
+  ['business_basic_multi_monthly', 'dining_aube_table_a', 6900, 8900, 'all'],
 ] as const;
 for (const [product,id,early,regular,access] of offers) test(`catalog and checkout agree on ${id} contract`, () => {
   const design=getCatalogDesign(id)!;
@@ -29,7 +29,7 @@ test('untrusted service, renderer and design combinations fail closed',()=>{
   assert.equal(getMenuPlanSelection('business_basic_single_monthly','basic-first-column','cafe_mocha_forest_a'),null);
   assert.equal(getMenuPlanSelection('business_basic_single_monthly','retired-template'),null);
   assert.equal(getMenuPlanSelection('business_display_monthly','basic-first-column'),null);
-  assert.equal(canSelectMenuDesign('basic','standard','cafe_mocha_forest_a'),false);
+  assert.equal(canSelectMenuDesign('basic','standard','cafe_mocha_forest_a'),true);
   assert.equal(canSelectMenuDesign('basic','all','dining-full-page'),false);
   assert.equal(canSelectMenuDesign('basic','standard','basic-top-row-album'),true);
   assert.equal(canSelectMenuDesign('basic','all','cafe_mocha_forest_a'),true);
@@ -49,11 +49,12 @@ test('retired central-column designs keep saved metadata but cannot be newly sel
   }
 });
 
-test('a designer purchase cannot reuse the cheaper standard promotion snapshot',()=>{
+test('same-service templates share the promotion amount while forged prices remain rejected',()=>{
   const standard=getOpenPromotionSnapshot('business_basic_single_monthly',new Date(),'basic-first-column')!;
-  assert.equal(validatePromotionForOrder({productKey:'business_basic_single_monthly',menuDesignId:'cafe_mocha_forest_a',promotionCode:'OPEN',promotion:standard}).ok,false);
+  assert.equal(validatePromotionForOrder({productKey:'business_basic_single_monthly',menuDesignId:'cafe_mocha_forest_a',promotionCode:'OPEN',promotion:standard}).ok,true);
+  assert.equal(validatePromotionForOrder({productKey:'business_basic_single_monthly',menuDesignId:'cafe_mocha_forest_a',promotionCode:'OPEN',promotion:{...standard,finalAmount:6800}}).ok,false);
   const missing=validatePromotionForOrder({productKey:'business_basic_single_monthly',menuDesignId:'cafe_mocha_forest_a'});
-  assert.ok(missing.ok);assert.equal(getPromotionAwareChargeAmount('business_basic_single_monthly',missing.promotion,'cafe_mocha_forest_a'),7800);
+  assert.ok(missing.ok);assert.equal(getPromotionAwareChargeAmount('business_basic_single_monthly',missing.promotion,'cafe_mocha_forest_a'),5900);
   assert.equal(getPromotionAwareChargeAmount('business_basic_single_monthly',null),5900); // legacy callers keep their quote
 });
 
@@ -117,18 +118,18 @@ test('favorites and switching accept the public proxy host, rejecting foreign or
 });
 
 
-test('public base-price purchase links select the same standard contract and design-inclusive quotes', async () => {
+test('public purchase links and both template kinds share one service price and full access', async () => {
   const { publicBasicProducts } = await import('./public-product-details');
   for (const product of publicBasicProducts) {
     const design = getCatalogDesign(product.standardDesignId)!;
     const quote = getMenuPlanSelection(product.productKey, design.id, design.templateKey)!;
-    assert.equal(quote.access, 'standard');
+    assert.equal(quote.access, 'all');
     assert.equal(product.price, quote.earlyBirdAmount);
     assert.equal(product.regularPrice, quote.regularAmount);
     const designer = catalogDesigns.find(item => item.service === quote.service && item.kind === 'designer')!;
     const all = getMenuPlanSelection(product.productKey, designer.id)!;
-    assert.equal(product.designPrice, all.earlyBirdAmount);
-    assert.equal(product.designRegularPrice, all.regularAmount);
+    assert.equal(product.price, all.earlyBirdAmount);
+    assert.equal(product.regularPrice, all.regularAmount);
     assert.equal(new URL(design.startHref, 'https://example.test').searchParams.get('design'), product.standardDesignId);
   }
 });

@@ -34,7 +34,7 @@ test("모든 상세의 서비스·이용권 표시가 카탈로그와 일치하�
     const info = getTemplateDetailInfo(template);
     const label = getServiceCategoryLabel(design.service);
     assert.equal(info.serviceLabel, label, design.id);
-    assert.equal(info.formatLabel, `${label} ${design.kind === "standard" ? "기본 디자인" : "디자인 포함"}`, design.id);
+    assert.equal(info.formatLabel, `${label} ${design.kind === "standard" ? "기본 디자인" : "디자인 템플릿"}`, design.id);
     assert.equal(info.startHref, design.startHref, design.id);
     assert.equal(info.previewHref, design.previewHref, design.id);
   }
