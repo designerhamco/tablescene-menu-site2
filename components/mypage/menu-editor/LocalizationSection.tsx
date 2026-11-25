@@ -735,7 +735,7 @@ function LocalizationSectionContent({
   function applyRecoverableTranslationDraft(job: RecoverableAutoTranslationJob) {
     applyFullTranslationDraft(job.patches);
     setAppliedRecoveryJobId(job.jobId);
-    toast.success("최근 자동 번역 결과를 불러왔습니다. 최종 저장을 눌러 반영해주세요.");
+    toast.success("최근 자동 번역 결과를 불러왔습니다. 다국어 설정 저장을 눌러 반영해주세요.");
   }
 
   function applyAiCreditUsage(usage?: { used: number; limit: number } | null) {
@@ -934,7 +934,7 @@ function LocalizationSectionContent({
           <div className={basic ? "site-stack-block" : "mt-5"}>
             <div className="site-action-row">
               <h4 className="type-label">사용할 언어</h4>
-              {basic && <HelpTooltip label="사용할 언어 도움말">한국어는 기본 언어입니다. 선택한 언어는 최종 저장 후 메뉴판에 표시되며, 언어를 꺼도 기존 번역은 유지됩니다.</HelpTooltip>}
+              {basic && <HelpTooltip label="사용할 언어 도움말">한국어는 기본 언어입니다. 선택한 언어는 다국어 설정 저장 후 메뉴판에 표시되며, 언어를 꺼도 기존 번역은 유지됩니다.</HelpTooltip>}
             </div>
             {!basic && <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               한국어는 기본 언어로 항상 사용됩니다. 선택한 언어는 하단 저장 후 공개 메뉴판의 언어 선택에 반영됩니다.
@@ -1195,7 +1195,7 @@ function LocalizationSectionContent({
         </section>
 
 <MenuEditorActionBar dirty={hasLocaleChanges || hasTranslationChanges}>
-          <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>{basic ? "최종 저장" : "저장"}</LocalizationSaveButton>
+          <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>다국어 설정 저장</LocalizationSaveButton>
           <MenuEditorSaveFeedback error={finalSaveError} />
           {!basic && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
             언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.

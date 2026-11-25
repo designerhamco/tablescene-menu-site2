@@ -273,12 +273,12 @@ export default function MenuWidgetDraftEditor({
         </ContentPanel>}
         <MenuEditorActionBar pending={finalSavePending} dirty={hasChanges}>
           <button type="button" className="site-button site-button-primary" data-editor-save-action disabled={finalSaveDisabled || validationErrors.length > 0 || countExceeded}
-            onClick={onFinalSave}>{finalSavePending ? "저장 중…" : "최종 저장"}</button>
+            onClick={onFinalSave}>{finalSavePending ? "저장 중…" : "메뉴판 구성 저장"}</button>
           {mode === "edit" && onCopy && <button type="button" className="site-button site-button-outline"
-            disabled={widgetCount >= maxWidgetCount} onClick={onCopy}>복사</button>}
+            disabled={widgetCount >= maxWidgetCount} onClick={onCopy}>위젯 복사</button>}
           {mode === "edit" && onRequestDelete && !isConfirmingDelete && <button type="button"
-            className="site-button site-button-outline-danger" onClick={onRequestDelete}>삭제</button>}
-          {mode !== "edit" && <button type="button" className="site-button site-button-outline" onClick={onCancel}>취소</button>}
+            className="site-button site-button-outline-danger" onClick={onRequestDelete}>위젯 삭제</button>}
+          {mode !== "edit" && <button type="button" className="site-button site-button-outline" onClick={onCancel}>{mode === "copy" ? "위젯 복사 취소" : "위젯 추가 취소"}</button>}
         <MenuEditorSaveFeedback id={feedbackId} error={finalSaveError} issues={[
           ...validationErrors.map(error => ({ message: error.message, fieldId: issueFieldIds[error.field] })),
           ...(countExceeded ? [{ message: `한 페이지에는 위젯을 최대 ${maxWidgetCount}개까지 등록할 수 있습니다.` }] : []),
@@ -286,7 +286,7 @@ export default function MenuWidgetDraftEditor({
         </MenuEditorActionBar>
         {isConfirmingDelete && <div className="site-action-row" role="alert">
           <span className="type-body-sm">이 위젯을 삭제할까요?</span>
-          <button type="button" className="site-button site-button-danger" onClick={onConfirmDelete}>삭제</button>
+          <button type="button" className="site-button site-button-danger" onClick={onConfirmDelete}>위젯 삭제</button>
           <button type="button" className="site-button site-button-outline" onClick={onCancelDelete}>취소</button>
         </div>}
 
@@ -300,7 +300,7 @@ export default function MenuWidgetDraftEditor({
         <p className="text-support font-medium uppercase text-zinc-600">Widget Detail</p>
         <h3 className="type-subsection-title mt-2 text-zinc-950">{heading}</h3>
         <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
-          위젯은 카테고리와 같은 최상위 콘텐츠입니다. 여기서 반영한 뒤 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.
+          위젯은 카테고리와 같은 최상위 콘텐츠입니다. 여기서 반영한 뒤 하단의 메뉴판 구성 저장을 눌러야 공개 메뉴판에 반영됩니다.
         </p>
       </div>
 
@@ -432,19 +432,19 @@ export default function MenuWidgetDraftEditor({
               disabled={widgetCount >= maxWidgetCount}
               className="site-button site-button-outline mr-auto"
             >
-              복사
+              위젯 복사
             </button>
           )}
           {mode === "edit" && onRequestDelete && onConfirmDelete ? (
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-support font-medium text-red-600">이 위젯을 삭제할까요?</span>
-                <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger">삭제</button>
+                <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger">위젯 삭제</button>
                 <button type="button" onClick={onCancelDelete} className="site-button site-button-outline">취소</button>
               </span>
             ) : (
               <button type="button" onClick={onRequestDelete} className="site-button site-button-outline-danger">
-                삭제
+                위젯 삭제
               </button>
             )
           ) : null}

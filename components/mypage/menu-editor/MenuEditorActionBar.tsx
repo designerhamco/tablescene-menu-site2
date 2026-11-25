@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 
 export const MenuEditorDirtyContext = createContext(false);
+export const MenuEditorWorkspaceActionsContext = createContext<ReactNode>(null);
 
 /** Keep the original buttons inside their form, including native validation and Server Actions. */
 export default function MenuEditorActionBar({ children, pending: externalPending = false, dirty: externalDirty, formId, onCancel }: {
@@ -15,6 +16,7 @@ export default function MenuEditorActionBar({ children, pending: externalPending
   onCancel?: () => void;
 }) {
   const workspaceDirty = useContext(MenuEditorDirtyContext);
+  const workspaceActions = useContext(MenuEditorWorkspaceActionsContext);
   const ref = useRef<HTMLDivElement>(null);
   const { pending: formPending } = useFormStatus();
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -85,28 +87,33 @@ export default function MenuEditorActionBar({ children, pending: externalPending
   }
 
   return <div ref={ref} className="site-editor-action-bar" data-state={state} aria-label="편집 작업">
-    <div className="site-editor-action-bar-inner">
-      <p className="site-editor-save-status type-body-sm" role="status" aria-live="polite">
-        <span aria-hidden="true" />
-        {pending ? "저장 중…" : hasError ? "입력값과 저장 결과를 확인해 주세요" : dirty ? "저장하지 않은 변경사항" : "모든 변경사항이 저장됨"}
-      </p>
-      <div className="site-editor-action-bar-controls">
-        {children}
-        <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
-          <DialogTrigger asChild><button type="button" className="site-button site-button-outline" data-editor-cancel disabled={!dirty || pending}>변경 취소</button></DialogTrigger>
-          <DialogContent className="site-management-scope">
-            <div className="site-stack-group">
-              <div className="site-stack-title">
-                <DialogTitle>변경사항을 취소할까요?</DialogTitle>
-                <DialogDescription>현재 탭에서 저장하지 않은 내용을 버리고 마지막 저장 상태로 돌아갑니다.</DialogDescription>
+    <div className="site-container">
+      <div className="site-editor-action-bar-inner">
+        <div className="site-editor-action-bar-leading">
+          <p className="site-editor-save-status type-body-sm" role="status" aria-live="polite">
+            <span aria-hidden="true" />
+            {pending ? "저장 중…" : hasError ? "입력값과 저장 결과를 확인해 주세요" : dirty ? "저장하지 않은 변경사항" : "모든 변경사항이 저장됨"}
+          </p>
+          {workspaceActions && <fieldset className="site-action-row" disabled={pending} aria-label="메뉴판 구성 공통 작업">{workspaceActions}</fieldset>}
+        </div>
+        <div className="site-editor-action-bar-controls">
+          {children}
+          {dirty && <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+            <DialogTrigger asChild><button type="button" className="site-button site-button-outline" data-editor-cancel disabled={!dirty || pending}>미저장 수정 취소</button></DialogTrigger>
+            <DialogContent className="site-management-scope">
+              <div className="site-stack-group">
+                <div className="site-stack-title">
+                  <DialogTitle>미저장 수정을 취소할까요?</DialogTitle>
+                  <DialogDescription>현재 탭에서 저장하지 않은 수정만 버리고 마지막 저장 상태로 돌아갑니다. 템플릿 샘플로 바꾸는 작업과는 별개입니다.</DialogDescription>
+                </div>
+                <div className="site-action-row" data-distribution="end">
+                  <DialogClose asChild><button type="button" className="site-button site-button-outline">계속 편집</button></DialogClose>
+                  <button type="button" className="site-button site-button-primary" disabled={pending} onClick={cancelChanges}>미저장 수정 취소</button>
+                </div>
               </div>
-              <div className="site-action-row" data-distribution="end">
-                <DialogClose asChild><button type="button" className="site-button site-button-outline">계속 편집</button></DialogClose>
-                <button type="button" className="site-button site-button-primary" disabled={pending} onClick={cancelChanges}>변경 취소</button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>}
+        </div>
       </div>
     </div>
   </div>;
