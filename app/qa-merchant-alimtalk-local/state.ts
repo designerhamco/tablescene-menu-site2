@@ -33,6 +33,13 @@ export async function readMerchantDemo() {
 export async function merchantDemo(input: MerchantChannelInput): Promise<MerchantChannelResult> {
   const { connection, save } = await readMerchantDemo();
   try {
+    if (input.intent === "prepare-template" || input.intent === "refresh-template") {
+      if (connection?.state !== "connected") return { error: "매장 채널을 먼저 연결해 주세요." };
+      const next: MerchantChannelView = { ...connection, template: { status: input.intent === "prepare-template" ? "pending" : "approved",
+        checkedAt: new Date().toISOString(), registrationStarted: true } };
+      save(next);
+      return { connection: next, notice: "모의 심사 상태를 갱신했습니다. 실제 등록과 고객 발송은 하지 않았습니다." };
+    }
     if (input.intent === "connect-existing") {
       if (connection?.state === "connected") return { error: "이미 연결된 채널입니다." };
       if (connection && ["pending", "requesting", "verifying"].includes(connection.state) && Date.now() < Date.parse(connection.expiresAt)) {

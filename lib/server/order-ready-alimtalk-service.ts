@@ -6,14 +6,16 @@ import type { OrderAlimtalkAttempt, OrderAlimtalkDetails, OrderAlimtalkRequest }
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireMenuSitePermission, requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 import { assertDashboardEnabled } from "@/lib/server/order-management-service";
-import { createOrderAlimtalkProvider, getOrderAlimtalkConfig, getOrderAlimtalkReceiptConfig, getOrderAlimtalkPhone } from "./order-ready-alimtalk-provider";
+import { createOrderAlimtalkProvider, getOrderAlimtalkPhone, isOrderAlimtalkSendingEnabled } from "./order-ready-alimtalk-provider";
 
-const attemptColumns = "id, attempt_no, status, provider_message_id, submission_started_at, created_at";
+import { resolveMerchantAlimtalkConfig, resolveOrderAlimtalkReceiptConfig, type SenderSnapshot } from "./order-alimtalk-config-service";
+
+const attemptColumns = "sender_key, channel_id, template_code, channel_owner_id, provider_app_key_hash, id, attempt_no, status, provider_message_id, submission_started_at, created_at";
 const unsentRecoveryMs = 60_000;
 
 export class OrderAlimtalkError extends Error {}
 
-type AttemptRow = {
+type AttemptRow = SenderSnapshot & {
   id: string;
   attempt_no: number;
   status: string;
@@ -30,7 +32,7 @@ function summarize(attempt: Pick<AttemptRow, "id" | "attempt_no" | "status">): O
 export async function listOrderAlimtalkDetails(menuSiteId: string, orderIds: string[]) {
   const details = new Map<string, OrderAlimtalkDetails>();
   await requireMenuSitePermission(menuSiteId, "order.read");
-  const sendingEnabled = Boolean(getOrderAlimtalkConfig(menuSiteId));
+  const sendingEnabled = Boolean(await resolveMerchantAlimtalkConfig(menuSiteId));
 
   const supabase = createAdminClient();
   for (let index = 0; index < orderIds.length; index += 100) {
@@ -67,10 +69,7 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
 
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_alimtalk");
   await assertDashboardEnabled(menuSiteId);
-  const config = input.intent === "check" ? getOrderAlimtalkReceiptConfig(menuSiteId) : getOrderAlimtalkConfig(menuSiteId);
-  if (!config) throw new OrderAlimtalkError("알림톡 발송 설정을 확인해 주세요.");
-
-  const provider = createOrderAlimtalkProvider(config);
+  if (input.intent === "send" && !isOrderAlimtalkSendingEnabled()) throw new OrderAlimtalkError("알림톡 발송 설정을 확인해 주세요.");
   const latest = async () => {
     const { data, error } = await supabase.from("menu_order_alimtalk_attempts").select(attemptColumns)
       .eq("menu_site_id", menuSiteId).eq("order_id", orderId)
@@ -102,11 +101,17 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
       if (!previous.submission_started_at) return resolve(previous, "failed");
       throw new OrderAlimtalkError("발송 접수 결과를 받지 못했습니다. NHN 발송 내역에서 확인해 주세요.");
     }
-    const result = await provider.check(previous.provider_message_id).catch(() => {
+    const config = await resolveOrderAlimtalkReceiptConfig(menuSiteId, previous, supabase);
+    if (!config) throw new OrderAlimtalkError("발송 당시의 채널 연결을 확인해야 합니다. 고객지원에 문의해 주세요.");
+    const result = await createOrderAlimtalkProvider(config).check(previous.provider_message_id).catch(() => {
       throw new OrderAlimtalkError("발송 결과를 확인하지 못했습니다. 잠시 뒤 다시 확인해 주세요.");
     });
     return result === "pending" ? summarize(previous) : resolve(previous, result);
   }
+
+  const config = await resolveMerchantAlimtalkConfig(menuSiteId, supabase);
+  if (!config) throw new OrderAlimtalkError("알림톡 발송 설정을 확인해 주세요.");
+  const provider = createOrderAlimtalkProvider(config);
 
   if (previous && (previous.id !== expectedAttemptId || previous.status === "pending")) return summarize(previous);
   if (!previous && expectedAttemptId) throw new OrderAlimtalkError("알림톡 발송 이력을 다시 확인해 주세요.");
@@ -123,12 +128,14 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
     order_id: orderId,
     attempt_no: (previous?.attempt_no ?? 0) + 1,
     created_by: context.actorUserId,
+    sender_key: config.senderKey, channel_id: config.channelId, template_code: config.templateCode,
+    channel_owner_id: config.channelOwnerId, provider_app_key_hash: config.providerAppKeyHash,
   }).select(attemptColumns).single();
   if (error?.code === "23505") {
     const concurrent = await latest();
     if (concurrent) return summarize(concurrent);
   }
-  if (error?.code === "P0001") throw new OrderAlimtalkError("이미 픽업·서빙됐거나 연락처가 없는 주문입니다.");
+  if (error?.code === "P0001") throw new OrderAlimtalkError("주문 상태와 매장 채널의 발송 설정을 다시 확인해 주세요.");
   if (error || !attempt) throw new OrderAlimtalkError("알림톡 발송을 시작하지 못했습니다.");
 
   let message: Awaited<ReturnType<typeof provider.prepare>>;
@@ -153,10 +160,13 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
   }
 
   // Preparation can take time. Do not submit an order already handed to the customer.
-  const current = await supabase.from("menu_customer_orders").select("status")
+  const current = await supabase.from("menu_customer_orders").select("status, notification_phone")
     .eq("menu_site_id", menuSiteId).eq("id", orderId).single();
   if (current.error) throw new OrderAlimtalkError("주문 상태를 확인하지 못했습니다. 결과를 다시 확인해 주세요.");
-  if (current.data.status !== "ready") return resolve(attempt, "failed");
+  if (current.data.status !== "ready" || getOrderAlimtalkPhone(current.data.notification_phone) !== phone) return resolve(attempt, "failed");
+  const stillConnected = await resolveMerchantAlimtalkConfig(menuSiteId, supabase);
+  if (!stillConnected || stillConnected.senderKey !== config.senderKey || stillConnected.channelId !== config.channelId
+    || stillConnected.channelOwnerId !== config.channelOwnerId || stillConnected.providerAppKeyHash !== config.providerAppKeyHash) return resolve(attempt, "failed");
 
   // Persist the start before sending. NHN assigns a receipt only after accepting the request.
   const submissionStartedAt = new Date().toISOString();

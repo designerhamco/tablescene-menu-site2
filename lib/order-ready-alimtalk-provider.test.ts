@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ORDER_READY_TEMPLATE_CONTENT } from "./order-ready-message";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
@@ -11,7 +12,7 @@ const bundle = await build({
     b.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export {};" }));
   } }],
 });
-const { createOrderAlimtalkProvider, getOrderAlimtalkConfig } = await import(
+const { createOrderAlimtalkProvider, getOrderAlimtalkCredentials, isOrderAlimtalkSendingEnabled } = await import(
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`
 ) as typeof import("./server/order-ready-alimtalk-provider");
 const config = { appKey: "test-app", secretKey: "test-secret", senderKey: "a".repeat(40), channelId: "@아티메뉴", templateCode: "cooking_ready_v1" };
@@ -19,7 +20,7 @@ const base = `/alimtalk/v2.3/appkeys/${config.appKey}`;
 const context = { phone: "01000000000", orderNumber: 201, storeName: "샘플 매장", roomName: "테라스", tableName: "테이블 2" };
 const template = { plusFriendId: config.channelId, senderKey: config.senderKey, templateCode: config.templateCode,
   status: "TSC03", block: false, dormant: false, templateMessageType: "BA", templateEmphasizeType: "NONE",
-  templateContent: "[#{매장명}] 조리완료 안내\n룸: #{룸명}\n테이블·키오스크: #{테이블명}\n주문번호: #{주문번호}" };
+  templateContent: ORDER_READY_TEMPLATE_CONTENT };
 const ok = { isSuccessful: true, resultCode: 0 };
 const prepared = { recipientNo: context.phone, templateParameter: { 매장명: "샘플 매장", 룸명: "테라스", 테이블명: "테이블 2", 주문번호: "201" } };
 const receipt = "20261125-test-request:1";
@@ -108,17 +109,16 @@ test("only confirmed delivery is successful; acceptance is not delivery", async 
   await assert.rejects(provider.check("../other"), /접수 정보/);
 });
 
-test("credentials alone do not open sending, and the pilot sender stays scoped to one menu", t => {
-  const saved = { ...process.env };
-  t.after(() => { process.env = saved; });
-  for (const [key, val] of Object.entries({
-    ORDER_ALIMTALK_ENABLED: "false", ORDER_ALIMTALK_MENU_SITE_ID: "pilot",
-    ORDER_ALIMTALK_NHN_APP_KEY: config.appKey, ORDER_ALIMTALK_NHN_SECRET_KEY: config.secretKey,
-    ORDER_ALIMTALK_NHN_SENDER_KEY: config.senderKey, ORDER_ALIMTALK_NHN_CHANNEL_ID: config.channelId,
-    ORDER_ALIMTALK_NHN_TEMPLATE_CODE: config.templateCode,
-  })) process.env[key] = val;
-  assert.equal(getOrderAlimtalkConfig("pilot"), null);
+test("server credentials and the global switch do not provide any fallback sender", t => {
+  const saved = { ...process.env }; t.after(() => { process.env = saved; });
+  Object.assign(process.env, { ORDER_ALIMTALK_ENABLED: "false", ORDER_ALIMTALK_NHN_APP_KEY: config.appKey,
+    ORDER_ALIMTALK_NHN_SECRET_KEY: config.secretKey, ORDER_ALIMTALK_NHN_SENDER_KEY: config.senderKey,
+    ORDER_ALIMTALK_NHN_CHANNEL_ID: config.channelId, ORDER_ALIMTALK_MENU_SITE_ID: "legacy-pilot" });
+  assert.equal(isOrderAlimtalkSendingEnabled(), false);
+  assert.deepEqual(getOrderAlimtalkCredentials(), { appKey: config.appKey, secretKey: config.secretKey });
   process.env.ORDER_ALIMTALK_ENABLED = "true";
-  assert.deepEqual(getOrderAlimtalkConfig("pilot"), config);
-  assert.equal(getOrderAlimtalkConfig("another-merchant"), null);
+  assert.equal(isOrderAlimtalkSendingEnabled(), true);
+  assert(!Object.hasOwn(getOrderAlimtalkCredentials()!, "senderKey"));
+  delete process.env.ORDER_ALIMTALK_NHN_SECRET_KEY;
+  assert.equal(getOrderAlimtalkCredentials(), null);
 });

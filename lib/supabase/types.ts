@@ -1694,6 +1694,13 @@ export type Database = {
       }
       menu_alimtalk_channels: {
         Row: {
+          template_code: string
+          template_status: string
+          template_content: string | null
+          template_checked_at: string | null
+          template_check_id: string | null
+          template_check_started_at: string | null
+          template_registration_started_at: string | null
           menu_site_id: string
           actor_id: string
           channel_id: string
@@ -1728,9 +1735,23 @@ export type Database = {
           verified_at?: string | null
           sending_enabled?: boolean
           verification_method?: string
+          template_code?: string
+          template_status?: string
+          template_content?: string | null
+          template_checked_at?: string | null
+          template_check_id?: string | null
+          template_check_started_at?: string | null
+          template_registration_started_at?: string | null
         }
         Update: {
           state?: string
+          template_code?: string
+          template_status?: string
+          template_content?: string | null
+          template_checked_at?: string | null
+          template_check_id?: string | null
+          template_check_started_at?: string | null
+          template_registration_started_at?: string | null
           sender_key?: string | null
           verified_at?: string | null
           sending_enabled?: boolean
@@ -1739,6 +1760,11 @@ export type Database = {
       }
       menu_order_alimtalk_attempts: {
         Row: {
+          provider_app_key_hash: string | null
+          sender_key: string | null
+          channel_id: string | null
+          template_code: string | null
+          channel_owner_id: string | null
           id: string
           menu_site_id: string
           order_id: string
@@ -1751,6 +1777,11 @@ export type Database = {
           resolved_at: string | null
         }
         Insert: {
+          provider_app_key_hash?: string | null
+          sender_key?: string | null
+          channel_id?: string | null
+          template_code?: string | null
+          channel_owner_id?: string | null
           id?: string
           menu_site_id: string
           order_id: string
@@ -1763,6 +1794,11 @@ export type Database = {
           resolved_at?: string | null
         }
         Update: {
+          provider_app_key_hash?: string | null
+          sender_key?: string | null
+          channel_id?: string | null
+          template_code?: string | null
+          channel_owner_id?: string | null
           id?: string
           menu_site_id?: string
           order_id?: string
@@ -3726,6 +3762,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      reserve_menu_alimtalk_template: {
+        Args: { p_menu_id: string; p_actor_id: string }
+        Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]
+      }
       link_existing_menu_alimtalk_channel: {
         Args: { p_menu_id: string; p_actor_id: string; p_channel_id: string; p_category_code: string; p_sender_key: string }
         Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]

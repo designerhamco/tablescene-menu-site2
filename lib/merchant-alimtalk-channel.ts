@@ -1,3 +1,4 @@
+import type { MerchantTemplateStatus } from "./order-ready-message";
 export type AlimtalkCategory = { code: string; name: string; children: AlimtalkCategory[] };
 export type MerchantChannelView = {
   challengeId: string;
@@ -11,6 +12,7 @@ export type MerchantChannelView = {
   attemptsRemaining: number;
   sendingEnabled: false;
   verificationMethod?: "kakao_token" | "operator_binding";
+  template?: { status: MerchantTemplateStatus; checkedAt: string | null; registrationStarted: boolean };
 };
 export type MerchantChannelPage = {
   available: boolean;
@@ -23,7 +25,9 @@ export type MerchantChannelInput =
   | { intent: "request"; channelId: string; adminPhone: string; categoryCode: string }
   | { intent: "verify"; challengeId: string; token: string }
   | { intent: "cancel"; challengeId: string }
-  | { intent: "connect-existing" };
+  | { intent: "connect-existing" }
+  | { intent: "prepare-template" }
+  | { intent: "refresh-template" };
 export type MerchantChannelResult = {
   connection?: MerchantChannelView;
   notice?: string;
