@@ -75,3 +75,25 @@ test("shared layouts define bounded columns and wrapping; favorites add no empty
   assert.match(read("components/mypage/FavoriteTemplates.tsx"), /message \? <p role="status"/);
   assert.match(read("components/mypage/FavoriteTemplates.tsx"), /site-catalog-results site-stack-group/);
 });
+
+test("compact menu records keep complete details and meaningful archive states without a repeated warning box", async () => {
+  const { default: MenuSummaryCard } = await import("../components/mypage/MenuSummaryCard");
+  const name = "아주 긴 메뉴판 이름 Very Long Store Menu";
+  const html = render(h(MenuSummaryCard, {
+    cardKey: "ended-menu", name, publicPath: "/menu/ended-menu", lifecycle: "deleted",
+    thumbnail: h("span", null, "메뉴판 썸네일"), badges: h("span", null, "종료됨"),
+    details: [{ label: "템플릿", value: "REAL MATCHA" }, { label: "이용 종료일", value: "2026. 11. 22." }],
+    status: "보관 기간이 종료되어 복구할 수 없습니다.",
+    billingHref: "/mypage?tab=payments&billingQuery=%2Fmenu%2Fended-menu", billingLabel: "결제내역",
+  }));
+  for (const text of [name, "REAL MATCHA", "2026. 11. 22.", "복구할 수 없습니다", "결제내역"]) assert.ok(html.includes(text), text);
+  assert.match(html, /<article[^>]*aria-labelledby="menu-card-ended-menu"[^>]*data-menu-lifecycle="deleted"/);
+  assert.doesNotMatch(html, /site-notice|site-menu-card-actions|편집하기|QR 관리/);
+});
+
+test("a card's billing link initializes the existing history search", () => {
+  const html = render(h(BillingHistoryPanel, { entries: [entry], initialQuery: "/menu/shop-a" }));
+  assert.match(html, /value="\/menu\/shop-a"/);
+  assert.match(html, /가게 A/);
+  assert.match(html, /결제 상세/);
+});

@@ -6,6 +6,7 @@ import {
   SITE_EMPHASIS_TYPE_STEPS,
   SITE_HOME_SECTION_TITLE_POLICY,
   SITE_MANAGEMENT_INTRO,
+  SITE_MANAGEMENT_FONT_POLICY,
   SITE_MANAGEMENT_TYPE_ROLES,
   SITE_READING_TYPE_STEPS,
   SITE_TYPE_ROLES,
@@ -31,6 +32,7 @@ export default function DesignFoundations() {
       <div className={styles.usageTable}><table aria-label="글자 역할 기준"><thead><tr><th>역할</th><th>클래스</th><th>모바일 / 태블릿 / PC</th><th>굵기 / 행간 / 자간</th><th>사용 문맥</th></tr></thead><tbody>{SITE_TYPE_ROLES.map(role => <tr key={role.key}><td>{role.label}</td><td><code>{role.className}</code></td><td>{role.mobile} / {role.tablet} / {role.desktop}px</td><td>{role.weight} / {role.lineHeight} / {role.letterSpacing}{'tabletLetterSpacing' in role ? ` / ${role.tabletLetterSpacing} (태블릿·PC)` : null}</td><td>{role.usage}</td></tr>)}</tbody></table></div>
       <div className={styles.typeSamples}><p className="type-page-title">디자인 템플릿</p><p className="type-page-description text-zinc-600">페이지 제목 바로 아래에 필요한 소개 문장을 배치합니다.</p><p className="type-section-title">페이지 안의 큰 콘텐츠 구역</p><p className="type-body text-zinc-600">자세한 설명은 기본 본문으로 읽기 편하게 표시합니다.</p><p className="type-body-lg text-zinc-600">섹션의 짧은 소개 문장은 강조 본문을 사용합니다.</p><p className="type-body-sm text-zinc-600">폼 도움말과 카드의 부가 설명은 보조 본문입니다.</p><p className="type-price">4,900<span className="type-body-sm"> 원 / 월</span></p><article className="site-card p-5"><h3 className="type-card-title">카드 안에서는 정보가 먼저 보여야 합니다</h3><p className="type-card-body mt-2 text-zinc-600">설명은 14px로 간결하게 읽고, 중요한 이름과 수치는 따로 강조합니다.</p><p className="type-card-detail mt-3 text-zinc-600">분류 · 날짜 · 보충 정보</p></article><p className="type-footnote text-zinc-600">작은 안내는 모바일·태블릿 13px, PC 14px로 표시합니다.</p></div>
       <div className="site-management-scope mt-8">
+        <p className="type-body-sm site-copy-muted">관리 화면은 한글·영문·숫자에 {SITE_MANAGEMENT_FONT_POLICY.family}를 사용합니다. 페이지 제목은700, 구역·카드 제목과 수치는600, 라벨은500, 본문·보조 정보는400입니다. 본문·보조 행간은{SITE_MANAGEMENT_FONT_POLICY.bodyLineHeight}, 금액·날짜는 고정폭 숫자로 비교합니다.</p>
         <h3 className="type-subsection-title">관리 화면 내부 계층</h3>
         <p className="type-body mt-2 text-zinc-600">마이페이지와 편집·운영 화면은 페이지 제목과 작업 영역에 아래 크기를 사용합니다.</p>
         <div className={`${styles.usageTable} mt-5`}><table aria-label="관리 화면 글자 역할 기준"><thead><tr><th>역할</th><th>크기</th><th>굵기</th><th>사용 문맥</th></tr></thead><tbody><tr><td>페이지 제목</td><td>{SITE_MANAGEMENT_INTRO.title.mobile} / {SITE_MANAGEMENT_INTRO.title.tablet} / {SITE_MANAGEMENT_INTRO.title.desktop}px</td><td>{SITE_MANAGEMENT_INTRO.title.weight}</td><td>모바일 / 태블릿 / PC</td></tr><tr><td>페이지 설명</td><td>{SITE_MANAGEMENT_INTRO.description.size}px</td><td>{SITE_MANAGEMENT_INTRO.description.weight}</td><td>제목 아래 필요한 안내</td></tr>{SITE_MANAGEMENT_TYPE_ROLES.map(role => <tr key={role.key}><td>{role.label}</td><td>{'desktopSize' in role ? `${role.size} / ${role.size} / ${role.desktopSize}px` : `${role.size}px`}</td><td>{role.weight}</td><td>{role.usage}</td></tr>)}</tbody></table></div>

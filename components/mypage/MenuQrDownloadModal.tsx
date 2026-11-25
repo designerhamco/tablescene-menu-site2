@@ -53,7 +53,7 @@ export default function MenuQrDownloadModal({
       else requestRef.current?.abort();
     }}>
       <DialogTrigger asChild>
-        <button type="button" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}>QR 관리</button>
+        <button type="button" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}><QrCode aria-hidden="true" />QR 관리</button>
       </DialogTrigger>
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
