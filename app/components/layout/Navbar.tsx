@@ -380,44 +380,46 @@ const Navbar = () => {
                 매장 운영 <NewWindowIndicator />
               </Link>
             ) : null}
-            {authState.isAuthenticated ? (
-              <div className={styles.notificationGroup}>
-                <span className={styles.accountDivider} aria-hidden="true" />
-                <Popover open={!isMobile && isNotificationOpen} onOpenChange={open => { setIsNotificationOpen(open); if (open) setIsAccountMenuOpen(false); }}>
-                  <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
-                    ref={desktopNotificationTrigger}
-                    data-site-notification-trigger
-                    aria-expanded={isNotificationOpen}
-                    className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-colors ${styles.notificationButton} `}
-                  >
-                    <NotificationBellIcon unreadCount={unreadCount} />
-                  </button>
+            <div className={styles.accountTools} data-site-header-account-tools>
+              {authState.isAuthenticated ? (
+                <div className={styles.notificationGroup}>
+                  <span className={styles.accountDivider} aria-hidden="true" />
+                  <Popover open={!isMobile && isNotificationOpen} onOpenChange={open => { setIsNotificationOpen(open); if (open) setIsAccountMenuOpen(false); }}>
+                    <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
+                      ref={desktopNotificationTrigger}
+                      data-site-notification-trigger
+                      aria-expanded={isNotificationOpen}
+                      className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-colors ${styles.notificationButton} `}
+                    >
+                      <NotificationBellIcon unreadCount={unreadCount} />
+                    </button>
 
-                  </PopoverTrigger>
-                  <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-notification-popover" aria-label="알림" data-site-notification-popover>
-                    {notificationPanel()}
-                  </PopoverContent>
-                </Popover>
-              </div>
-            ) : null}
-            {authState.isAuthenticated && authState.userId ? <Popover open={isAccountMenuOpen} onOpenChange={open => { setIsAccountMenuOpen(open); if (open) setIsNotificationOpen(false); }}>
-              <PopoverTrigger asChild><button type="button" aria-label="프로필 · 계정 메뉴" className={`site-icon-control ${styles.profileTrigger}`} data-site-profile-trigger>
-                <ProfileAvatar userId={authState.userId} imageUrl={authState.avatarUrl} name={accountIdentity.name} email={accountIdentity.email} />
-              </button></PopoverTrigger>
-              <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-account-popover" aria-label="계정 메뉴">
-                <AccountMenuPanel userId={authState.userId} account={accountIdentity} loading={!currentAccount}
-                  failed={Boolean(currentAccount?.failed)} retry={() => { setNavigationAccount(null); setAccountLoadVersion(version => version + 1); }} close={() => setIsAccountMenuOpen(false)} />
-              </PopoverContent>
-            </Popover> : null}
-            <Link
-              href="/apply"
-              className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
-            >
-              만들기
-            </Link>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-notification-popover" aria-label="알림" data-site-notification-popover>
+                      {notificationPanel()}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              ) : null}
+              {authState.isAuthenticated && authState.userId ? <Popover open={isAccountMenuOpen} onOpenChange={open => { setIsAccountMenuOpen(open); if (open) setIsNotificationOpen(false); }}>
+                <PopoverTrigger asChild><button type="button" aria-label="프로필 · 계정 메뉴" className={`site-icon-control ${styles.profileTrigger}`} data-site-profile-trigger>
+                  <ProfileAvatar userId={authState.userId} imageUrl={authState.avatarUrl} name={accountIdentity.name} email={accountIdentity.email} />
+                </button></PopoverTrigger>
+                <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-account-popover" aria-label="계정 메뉴">
+                  <AccountMenuPanel userId={authState.userId} account={accountIdentity} loading={!currentAccount}
+                    failed={Boolean(currentAccount?.failed)} retry={() => { setNavigationAccount(null); setAccountLoadVersion(version => version + 1); }} close={() => setIsAccountMenuOpen(false)} />
+                </PopoverContent>
+              </Popover> : null}
+              <Link
+                href="/apply"
+                className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
+              >
+                만들기
+              </Link>
+            </div>
             {authState.isAuthenticated ? (
               <button
                 type="button"
