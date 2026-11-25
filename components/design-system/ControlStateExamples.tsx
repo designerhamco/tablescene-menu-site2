@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { BookOpen, CircleHelp, Plus, Sparkles, Square, Trash2 } from "@/app/components/ui/site-icon";
 import { Button, ButtonGroupDivider } from "@/app/components/ui/button";
-import ChoiceStateExamples from "./ChoiceStateExamples";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import IconControlExamples from "./IconControlExamples";
@@ -55,8 +54,7 @@ export default function ControlStateExamples() {
       <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div></div>
     </div>
     <div id="button-surface-boundaries" className="site-stack-group" role="group" aria-labelledby="button-surface-boundaries-title">
-      <ChoiceStateExamples />
-      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">활성 보조 버튼은 흰색 면과 분명한 테두리를 사용합니다. 비활성은 배경과 다른 회색 면·경계·흐린 문구로 구분하며 hover·클릭 반응을 보이지 않습니다.</p></div>
+      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">흰색 outline 버튼은 테두리로 모양을 드러냅니다. 회색 보조 버튼과 비활성 버튼은 작업 배경보다 진한 회색으로 구분합니다. 비활성 버튼은 흐린 문구로 표시하며 마우스를 올리거나 눌러도 색이 바뀌지 않습니다.</p></div>
       <ContentPanel surface="muted" density="compact" aria-label="회색 배경의 비활성 이동 예시">
         <div className="site-field-stack"><label className="type-label" htmlFor="button-boundary-room">다른 룸으로 이동</label><fieldset disabled className="site-form-row" data-alignment="center"><legend className="sr-only">비활성 룸 이동 예시</legend><div className="site-field-stack"><select id="button-boundary-room" className="site-field w-full" defaultValue=""><option value="">이동할 다른 룸이 없습니다</option></select></div><Button variant="outline">이동</Button></fieldset></div>
         <div className="site-action-row"><Button variant="outline">사용 가능한 이동 예시</Button><Button variant="secondary">초기화 예시</Button><Button variant="secondary" disabled>초기화 · 비활성</Button></div>

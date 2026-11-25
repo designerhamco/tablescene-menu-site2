@@ -1,6 +1,5 @@
 "use client";
 
-import { ChoiceControl } from "@/app/components/ui/choice-tile";
 import type { MenuWidgetType } from "@/lib/menu-widgets";
 
 const TYPE_OPTIONS: Array<{
@@ -23,9 +22,9 @@ type MenuWidgetTypePickerProps = {
 export default function MenuWidgetTypePicker({ value, onChange, disabled = false, compact = false }: MenuWidgetTypePickerProps) {
   if (compact) {
     return <div className="site-action-row site-editor-widget-choices" role="group" aria-label="위젯 유형">
-      {TYPE_OPTIONS.map(option => <ChoiceControl key={option.value} type="button" disabled={disabled}
+      {TYPE_OPTIONS.map(option => <button key={option.value} type="button" disabled={disabled}
         className="site-choice site-choice-control" aria-pressed={value === option.value}
-        onClick={() => onChange(option.value)}>{option.label}</ChoiceControl>)}
+        onClick={() => onChange(option.value)}>{option.label}</button>)}
     </div>;
   }
 
@@ -34,7 +33,7 @@ export default function MenuWidgetTypePicker({ value, onChange, disabled = false
       {TYPE_OPTIONS.map((option) => {
         const selected = value === option.value;
         return (
-          <ChoiceControl
+          <button
             key={option.value}
             type="button"
             disabled={disabled}
@@ -46,7 +45,7 @@ export default function MenuWidgetTypePicker({ value, onChange, disabled = false
             <span className={`mt-1 block break-keep text-support font-medium leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-600"}`}>
               {option.description}
             </span>
-          </ChoiceControl>
+          </button>
         );
       })}
     </div>

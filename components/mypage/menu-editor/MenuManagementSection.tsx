@@ -1,6 +1,5 @@
 "use client";
 
-import { ChoiceControl } from "@/app/components/ui/choice-tile";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { parseMenuOrderCustomization, readMenuOrderCustomization, type MenuOrderCustomization } from "@/lib/menu-order-customization";
 import MenuProductOptionsField, { OrderRequestSwitch } from "./MenuProductOptionsField";
@@ -2098,7 +2097,7 @@ function MenuPageForm({
                 {DISPLAY_PAGE_TYPES.filter((type) => type === "menu" || supportsDisplayPromotionPages).map((type) => {
                   const selected = displaySettings.pageType === type;
                   return (
-                    <ChoiceControl
+                    <button
                       key={type}
                       type="button"
                       onClick={() =>
@@ -2120,7 +2119,7 @@ function MenuPageForm({
                           ? "신메뉴, 시즌 이벤트, 안내 포스터를 디스플레이에 보여주는 화면입니다."
                           : "카테고리와 메뉴 아이템을 보여주는 기본 메뉴 화면입니다."}
                       </span>
-                    </ChoiceControl>
+                    </button>
                   );
                 })}
               </div>
@@ -2132,7 +2131,7 @@ function MenuPageForm({
                   {DISPLAY_MENU_LAYOUT_TYPES.map((type) => {
                     const selected = displaySettings.menuLayoutType === type;
                     return (
-                      <ChoiceControl
+                      <button
                         key={type}
                         type="button"
                         onClick={() => updateDisplaySettings({ pageType: "menu", menuLayoutType: type })}
@@ -2146,7 +2145,7 @@ function MenuPageForm({
                               : "한쪽에는 이미지를, 다른 한쪽에는 메뉴 목록을 보여주는 구성입니다."
                             : "화면 전체를 메뉴 목록으로 사용하는 구성입니다."}
                         </span>
-                      </ChoiceControl>
+                      </button>
                     );
                   })}
                 </div>
@@ -2166,14 +2165,14 @@ function MenuPageForm({
                     ].map((option) => {
                       const selected = displaySettings.splitImagePosition === option.value;
                       return (
-                        <ChoiceControl
+                        <button
                           key={option.value}
                           type="button"
                           onClick={() => updateDisplaySettings({ splitImagePosition: option.value as MenuPageDisplaySettings["splitImagePosition"] })}
                           className="site-choice site-choice-control" aria-pressed={selected}
                         >
                           <span className="block text-copy font-medium">{option.label}</span>
-                        </ChoiceControl>
+                        </button>
                       );
                     })}
                   </div>
@@ -2238,7 +2237,7 @@ function MenuPageForm({
                     {DISPLAY_PROMOTION_MEDIA_TYPES.map((type) => {
                       const selected = displaySettings.promotion.mediaType === type;
                       return (
-                        <ChoiceControl
+                        <button
                           key={type}
                           type="button"
                           onClick={() =>
@@ -2254,7 +2253,7 @@ function MenuPageForm({
                           <span className="mt-1 block break-keep text-support font-semibold leading-relaxed">
                             {type === "video" ? "영상 URL을 등록합니다. 디스플레이에서는 반복 재생됩니다." : "이미지 파일을 직접 등록합니다."}
                           </span>
-                        </ChoiceControl>
+                        </button>
                       );
                     })}
                   </div>
@@ -4195,7 +4194,7 @@ function MenuItemForm({
           <FieldLabel>할인 일정</FieldLabel>
           <div className="site-form-row" data-alignment="center">
             {([{ value: "once", label: "한 번만 적용", help: "시작 일시부터 종료 일시까지 한 번 적용합니다." }, { value: "daily_window", label: "매일 정해진 시간에 적용", help: "행사 기간 안에서 매일 같은 시간대에 적용합니다." }] as const).map(option => <div key={option.value} className="site-editor-choice-row">
-              <ChoiceControl type="button" className="site-choice site-choice-control" aria-pressed={timeSaleScheduleType === option.value} onClick={() => { setTimeSaleScheduleType(option.value); updateDraftItem({ timeSale: { scheduleType: option.value } }); }}><span className="type-label">{option.label}</span></ChoiceControl>
+              <button type="button" className="site-choice site-choice-control" aria-pressed={timeSaleScheduleType === option.value} onClick={() => { setTimeSaleScheduleType(option.value); updateDraftItem({ timeSale: { scheduleType: option.value } }); }}><span className="type-label">{option.label}</span></button>
               <HelpTooltip label={`${option.label} 도움말`}>{option.help}</HelpTooltip>
             </div>)}
           </div>
@@ -4431,7 +4430,7 @@ function MenuItemForm({
                 const selected = singlePriceInputMode === option.value;
                 return (
                   <div key={option.value} className={basicEditor ? "site-editor-choice-row" : undefined}>
-                  <ChoiceControl
+                  <button
                     type="button"
                     onClick={() => {
                       setSinglePriceInputMode(option.value);
@@ -4448,7 +4447,7 @@ function MenuItemForm({
                   >
                     <span className="block text-copy font-medium">{option.label}</span>
                     {!basicEditor && <span className="mt-1 block break-keep text-support font-medium leading-relaxed text-zinc-600">{option.description}</span>}
-                  </ChoiceControl>
+                  </button>
                   {basicEditor && <HelpTooltip label={`${option.label} 도움말`}>{option.description}</HelpTooltip>}
                   </div>
                 );
@@ -4910,7 +4909,7 @@ function MenuItemForm({
                     ].map((option) => {
                       const selected = timeSaleScheduleType === option.value;
                       return (
-                        <ChoiceControl
+                        <button
                           key={option.value}
                           type="button"
                           onClick={() => {
@@ -4922,7 +4921,7 @@ function MenuItemForm({
                         >
                           <span className="block text-copy font-medium">{option.label}</span>
                           <span className="mt-1 block break-keep text-support font-medium leading-relaxed text-zinc-600">{option.description}</span>
-                        </ChoiceControl>
+                        </button>
                       );
                     })}
                   </div>
@@ -9242,13 +9241,13 @@ export default function MenuManagementSection({
       </div>
       <div className="site-stack-copy">
         {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => (
-          <ChoiceControl key={option.value} type="button" onClick={() => updatePcTabletLayoutModeDraft(option.value)}
+          <button key={option.value} type="button" onClick={() => updatePcTabletLayoutModeDraft(option.value)}
             className="site-choice site-choice-control" aria-pressed={pcTabletLayoutModeDraft === option.value}>
             <span className="site-stack-copy">
               <span className="type-label">{option.title}</span>
               <span className="type-body-sm site-copy-muted">{option.description}</span>
             </span>
-          </ChoiceControl>
+          </button>
         ))}
       </div>
     </ContentPanel>
