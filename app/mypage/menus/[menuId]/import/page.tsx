@@ -108,7 +108,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
     <>
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
-        <ActionFeedbackToast message={message} tone="success" />
+        <ActionFeedbackToast message={message} tone="success" eventKey={{ message }} />
         <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-8 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
@@ -130,11 +130,6 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           {error ? (
             <div className="site-notice site-notice-error mb-6 p-5">
               {error}
-            </div>
-          ) : null}
-          {message ? (
-            <div className="site-notice site-notice-success mb-6 p-5">
-              {message}
             </div>
           ) : null}
 

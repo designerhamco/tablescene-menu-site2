@@ -186,6 +186,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         <ActionFeedbackToast
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
+          eventKey={resultNotice ?? undefined}
         />
         <div className="site-content-heading-row"><h2 className="type-section-title">직원 관리</h2><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></div>
 
@@ -195,8 +196,8 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           </p>
         ) : null}
 
-        {resultNotice ? (
-          <ContentPanel surface={resultNotice.tone === "success" ? "muted" : resultNotice.tone === "error" ? "danger" : "notice"} density="compact">
+        {resultNotice && resultNotice.tone !== "success" ? (
+          <ContentPanel surface={resultNotice.tone === "error" ? "danger" : "notice"} density="compact">
             <p className="type-body-sm" role="status">{resultNotice.message}</p>
           </ContentPanel>
         ) : null}

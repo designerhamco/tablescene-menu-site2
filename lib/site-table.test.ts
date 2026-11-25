@@ -49,7 +49,9 @@ test("테이블·키오스크 관리에는 배치도만 있고 라이브러리�
   const manager = read("../app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
   const examples = read("../components/design-system/ManagementTableExamples.tsx");
   assert.doesNotMatch(manager, /ViewStyleSelect|OrderPointTableRow|renderList/);
-  assert.match(manager, /<FloorPlanEditor requireEdit pointTools=\{archivedItems\}/);
+  assert.match(manager, /<FloorPlanEditor requireEdit layoutLock=/);
+  assert.match(manager, /<FloorPlanEditor[\s\S]*<section[^>]*archived-title[\s\S]*<EditableList label="보관된 테이블·키오스크 목록"/);
+  assert.doesNotMatch(manager, /pointTools=|DialogTrigger/);
   assert.match(examples, /columns=\{\["compact", "text", "detail", "control", "actions"\]\}/);
   assert.match(read("../app/components/ui/view-style-select.tsx"), /<SelectTrigger[^>]*aria-label=\{label\}/);
   assert.match(examples, /SITE_TABLE_RULES.map/);

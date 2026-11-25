@@ -2743,8 +2743,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
               ]} />
 
-          {mypageNotice ? (
-            <div className="site-notice site-notice-success mb-5 p-5">
+          {mypageNotice && messageCode !== "staff-invitation-accepted" ? (
+            <div className="site-notice site-notice-warning mb-5 p-5">
               {mypageNotice}
             </div>
           ) : null}

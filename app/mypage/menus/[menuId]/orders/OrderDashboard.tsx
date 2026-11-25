@@ -324,9 +324,9 @@ export default function OrderDashboard({
               onClick={() => refresh(() => router.refresh())}
             />
         </div>}
-        {state.message ? (
+        {state.status === "error" && state.message ? (
           <ContentPanel as="aside" surface="notice" density="compact">
-            <p role="status" className="type-body-sm">
+            <p role="alert" className="type-body-sm">
               {state.message}
             </p>
           </ContentPanel>

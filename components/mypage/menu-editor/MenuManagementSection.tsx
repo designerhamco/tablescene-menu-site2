@@ -10285,11 +10285,6 @@ export default function MenuManagementSection({
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 {finalSaveLabel}
               </SubmitButton>
-              {finalSaveMessage && !menuManagementDirty && (
-                <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-emerald-700">
-                  {finalSaveMessage}
-                </p>
-              )}
               {menuFinalSaveError && (
                 <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
                   {menuFinalSaveError}

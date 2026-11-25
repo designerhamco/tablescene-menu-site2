@@ -12,7 +12,11 @@ export default function MenuEditorToastBridge({ message, error }: { message?: st
 
   useEffect(() => {
     const toastKey = `${message ?? ""}:${error ?? ""}`;
-    if ((!message && !error) || lastToastKeyRef.current === toastKey) return;
+    if (!message && !error) {
+      lastToastKeyRef.current = "";
+      return;
+    }
+    if (lastToastKeyRef.current === toastKey) return;
 
     lastToastKeyRef.current = toastKey;
 

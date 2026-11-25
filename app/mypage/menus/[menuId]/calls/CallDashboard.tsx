@@ -231,9 +231,9 @@ export default function CallDashboard({
           </label>
         </div>
       </ContentPanel>
-      {state.message ? (
+      {state.status === "error" && state.message ? (
         <ContentPanel as="aside" surface="notice" density="compact">
-          <p role="status" className="type-body-sm">
+          <p role="alert" className="type-body-sm">
             {state.message}
           </p>
         </ContentPanel>
