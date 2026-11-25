@@ -204,7 +204,7 @@ export default function AiCreditPurchaseModal({
                 type="button"
                 disabled={Boolean(pendingProductKey) || !refundPolicyAgreed}
                 onClick={() => startPurchase(product.productKey)}
-                className="site-choice bg-zinc-50 p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-choice site-purchase-option p-5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="block text-copy font-medium text-zinc-950">{product.name}</span>
                 <span className="mt-3 block text-2xl font-bold text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>

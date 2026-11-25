@@ -696,8 +696,8 @@
 }
 .site-tabs-outline { background: var(--ui-surface-soft); }
 .site-tabs-outline .site-tab { border: 2px solid transparent; }
-.site-tabs-outline .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]) { border-color: var(--ui-text); background: var(--ui-surface); color: var(--ui-text); }
-.site-tabs-outline .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-surface-muted); color: var(--ui-text); }
+.site-tabs-outline .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]) { border-color: var(--ui-selection-border); background: var(--ui-selection-surface); color: var(--ui-selection-ink); }
+.site-tabs-outline .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-selection-hover); color: var(--ui-selection-ink); }
 .site-tabs-outline .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]):is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); color: var(--ui-text); }
 /* Size belongs to hierarchy, independently of the tab/segment shape. */
 .site-tab-size-sm { --site-tab-height: 2rem; --site-tab-font: var(--site-type-14); --site-segment-font: var(--site-type-14); --site-tab-padding: .5rem; --site-tab-gap: .75rem; }
@@ -1216,7 +1216,8 @@ html[data-home-service-cover]::view-transition-new(root) {
   gap: var(--site-space-copy);
 }
 .site-editor-choice[data-fixed="true"] { background: var(--ui-surface-soft); cursor: default; }
-.site-editor-choice:has(:checked) { border-color: var(--ui-text); color: var(--ui-text); }
+.site-editor-choice:has(:checked) { border-color: var(--ui-selection-border); background: var(--ui-selection-surface); color: var(--ui-selection-ink); box-shadow: none; }
+.site-editor-choice:has(input:disabled) { border-color: var(--ui-disabled-boundary); background: var(--ui-disabled-surface); color: var(--ui-disabled-text); opacity: 1; }
 .site-editor-choice:has(:focus-visible) { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .site-editor-choice-mark {
   flex: none;
@@ -1224,11 +1225,12 @@ html[data-home-service-cover]::view-transition-new(root) {
   height: 1.25rem;
   padding: .125rem;
   border-radius: var(--ui-radius-control);
-  background: var(--ui-disabled-text);
-  color: var(--ui-surface);
+  border: 1px solid var(--ui-button-boundary);
+  background: var(--ui-surface);
+  color: transparent;
 }
 .site-editor-choice:has(:checked) .site-editor-choice-mark,
-.site-editor-template-card :where([aria-pressed="true"]) .site-editor-choice-mark { background: var(--ui-text); }
+.site-editor-template-card :where([aria-pressed="true"]) .site-editor-choice-mark { border-color: var(--ui-selection-indicator); background: var(--ui-selection-indicator); color: var(--ui-surface); }
 .site-content-divider.site-editor-section-rule { border-color: var(--ui-text); }
 @container basic-editor-content (min-width: 35rem) {
   .site-basic-identity-form > [data-editor-field="logo"] { grid-column: 1; }

@@ -1,5 +1,6 @@
 "use client";
 
+import { ChoiceControl } from "@/app/components/ui/choice-tile";
 import { useEffect, useId, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -140,14 +141,14 @@ export default function MenuWidgetDraftEditor({
       </HelpTooltip>
     </div>
     <div className={usesPositionGrid ? "site-editor-image-position" : "site-action-row"} role="group" aria-label="이미지 기준 위치">
-      {positionOptions.map(position => <button key={position} type="button"
+      {positionOptions.map(position => <ChoiceControl key={position} type="button"
         className={usesPositionGrid ? undefined : "site-choice site-choice-control"}
         aria-label={usesPositionGrid ? GRID_POSITION_LABELS[position] : undefined}
         title={usesPositionGrid ? GRID_POSITION_LABELS[position] : undefined}
         aria-pressed={selectedPosition === position}
         onClick={() => patchSettings({ objectPosition: position })}>
         {usesPositionGrid ? <span aria-hidden="true" /> : OBJECT_POSITION_LABELS[position]}
-      </button>)}
+      </ChoiceControl>)}
     </div>
   </div>;
 
@@ -262,10 +263,10 @@ export default function MenuWidgetDraftEditor({
               <div className="site-action-row site-editor-widget-choices" role="group" aria-label="텍스트 정렬">
                 {MENU_WIDGET_TEXT_ALIGNS.map(align => {
                   const Icon = { left: AlignLeft, center: AlignCenter, right: AlignRight }[align];
-                  return <button key={align} type="button" className="site-choice site-choice-control"
+                  return <ChoiceControl key={align} type="button" className="site-choice site-choice-control"
                     aria-pressed={draft.settings.textAlign === align} onClick={() => patchSettings({ textAlign: align })}>
                     <Icon />{TEXT_ALIGN_LABELS[align]} 정렬
-                  </button>;
+                  </ChoiceControl>;
                 })}
               </div>
             </div>

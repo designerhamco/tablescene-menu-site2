@@ -65,7 +65,7 @@ test("shared state previews exercise the real guarded hover / pressed / focus se
   assert.match(gallery, /<Button variant=\{variant\}/);
   assert.match(gallery, /disabled=\{state === "disabled"\}/);
   assert.doesNotMatch(gallery, /backgroundColor:|borderRadius:/);
-  assert.match(css, /\.site-button:disabled,[\s\S]*?border-color: transparent;[\s\S]*?background: var\(--ui-disabled-surface\);[\s\S]*?color: var\(--ui-disabled-text\);[\s\S]*?opacity: 1;/);
+  assert.match(css, /\.site-button:disabled,[\s\S]*?border-color: var\(--ui-disabled-boundary\);[\s\S]*?background: var\(--ui-disabled-surface\);[\s\S]*?color: var\(--ui-disabled-text\);[\s\S]*?opacity: 1;/);
   assert.match(css, /\.site-button-ghost:disabled,[\s\S]*?background: transparent;[\s\S]*?color: var\(--ui-disabled-text\);[\s\S]*?opacity: 1;/);
 });
 
@@ -258,10 +258,10 @@ test("edit pencil glyphs stay small while icon-control geometry remains independ
 });
 
 
-test("gray secondary and disabled actions omit decorative edges without changing white outline states", () => {
-  assert.match(css, /--ui-button-boundary: var\(--ui-border\);/);
-  assert.match(css, /\.site-button-secondary \{[^}]*border-color: transparent;/);
-  assert.match(css, /\.site-button:is\(:disabled, \[aria-disabled="true"\]\):not\(\.site-button-ghost, \.site-button-danger-ghost, \.site-button-link\) \{\s*border-color: transparent;\s*\}/);
+test("secondary and disabled actions remain distinct from white and gray work surfaces", () => {
+  assert.match(css, /--ui-button-boundary: #[0-9a-f]{6};/);
+  assert.match(css, /\.site-button-secondary \{[^}]*border-color: var\(--ui-button-boundary\);[^}]*background: var\(--ui-surface\);/);
+  assert.match(css, /\.site-button:is\(:disabled, \[aria-disabled="true"\]\):not\(\.site-button-ghost, \.site-button-danger-ghost, \.site-button-link\) \{\s*border-color: var\(--ui-disabled-boundary\);\s*\}/);
   const gallery = read("components/design-system/ControlStateExamples.tsx");
   assert.match(gallery, /id="button-surface-boundaries"/);
   assert.match(gallery, /<fieldset disabled className="site-form-row" data-alignment="center"/);

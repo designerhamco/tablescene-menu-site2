@@ -26,6 +26,15 @@ export function isBusinessFreeTrialProduct(productKey: string | null | undefined
   return typeof productKey === "string" && BUSINESS_FREE_TRIAL_PRODUCT_KEYS.has(productKey);
 }
 
+/** Presentation only: an active eligible subscription before its first payment. */
+export function isActiveBusinessFreeTrial(subscription: {
+  status?: string | null; product_key?: string | null; last_paid_at?: string | null;
+  portone_payment_id?: string | null; next_billing_at?: string | null;
+} | null | undefined) {
+  return Boolean(subscription?.status === "active" && isBusinessFreeTrialProduct(subscription.product_key)
+    && !subscription.last_paid_at && !subscription.portone_payment_id && subscription.next_billing_at);
+}
+
 export function getBusinessFreeTrialPeriod(now = new Date()) {
   const startsAt = new Date(now);
   const endsAt = new Date(startsAt.getTime() + BUSINESS_FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
