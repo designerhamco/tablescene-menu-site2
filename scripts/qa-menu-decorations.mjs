@@ -34,6 +34,13 @@ async function settle(p) {
   if (await p.locator("[data-native-ready], [data-paged-ready]").count()) await p.locator('[data-native-ready="true"], [data-paged-ready="true"]').first().waitFor();
   await p.waitForTimeout(350);
 }
+async function settlePreview(p) {
+  const menu = p.frameLocator("iframe");
+  await menu.locator(".cafe-a-typography").first().waitFor();
+  await p.locator("iframe").evaluate(async e => { await e.contentDocument.fonts.ready; });
+  if (await menu.locator("[data-native-ready], [data-paged-ready]").count()) await menu.locator('[data-native-ready="true"], [data-paged-ready="true"]').first().waitFor();
+  await p.waitForTimeout(200);
+}
 async function run(name, fn) {
   try { await fn(); results.push(name); console.log("PASS", name); }
   catch (e) { failures.push({ name, error: e.message }); console.log("FAIL", name, e.message); }
@@ -120,22 +127,33 @@ async function toolbar() {
     await p.goto(url(base, { key: "cafe_design_a", design: "basic-top-row" }, "pc").replace("view=actual&", ""), { waitUntil: "networkidle" });
     await p.getByRole("tab", { name: "장식 기능", exact: true }).click();
     const before = await p.locator("iframe").getAttribute("src");
-    await p.getByRole("combobox", { name: "카테고리명 아래 선 표시", exact: true }).selectOption("on");
+    const check = p.getByRole("checkbox", { name: "카테고리명 아래 선 표시", exact: true });
+    await expect(check).not.toBeChecked();
+    await expect(p.locator("[data-preview-decoration]")).toHaveCount(0);
+    await check.check();
     await p.waitForURL(u => Boolean(u.searchParams.get("designPreview")));
     await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-width", "1px");
     await p.getByRole("combobox", { name: "카테고리명 아래 선 두께", exact: true }).selectOption("3");
     await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-width", "3px");
     await p.getByRole("combobox", { name: "카테고리명 아래 선 스타일", exact: true }).selectOption("dotted");
     await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-style", "dotted");
-    await p.getByRole("combobox", { name: "카테고리명 아래 선 색상 방식", exact: true }).selectOption("custom");
     await p.getByRole("button", { name: "카테고리명 아래 선 색상 선택", exact: true }).click();
     const picker = p.locator("[data-preview-color-picker]");
     await picker.getByRole("textbox").fill("#356B8F");
     await picker.getByRole("button", { name: "적용", exact: true }).click();
     await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-color", "rgb(53, 107, 143)");
-    await p.getByRole("combobox", { name: "카테고리명 아래 선 색상 방식", exact: true }).selectOption("default");
-    await expect(p.getByRole("button", { name: "카테고리명 아래 선 색상 선택", exact: true })).toHaveCount(0);
+    await p.getByRole("button", { name: "카테고리명 아래 선 색상 기본색 복원", exact: true }).click();
+    await p.locator("[data-preview-color-reset]").getByRole("button", { name: "되돌리기", exact: true }).click();
     await p.waitForURL(u => !JSON.parse(u.searchParams.get("designPreview") || "{}").decorations?.categoryUnderline?.color);
+    await check.uncheck();
+    await expect(p.locator("[data-preview-decoration]")).toHaveCount(0);
+    await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-width", "0px");
+    await check.check();
+    await expect(p.getByRole("combobox", { name: "카테고리명 아래 선 두께", exact: true })).toHaveValue("3");
+    await expect(p.getByRole("combobox", { name: "카테고리명 아래 선 스타일", exact: true })).toHaveValue("dotted");
+    await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-width", "3px");
+    await settlePreview(p);
+    await p.screenshot({ path: `${output}/decoration-options.png` });
     const serialized = new URL(p.url()).searchParams.get("designPreview");
     await p.getByRole("tab", { name: "디자인 옵션", exact: true }).click();
     await expect(p.getByRole("button", { name: "디자인 초기화", exact: true })).toBeDisabled();
@@ -144,7 +162,10 @@ async function toolbar() {
     await p.getByRole("button", { name: "장식 초기화", exact: true }).click();
     await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-width", "0px");
     assert.notEqual(await p.locator("iframe").getAttribute("src"), before, "explicit reset snapshot travels through the preview URL");
-    await p.screenshot({ path: `${output}/decoration-options.png` });
+    await expect(check).not.toBeChecked();
+    await expect(p.locator("[data-preview-decoration]")).toHaveCount(0);
+    await settlePreview(p);
+    await p.screenshot({ path: `${output}/decoration-empty.png` });
   } finally { await p.close(); }
 }
 async function strokeDetails() {
@@ -173,8 +194,46 @@ async function strokeDetails() {
     }
   } finally { await p.close(); }
 }
+async function checkboxDefaults() {
+  const p = await page(1440, 1000);
+  const open = async (c, device) => {
+    await p.goto(url(base, c, device).replace("view=actual&", "") + "&previewOptions=decorations", { waitUntil: "networkidle" });
+    const toggle = p.getByRole("button", { name: "보기 옵션 열기", exact: true });
+    if (await toggle.count()) await toggle.click();
+    await expect(p.getByRole("tab", { name: "장식 기능", exact: true })).toHaveAttribute("aria-selected", "true");
+  };
+  try {
+    const nativeEnabled = { cafe_design_a: "카테고리명 아래 선 표시", cafe_mocha_forest_a: "열 사이 구분선 표시", cafe_van_gogh_a: "메뉴 아이템 사이 구분선 표시", cafe_round_focus_a: "메뉴명–가격 연결선 표시", fast_food_loop_bagel_a: "상·하단 패턴 띠 표시" };
+    for (const key of keys) {
+      await open({ key }, "pc");
+      const checked = await p.locator("[data-preview-decoration-choices] input:checked").evaluateAll(nodes => nodes.map(e => e.getAttribute("aria-label")));
+      assert.deepEqual(checked, nativeEnabled[key] ? [nativeEnabled[key]] : []);
+      assert.equal(new URL(p.url()).searchParams.get("designPreview"), null, "opening native choices never creates an override");
+      await expect(p.locator("[data-preview-decoration]")).toHaveCount(nativeEnabled[key] && key !== "fast_food_loop_bagel_a" ? 1 : 0);
+    }
+    for (const [device, width, height] of [["mobile", 390, 844], ["tablet", 820, 1180], ["tablet", 1180, 820]]) {
+      await p.setViewportSize({ width, height });
+      await open({ key: "cafe_design_a", design: "basic-top-row-album" }, device);
+      await expect(p.locator("[data-preview-decoration-choices] input")).toHaveCount(3);
+      await p.getByRole("checkbox", { name: "카테고리명 아래 선 표시", exact: true }).check();
+      await expect(p.getByRole("combobox", { name: "카테고리명 아래 선 두께", exact: true })).toBeVisible();
+      await expect(p.locator("[data-preview-decoration]")).toHaveCount(1);
+      await expect.poll(() => p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+      await settlePreview(p);
+      await p.screenshot({ path: `${output}/decoration-checkboxes-${device}-${width}.png` });
+    }
+    await p.setViewportSize({ width: 390, height: 844 });
+    await open({ key: "cafe_mocha_forest_a" }, "mobile");
+    await expect(p.getByRole("checkbox", { name: "열 사이 구분선 표시", exact: true })).toBeChecked();
+    await expect(p.getByRole("checkbox", { name: "열 사이 구분선 표시", exact: true })).toBeDisabled();
+    await expect(p.locator('[data-preview-decoration="columnDivider"]')).toHaveCount(0);
+    await open({ key: "restaurant_onue_a" }, "mobile");
+    await expect(p.getByRole("checkbox", { name: "상·하단 패턴 띠 표시", exact: true })).toBeDisabled();
+  } finally { await p.close(); }
+}
 try {
   await run("decoration tab, preview edit and reset", toolbar);
+  if (process.env.DECORATIONS_QA_CHECKBOXES === "1") await run("native checkbox defaults and responsive selected-only controls", checkboxDefaults);
   if (process.env.DECORATIONS_QA_DETAILS === "1") await run("nine stroke combinations, long names and explicit native OFF", strokeDetails);
   const selectedCases = process.env.DECORATIONS_QA_CASES ? cases.filter(c => process.env.DECORATIONS_QA_CASES.split(",").includes(c.design || c.key)) : process.env.DECORATIONS_QA_SMOKE === "1" ? cases.filter(c => ["basic-top-row", "basic-upper-left", "basic-first-column-album"].includes(c.design) || (!c.design && ["cafe_mocha_forest_a", "cafe_round_focus_a", "cafe_van_gogh_a"].includes(c.key))) : cases;
   const jobs = process.env.DECORATIONS_QA_ONLY_UI === "1" ? [] : selectedCases.flatMap((c, i) => devices.map(d => () => run(`${c.design || c.key} ${d[0]}`, () => render(c, d, i))));

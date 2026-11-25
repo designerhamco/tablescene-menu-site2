@@ -7,6 +7,24 @@ import {getMenuDesignBackgrounds} from "./template-background-colors";
 import {getCustomTypographySettings,mergeTypographySettings,getTypographyTitleColorOverrides,withCommonTypographyFonts,normalizeTypographyRoleSettings} from "./template-typography-presets";
 import type {MenuPageData} from "./menu-page-data";
 const fixture=()=>({menuSite:{template_key:"cafe_design_a",settings:{},page_settings:{design:{appearance:{imageRadii:{logo:4},chipShape:"soft",albumImageRatio:"1:1"}},unrelated:"keep"}},pageSettings:{multi_page_cover_background_color:"#ffffff"},items:[{id:"saved-item",name:"고객 메뉴"}]} as unknown as MenuPageData);
+test("decoration checkbox defaults describe native designs without materializing saved overrides", () => {
+ for (const [key, enabled] of [["cafe_design_a", "categoryUnderline"], ["cafe_mocha_forest_a", "columnDivider"], ["cafe_van_gogh_a", "itemDivider"], ["cafe_round_focus_a", "priceLeader"], ["cafe_sunday_line_a", undefined], ["restaurant_onue_a", undefined]] as const) {
+  const data = fixture(); data.menuSite.id = "saved-menu"; data.menuSite.template_key = key;
+  const before = structuredClone(data), defaults = previewDesignDefaults(data);
+  assert.deepEqual(Object.entries(defaults.decorationVisibilityDefaults!).filter(([name, visible]) => name !== "patternBands" && visible).map(([name]) => name), enabled ? [enabled] : []);
+  assert.deepEqual(defaults.decorations, {}); assert.deepEqual(data, before);
+ }
+ const neutral = fixture(); neutral.menuSite.id = "default-design-preview-basic-top-row";
+ assert.ok(Object.values(previewDesignDefaults(neutral).decorationVisibilityDefaults!).every(value => value === false));
+});
+test("pattern checkbox default ignores the optional visibility override but preserves existing pattern settings", () => {
+ const data = fixture(); data.menuSite.id = "saved-menu"; data.menuSite.template_key = "fast_food_loop_bagel_a";
+ data.menuSite.page_settings = { design: { patternBands: { enabled: true, thickness: 24 }, decorations: { patternBands: false } } };
+ const before = structuredClone(data), defaults = previewDesignDefaults(data);
+ assert.equal(defaults.decorationVisibilityDefaults?.patternBands, true);
+ assert.equal(defaults.decorations?.patternBands, false); assert.deepEqual(data, before);
+ assert.equal(previewDesignDefaults(applyPreviewDesign(data, { decorations: {} }, false)).decorations?.patternBands, undefined);
+});
 test("preview design accepts only registered fonts, colors, bounded image radii and shape choices",()=>{
  assert.deepEqual(readPreviewDesign('{bad'),{});assert.deepEqual(readPreviewDesign('x'.repeat(4001)),{});
  assert.deepEqual(readPreviewDesign({pageBackground:'url(javascript:bad)',auxiliaryBackground:'#abcdef',imageRadii:{item:33,logo:0,cover:1.5},fonts:{brand:{ko:'unknown',en:'unknown',color:'#234567'},other:{ko:'pretendard'}},chipShape:'bad',albumImageRatio:'16:9',unknown:'bad'}),{auxiliaryBackground:'#ABCDEF',fontFamily:{ko:'pretendard'},fonts:{brand:{color:'#234567'}},imageRadii:{logo:0}});
