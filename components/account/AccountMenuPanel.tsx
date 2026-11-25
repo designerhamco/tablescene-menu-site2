@@ -17,7 +17,7 @@ export default function AccountMenuPanel({ userId, account, loading, failed, ret
     <Link href="/mypage?tab=account" className="site-account-menu-identity" onClick={close} aria-label="회원정보 수정">
       <ProfileAvatar userId={userId} imageUrl={account.avatarUrl} name={account.name} email={account.email} size="identity" />
       <div className="site-stack-detail">
-        <div className="site-action-row"><strong className="type-content-title">{account.name || "내 계정"}</strong>{account.role ? <Badge>{account.role}</Badge> : null}</div>
+        <div className="site-action-row"><strong className="type-menu-title">{account.name || "내 계정"}</strong>{account.role ? <Badge>{account.role}</Badge> : null}</div>
         <span className="type-body-sm site-copy-muted">{account.email}</span>
       </div>
     </Link>

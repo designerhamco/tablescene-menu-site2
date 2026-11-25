@@ -615,3 +615,17 @@ test("management hierarchy separates major titles, working headings and supporti
   assert.match(siteDesignSource, /--site-leading-reading-support: 1\.5/);
   assert.match(siteDesignSource, /--site-weight-section-title: var\(--font-weight-semibold\)/);
 });
+
+
+test("헤더 레이어는 주메뉴보다 작은 탐색과 주메뉴 이하의 계정 제목을 쓴다", () => {
+  const role = (key: string) => SITE_TYPE_ROLES.find(item => item.key === key)!;
+  const nav = role("nav"), layer = role("menu-nav"), title = role("menu-title");
+  assert.equal(layer.desktop, 14);
+  assert.ok(layer.desktop < nav.desktop);
+  assert.ok(title.desktop <= nav.desktop);
+  assert.equal(title.weight, 600);
+  assert.equal(layer.weight, 500);
+  const account = readFileSync(join(componentsRoot, "account/AccountMenuPanel.tsx"), "utf8");
+  assert.match(account, /className="type-menu-title"/);
+  assert.doesNotMatch(account, /type-content-title/);
+});

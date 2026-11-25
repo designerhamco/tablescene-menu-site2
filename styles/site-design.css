@@ -1454,7 +1454,7 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-profile-avatar[data-size="identity"] { width: var(--ui-control-height-header); height: var(--ui-control-height-header); }
 .site-profile-avatar[data-size="editor"] { width: 5rem; height: 5rem; }
 .site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); color: #fff; font-size: var(--type-label-size); font-weight: var(--font-weight-semibold); }
-.site-profile-avatar[data-size="identity"] [data-slot="avatar-fallback"] { font-size: var(--type-content-title-size); }
+.site-profile-avatar[data-size="identity"] [data-slot="avatar-fallback"] { font-size: var(--type-menu-title-size); }
 .site-profile-avatar[data-size="editor"] [data-slot="avatar-fallback"] { font-size: var(--type-section-title-size); }
 .site-profile-link { display: inline-flex; flex: none; align-self: start; border-radius: 50%; }
 .site-profile-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
@@ -1469,7 +1469,7 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-account-menu-section { display: grid; gap: 0; padding-top: var(--site-space-title-copy); border-top: 1px solid var(--ui-border); }
 .site-account-menu-section + .site-account-menu-section { margin-top: var(--site-space-title-copy); }
 .site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height-md); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-menu-nav-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
-.site-account-menu-row strong { flex: none; color: var(--ui-text-muted); font-weight: var(--font-weight-semibold); }
+.site-account-menu-row strong { flex: none; color: var(--ui-text-muted); font-weight: var(--font-weight-medium); }
 .site-account-menu-row:is(a,button):hover, .site-account-menu-row > a:hover { color: var(--ui-text-muted); }
 .site-account-menu-row:is(a,button):focus-visible, .site-account-menu-row > a:focus-visible, .site-account-menu-identity:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
 .site-account-menu-signout { justify-content: start; border: 0; background: transparent; color: var(--ui-danger); cursor: pointer; }

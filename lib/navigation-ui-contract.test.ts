@@ -68,3 +68,14 @@ test("만들기 칩은 PC와 모바일의 디자인 템플릿 레이블에 함�
   assert.match(readSource("components/layout/MobileSiteMenu.tsx"), /<SiteNavigationLabel item=\{item\}/);
   assert.match(readSource("components/layout/SiteNavigationLabel.tsx"), /<Badge tone=\{item.chip.tone\}>\{item.chip.label\}<\/Badge>/);
 });
+
+test("모바일 로그아웃은 채팅상담 뒤의 텍스트 실행이며 로그인 전에는 노출하지 않는다", () => {
+  const source = readSource("components/layout/MobileSiteMenu.tsx");
+  const footer = source.indexOf('className={styles.drawerFooter}');
+  const chat = source.indexOf('채팅상담', footer);
+  const logout = source.indexOf('action={signOutAction}');
+  assert.ok(footer > 0 && chat > footer && logout > chat);
+  assert.match(source.slice(chat, logout), /authenticated && !loading/);
+  assert.match(source.slice(logout), /variant="link" data-purpose="navigation"/);
+  assert.doesNotMatch(source.slice(0, footer), /로그아웃|signOutControl \?\?/);
+});

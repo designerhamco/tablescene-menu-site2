@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { NewWindowIndicator } from "../app/components/ui/new-window-indicator";
 
 function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
@@ -24,9 +27,17 @@ test("매장 운영은 로그인 헤더에서 제공하고 직원 관리는 마�
   for (const link of operationsLinks) {
     assert.match(link, /target="_blank"/);
     assert.match(link, /rel="noopener noreferrer"/);
-    assert.match(link, /<NewWindowIndicator \/>/);
+    assert.match(link, /<NewWindowIndicator showIcon=\{false\} \/>/);
   }
   assert.match(navbarSource, />\s*매장 운영\s*</);
+});
+
+test("헤더 운영 링크는 화살표를 생략해도 새 창 안내를 보조기기에 제공한다", () => {
+  const withoutIcon = renderToStaticMarkup(createElement(NewWindowIndicator, { showIcon: false }));
+  assert.match(withoutIcon, /새 창으로 열기/);
+  assert.match(withoutIcon, /sr-only/);
+  assert.doesNotMatch(withoutIcon, /<svg/);
+  assert.match(renderToStaticMarkup(createElement(NewWindowIndicator)), /<svg/);
 });
 
 test("매장 운영 내비게이션은 주문과 권한에 따른 매출 관리를 제공한다", () => {

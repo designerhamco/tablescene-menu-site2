@@ -380,7 +380,7 @@ const Navbar = () => {
                   className={`site-button ${inverseHeader ? 'site-button-secondary' : 'site-button-primary'} site-button-header`}
                   data-site-header-operations
                 >
-                  매장 운영 <NewWindowIndicator />
+                  매장 운영 <NewWindowIndicator showIcon={false} />
                 </Link>
               ) : null}
               {authState.isAuthenticated ? <span className={styles.accountDivider} data-site-header-divider aria-hidden="true" /> : null}

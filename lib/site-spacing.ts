@@ -32,7 +32,7 @@ export const SITE_COMPONENT_HIERARCHY = [
   { role: "목록 상태", desktop: "16px / 레일44·48px", icon: "20px", api: 'purpose="state" / md·lg', rule: "이용 중·보관 중·종료됨처럼 결과 목록을 분류. lg 항목40px·레일48px" },
   { role: "주요 실행·완료", desktop: "16px / 44·48px", icon: "20px", api: 'Button 기본 primary / size="lg" / data-purpose="primary-action"', rule: "저장·등록 등 현재 작업의 주요 실행44px, 가입·결제 같은 큰 완료48px" },
   { role: "보조 실행", desktop: "14px / 44px", icon: "16px", api: 'Button variant="outline|secondary"', rule: "복사·취소 등 보조 실행. 주요 실행과 나란할 때 같은 기본 높이 유지" },
-  { role: "헤더 하위 탐색", desktop: "16px / 행40·44px", icon: "20px", api: "--type-menu-nav-size", rule: "고객센터·계정 레이어의 페이지 이동은 같은16px·500. 계정 이름 같은 소개 정보는 별도 역할" },
+  { role: "헤더 하위 탐색", desktop: "14px / 행40·44px", icon: "16px", api: "--type-menu-nav-size", rule: "주메뉴16px보다 작은 고객센터·계정 레이어14px·500. 계정 이름은 type-menu-title16px·600" },
   { role: "밀집 도구", desktop: "14px / 32px", icon: "16px", api: 'Button size="compact" / TabsList size="sm"', rule: "표·카드 내부 짧은 조작. 상위 탐색을 작게 만들기 위한 용도로 쓰지 않음" },
 ] as const;
 
