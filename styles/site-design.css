@@ -1498,7 +1498,9 @@ html[data-home-service-cover]::view-transition-new(root) {
 [data-basic-category-form] > .site-editor-action-row {
   margin-block-start: auto;
 }
-[data-basic-category-form] { min-block-size: 65vh; }
+[data-basic-editor-management] .site-editor-menu-grid > section { align-self: stretch; }
+[data-basic-category-pane] { display: flex; flex-direction: column; min-block-size: 100%; }
+[data-basic-category-pane] > form { flex: 1; }
 [data-basic-category-form] .site-editor-action-row,
 [data-basic-item-form] > .site-editor-action-row {
   justify-content: center;

@@ -8058,6 +8058,7 @@ export default function MenuManagementSection({
             categoryId: draftCategoryId,
             isNew: true,
             imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+            imageEnabled: sourceDraft?.imageEnabled,
             imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
             imageAction: sourceDraft?.imageAction ?? "keep",
             name: copiedItemName,
@@ -8095,6 +8096,7 @@ export default function MenuManagementSection({
           pageId: draftPageId,
           isNew: true,
           imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+          imageEnabled: sourceDraft?.imageEnabled,
           imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
           imageAction: sourceDraft?.imageAction ?? "keep",
           name: sourceDraft?.name ?? item.name,
@@ -8179,6 +8181,7 @@ export default function MenuManagementSection({
         pageId: sourceDraft?.pageId ?? sourceItem.menu_page_id ?? undefined,
         isNew: true,
         imageUrl: sourceDraft?.imageUrl ?? sourceItem.image_url,
+        imageEnabled: sourceDraft?.imageEnabled,
         imagePath: sourceDraft?.imagePath ?? sourceItem.image_path,
         imageAction: sourceDraft?.imageAction ?? "keep",
         name: getCopyName(sourceDraft?.name ?? sourceItem.name, categoryItems.map((item) => item.name)),
@@ -8307,6 +8310,7 @@ export default function MenuManagementSection({
           categoryId: draftCategoryId,
           isNew: true,
           imageUrl: sourceDraft?.imageUrl ?? item.image_url ?? null,
+          imageEnabled: sourceDraft?.imageEnabled,
           imagePath: sourceDraft?.imagePath ?? item.image_path ?? null,
           imageAction: sourceDraft?.imageAction ?? "keep",
           name: copiedItemName,
@@ -9744,7 +9748,7 @@ export default function MenuManagementSection({
                 </div>
               </div>
             ) : isCreatingCategory && selectedPage ? (
-              <div>
+              <div data-basic-category-pane={basicEditor ? "" : undefined}>
                 <PanelHeader
                   title={`새 ${labels.categoryLabel} 추가`}
                   description={
@@ -9780,7 +9784,7 @@ export default function MenuManagementSection({
                 />
               </div>
             ) : editingCategoryId && selectedCategory ? (
-              <div>
+              <div data-basic-category-pane={basicEditor ? "" : undefined}>
                 {(() => {
                   const isCopiedCategory = selectedCategory.id.startsWith("temp-category-copy-") || selectedCategory.id.startsWith("temp-category-page-copy-");
                   return (
