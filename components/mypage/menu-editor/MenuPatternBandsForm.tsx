@@ -40,7 +40,8 @@ export default function MenuPatternBandsForm({ menuId, initial, hasDefault, disa
         currentUrl={initial.image?.imageUrl}
         deferredDeleteName="pattern_bands_remove_image"
         draftImagePathInputName="pattern_bands_image_path"
-        optimizationGuidance=""
+        description={basic ? "메뉴판 위아래에 반복해서 표시할 패턴 이미지입니다." : undefined}
+        optimizationGuidance={basic ? undefined : ""}
         emptyPreview={hasDefault ? <span className="type-label">기본 체크무늬</span> : undefined}
         onUploadPendingChange={setUploadPending}
         onDraftImageChange={({ imageAction }) => { if (imageAction === "delete" && !hasDefault) setEnabled(false); }}

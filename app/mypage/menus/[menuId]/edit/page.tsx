@@ -830,7 +830,7 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams: Promise<{ error?: string; message?: string; tab?: string; designDraft?: string; designReset?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; saved?: string; tab?: string; designDraft?: string; designReset?: string }>;
 };
 
 const statusLabels: Record<MenuSiteStatus, string> = {
@@ -1166,7 +1166,7 @@ function SchedulePlaceholder() {
 
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
-  const { error, message, tab, designDraft, designReset } = await searchParams;
+  const { error, message, saved, tab, designDraft, designReset } = await searchParams;
   const requestedActiveTab = isMenuEditorTabKey(tab) ? tab : "basic";
   const authSupabase = await createClient();
   const {
@@ -1768,6 +1768,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const activeTab = enabledEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : enabledEditorTabs[0]?.key ?? "basic";
   const editorShellMaxWidth = "max-w-[var(--site-content-width)]";
   const bannerMessage = message;
+  const saveToastDescription = useBasicEditorLayout && saved === "1" && bannerMessage
+    ? canViewPublic
+      ? "공개 메뉴판에 반영됐어요."
+      : site.status === "draft"
+        ? "미리보기에서 확인할 수 있어요. 손님에게 보여주려면 공개 설정에서 공개로 바꿔 주세요."
+        : "미리보기에서 확인할 수 있어요."
+    : undefined;
   const bannerError =
     activeTab === "localization"
       ? latestTranslationJob?.status === "completed"
@@ -1845,8 +1852,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         menuId={site.id}
         target="site-logo-draft"
         currentUrl={site.logo_url}
-        description="공개 메뉴판에서는 템플릿별 안전 크기 안에서 비율에 맞춰 표시됩니다."
-        fileGuidance="PNG, JPG, WebP · 최대 2MB / 권장: 가로 512px 이상, 투명 배경 이미지"
+        description={useBasicEditorLayout ? "메뉴판에 표시될 로고를 등록하세요. 등록하지 않는 경우 매장명이 노출됩니다." : "공개 메뉴판에서는 템플릿별 안전 크기 안에서 비율에 맞춰 표시됩니다."}
+        fileGuidance="PNG, JPG, WebP · 최대 2MB. 가로 512px 이상의 투명 배경 이미지를 권장해요."
+        optimizationGuidance={useBasicEditorLayout ? "" : undefined}
         deferredDeleteName="delete_logo_image"
         draftImageUrlInputName="draft_logo_image_url"
         draftImagePathInputName="draft_logo_image_path"
@@ -1870,10 +1878,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           rows={useBasicEditorLayout ? 2 : undefined}
           defaultValue={footerNotice1}
           maxLength={templateContentLimits.footerNotice}
-          placeholder="예: 매일 10:00~22:00"
+          placeholder={useBasicEditorLayout ? "예: Wi-Fi REAL_MATCHA · PW 1234-5678" : "예: 매일 10:00~22:00"}
           helperText={
             <>
-              입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {!useBasicEditorLayout && `입력한 문구만 표시됩니다. 최대 ${templateContentLimits.footerNotice}자까지 입력할 수 있습니다.`}
               {basicFooterNotice1Error && <span className="mt-1 block text-red-600">{basicFooterNotice1Error}</span>}
             </>
           }
@@ -1888,10 +1896,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           rows={useBasicEditorLayout ? 2 : undefined}
           defaultValue={footerNotice2}
           maxLength={templateContentLimits.footerNotice}
-          placeholder="예: 포장 가능 · 주차 가능"
+          placeholder={useBasicEditorLayout ? "예: Instagram @artimenu.official" : "예: 포장 가능 · 주차 가능"}
           helperText={
             <>
-              업종에 맞는 짧은 안내를 입력하세요. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {!useBasicEditorLayout && `업종에 맞는 짧은 안내를 입력하세요. 최대 ${templateContentLimits.footerNotice}자까지 입력할 수 있습니다.`}
               {basicFooterNotice2Error && <span className="mt-1 block text-red-600">{basicFooterNotice2Error}</span>}
             </>
           }
@@ -1906,10 +1914,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           rows={useBasicEditorLayout ? 2 : undefined}
           defaultValue={footerNotice3}
           maxLength={templateContentLimits.footerNotice}
-          placeholder="예: Instagram @artimenu_official"
+          placeholder={useBasicEditorLayout ? "예: 포장 주문 가능" : "예: Instagram @artimenu_official"}
           helperText={
             <>
-              링크가 아닌 단순 텍스트로 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+              {!useBasicEditorLayout && `링크가 아닌 단순 텍스트로 표시됩니다. 최대 ${templateContentLimits.footerNotice}자까지 입력할 수 있습니다.`}
               {basicFooterNotice3Error && <span className="mt-1 block text-red-600">{basicFooterNotice3Error}</span>}
             </>
           }
@@ -1951,7 +1959,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
         <MenuEditorScrollRestoration menuId={menuId} />
-        <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
+        <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} description={saveToastDescription} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
         <header className={useBasicEditorLayout ? "site-basic-editor-header site-stack-copy" : "site-card site-editor-panel mb-6 p-5 sm:p-6"}>
           <Link href="/mypage" className={useBasicEditorLayout ? "site-basic-editor-back type-body-sm" : "mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950"}>
@@ -2109,7 +2117,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       maxLength={MENU_FIELD_LIMITS.menuSites.name}
                       helperText={
                         <>
-                          마이페이지에서 구분할 이름입니다. 최대 {MENU_FIELD_LIMITS.menuSites.name}자까지 입력할 수 있습니다.
+                          {useBasicEditorLayout ? "언제든 변경할 수 있어요." : `마이페이지에서 구분할 이름입니다. 최대 ${MENU_FIELD_LIMITS.menuSites.name}자까지 입력할 수 있습니다.`}
                           {basicNameError && <span className="mt-1 block text-red-600">{basicNameError}</span>}
                         </>
                       }
@@ -2126,7 +2134,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       maxLength={templateContentLimits.restaurantName}
                       helperText={
                         <>
-                          공개 메뉴판에 표시될 매장명입니다. 최대 {templateContentLimits.restaurantName}자까지 입력할 수 있습니다.
+                          {useBasicEditorLayout ? "메뉴판에 표시될 매장명을 입력하세요." : `공개 메뉴판에 표시될 매장명입니다. 최대 ${templateContentLimits.restaurantName}자까지 입력할 수 있습니다.`}
                           {basicRestaurantNameError && <span className="mt-1 block text-red-600">{basicRestaurantNameError}</span>}
                         </>
                       }
@@ -2146,7 +2154,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         placeholder="예: 신선한 재료와 정성스러운 서비스로 매일의 시간을 더 특별하게 만드는 공간입니다."
                         helperText={
                           <>
-                            공개 메뉴판 상단에 매장 소개 문구로 표시됩니다. 최대 {templateContentLimits.brandDescription}자까지 입력할 수 있습니다.
+                            {useBasicEditorLayout ? "메뉴판에 표시될 소개 문구를 입력하세요." : `공개 메뉴판 상단에 매장 소개 문구로 표시됩니다. 최대 ${templateContentLimits.brandDescription}자까지 입력할 수 있습니다.`}
                             {usesTopRowCopyLimit && <span className="block">PC·태블릿에서는 최대 3줄까지 표시되며, 문구가 길면 …으로 표시될 수 있습니다.</span>}
                             {basicBrandDescriptionError && <span className="mt-1 block text-red-600">{basicBrandDescriptionError}</span>}
                           </>
@@ -2476,9 +2484,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
                       <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
-                        변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
-                      </p>
                     </FinalActionRow>
                   </div>
                 </form>
@@ -2682,7 +2687,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       return useBasicEditorLayout ? (
                         <BasicDesignWorkspace
                           menuId={site.id}
-                          saved={bannerMessage === "디자인 설정이 저장되었습니다."}
                           pendingDesign={pendingDesign}
                           pendingReset={pendingDesignReset}
                           disabled={isReadOnly}

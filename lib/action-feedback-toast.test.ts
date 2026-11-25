@@ -71,3 +71,17 @@ test("리다이렉트 후 단순 성공은 토스트로 표시하고 계속 읽�
     assert.match(source, /site-notice-success/);
   }
 });
+
+test("Basic editor only shows publication guidance after a successful final save", () => {
+  const editor = readSource("app/mypage/menus/[menuId]/edit/page.tsx");
+  assert.match(editor, /useBasicEditorLayout && saved === "1" && bannerMessage/);
+  assert.match(editor, /canViewPublic[\s\S]+공개 메뉴판에 반영됐어요/);
+  assert.match(editor, /site.status === "draft"[\s\S]+공개 설정에서 공개로 바꿔 주세요/);
+  assert.doesNotMatch(editor, /새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다/);
+
+  const actions = readSource("app/mypage/menus/actions.ts");
+  assert.match(actions, /redirectAfterEditorSave[\s\S]+{ tab, message, saved: true }/);
+  const bridge = readSource("components/mypage/menu-editor/MenuEditorToastBridge.tsx");
+  assert.match(bridge, /toast.success\(message, { description }\)/);
+  assert.match(bridge, /nextParams.delete\("saved"\)/);
+});

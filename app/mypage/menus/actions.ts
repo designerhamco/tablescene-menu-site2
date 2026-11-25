@@ -1056,7 +1056,7 @@ function getDateString(formData: FormData, key: string) {
   return getNullableString(formData, key);
 }
 
-function getEditPath(menuId: string, params?: { error?: string; message?: string; tab?: string; editingItemId?: string }) {
+function getEditPath(menuId: string, params?: { error?: string; message?: string; tab?: string; editingItemId?: string; saved?: boolean }) {
   const searchParams = new URLSearchParams();
 
   if (params?.tab) {
@@ -1070,6 +1070,8 @@ function getEditPath(menuId: string, params?: { error?: string; message?: string
   if (params?.message) {
     searchParams.set("message", params.message);
   }
+
+  if (params?.saved) searchParams.set("saved", "1");
 
   if (params?.editingItemId) {
     searchParams.set("editingItemId", params.editingItemId);
@@ -1085,6 +1087,10 @@ function redirectToEditWithError(menuId: string, message: string): never {
 
 function redirectToTabEdit(menuId: string, tab: string, message: string): never {
   redirect(getEditPath(menuId, { tab, message }));
+}
+
+function redirectAfterEditorSave(menuId: string, tab: string, message: string): never {
+  redirect(getEditPath(menuId, { tab, message, saved: true }));
 }
 
 function redirectToTabEditWithError(menuId: string, tab: string, message: string): never {
@@ -2376,16 +2382,16 @@ export async function updateLocalizationSettingsAction(formData: FormData) {
 
   if (saveMode === "languages") {
     revalidateMenuPaths(menuId, menuSite.slug);
-    redirectToTabEdit(menuId, "localization", "언어 설정이 저장되었습니다.");
+    redirectAfterEditorSave(menuId, "localization", "언어 설정이 저장되었습니다.");
   }
 
   if (saveMode === "translations") {
     revalidateMenuPaths(menuId, menuSite.slug);
-    redirectToTabEdit(menuId, "localization", "번역 수정 내용이 저장되었습니다.");
+    redirectAfterEditorSave(menuId, "localization", "번역 수정 내용이 저장되었습니다.");
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "localization", "다국어 설정과 번역 내용이 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "localization", "다국어 설정과 번역 내용이 저장되었습니다.");
 }
 
 export async function generateMenuItemDescriptionAction(input: {
@@ -3067,7 +3073,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
   if (error) fail(`디자인 설정 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "design", "디자인 설정이 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "design", "디자인 설정이 저장되었습니다.");
 }
 
 export async function resetMenuCoverToPresetAction(formData: FormData) {
@@ -3445,7 +3451,7 @@ export async function updateMenuSiteAction(formData: FormData) {
   }
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "basic", "기본 정보가 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "basic", "기본 정보가 저장되었습니다.");
 }
 
 export async function updatePageSettingsAction(formData: FormData) {
@@ -3642,10 +3648,12 @@ export async function updateMenuCoverAction(formData: FormData) {
       error = fallbackResult.error;
     }
 
-    if (error) redirectToTabEditWithError(menuId, "cover", `커버 이미지 저장에 실패했습니다: ${error.message}`);
+    const representativeSection = menuCoverCapabilities.coverMode === "section";
+    const coverName = representativeSection ? "대표 영역" : "커버 이미지";
+    if (error) redirectToTabEditWithError(menuId, "cover", `${coverName} 저장에 실패했습니다: ${error.message}`);
 
     revalidateMenuPaths(menuId, menuSite.slug);
-    redirectToTabEdit(menuId, "cover", "커버 이미지 설정이 저장되었습니다.");
+    redirectAfterEditorSave(menuId, "cover", `${coverName} 설정이 저장되었습니다.`);
   }
 
   if (featuredItemEnabled && requestedFeaturedItemId) {
@@ -3743,7 +3751,7 @@ export async function updateMenuCoverAction(formData: FormData) {
   if (error) redirectToTabEditWithError(menuId, "cover", `커버 이미지 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "cover", "커버 이미지 설정이 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "cover", "커버 이미지 설정이 저장되었습니다.");
 }
 
 type AboutSocialLinkDraft = {
@@ -8918,7 +8926,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   revalidateMenuPaths(menuId, menuSite.slug);
   revalidationEnd("success");
   actionEnd("success");
-  redirectToMenuEdit(menuId, "메뉴 관리 내용이 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "menu", "메뉴 관리 내용이 저장되었습니다.");
 }
 
 export async function copyMenuItemAction(formData: FormData) {
@@ -9712,5 +9720,5 @@ export async function updateMenuPopupSettingsAction(formData: FormData) {
   const { error } = await supabase.from("menu_sites").update({ settings, updated_at: new Date().toISOString() }).eq("id", menuId);
   if (error) redirectToTabEditWithError(menuId, "advertising", "광고를 저장하지 못했습니다.");
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "advertising", "광고가 저장되었습니다.");
+  redirectAfterEditorSave(menuId, "advertising", "광고가 저장되었습니다.");
 }

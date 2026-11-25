@@ -25,6 +25,10 @@ export type FeaturedSlideItemOption = {
   imageStatus: string;
 };
 
+type FeaturedSlideEdit = FeaturedSlideDraft & {
+  mode: "image" | "linked";
+};
+
 type FeaturedSlidesEditorProps = {
   templateKey?: string | null;
   menuId: string;
@@ -64,7 +68,7 @@ export default function FeaturedSlidesEditor({
   const coordinator = useCafeAStarterResetCoordinator();
   const resetSnapshot = coordinator?.snapshot ?? null;
   const [slides, setSlides] = useState(() => normalizeSlides(initialSlides));
-  const [editing, setEditing] = useState<FeaturedSlideDraft | null>(null);
+  const [editing, setEditing] = useState<FeaturedSlideEdit | null>(null);
   const [uploadPending, setUploadPending] = useState(false);
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
   const effectiveItemOptions = resetSnapshot
@@ -133,9 +137,10 @@ export default function FeaturedSlidesEditor({
     const registered = editing && slides.some((slide) => slide.id === editing.id);
     const editorIndex = editing ? slides.findIndex((slide) => slide.id === editing.id) : -1;
     const displayIndex = editorIndex < 0 ? slides.length + 1 : editorIndex + 1;
-    const itemUnavailable = Boolean(editing?.featuredItemId && !itemOptionIds.has(editing.featuredItemId));
+    const linkedItemId = editing?.mode === "linked" ? editing.featuredItemId : null;
+    const itemUnavailable = Boolean(linkedItemId && !itemOptionIds.has(linkedItemId));
     const takenItems = new Set(slides.filter((slide) => slide.id !== editing?.id).map((slide) => slide.featuredItemId));
-    const itemTaken = Boolean(editing?.featuredItemId && takenItems.has(editing.featuredItemId));
+    const itemTaken = Boolean(linkedItemId && takenItems.has(linkedItemId));
     const categoryGroups = new Map<string, FeaturedSlideItemOption[]>();
     for (const item of effectiveItemOptions) {
       const group = categoryGroups.get(item.categoryName) ?? [];
@@ -145,30 +150,42 @@ export default function FeaturedSlidesEditor({
 
     const editorPanel = editing && (
       <ContentPanel>
+        <fieldset className="site-field-stack">
+          <legend className="type-label site-editor-choice-legend">표시 방식</legend>
+          <div className="site-action-row">
+            <button type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "image"}
+              onClick={() => setEditing((current) => current && { ...current, mode: "image" })}>이미지만</button>
+            <button type="button" className="site-choice site-choice-control" aria-pressed={editing.mode === "linked"}
+              onClick={() => setEditing((current) => current && { ...current, mode: "linked" })}>이미지 + 대표 상품</button>
+          </div>
+        </fieldset>
         <div className="site-basic-editor-fields">
-          <ImageUploadField
-            key={editing.id}
-            editorLayout
-            label={`대표 이미지 ${displayIndex}`}
-            menuId={menuId}
-            target="site-cover-draft"
-            currentUrl={editing.imageUrl}
-            fileGuidance="PNG, JPG, WebP · 최대 5MB. 디자인과 기기에 따라 이미지가 일부 잘릴 수 있습니다."
-            uploadSuccessMessage="새 대표 이미지를 불러왔습니다."
-            deleteConfirmTitle="이 대표 이미지를 삭제할까요?"
-            deleteConfirmDescription="최종 저장을 눌러야 공개 메뉴판에 반영됩니다."
-            onUploadPendingChange={setUploadPending}
-            onDraftImageChange={({ imageUrl, imagePath }) => setEditing((current) =>
-              current?.id === editing.id ? { ...current, imageUrl, imagePath } : current)}
-          />
-          <div className="site-field-stack">
+          <div className="site-field-stack" data-editor-span={editing.mode === "image" ? "full" : undefined}>
+            <ImageUploadField
+              key={editing.id}
+              editorLayout
+              label={`대표 이미지 ${displayIndex}`}
+              menuId={menuId}
+              target="site-cover-draft"
+              currentUrl={editing.imageUrl}
+              description="1:1 정사각형 원본을 권장해요. 디자인과 기기에 따라 일부가 잘릴 수 있으니 중요한 내용은 가운데에 배치해 주세요."
+              fileGuidance="PNG, JPG, WebP · 최대 5MB"
+              uploadSuccessMessage="새 대표 이미지를 불러왔습니다."
+              deleteConfirmTitle="이 대표 이미지를 삭제할까요?"
+              deleteConfirmDescription="최종 저장을 눌러야 공개 메뉴판에 반영됩니다."
+              onUploadPendingChange={setUploadPending}
+              onDraftImageChange={({ imageUrl, imagePath }) => setEditing((current) =>
+                current?.id === editing.id ? { ...current, imageUrl, imagePath } : current)}
+            />
+          </div>
+          {editing.mode === "linked" && <div className="site-field-stack">
             <div className="site-action-row">
               <label className="type-label" htmlFor="basic-featured-item">{`대표 상품 ${displayIndex}`}</label>
               <HelpTooltip label="대표 상품 도움말">상품을 고르면 대표 이미지 위에 상품명, 설명, 배지, 가격이 함께 표시됩니다. 같은 상품은 한 번만 연결할 수 있어요.</HelpTooltip>
             </div>
             <select id="basic-featured-item" className="site-field site-input" value={editing.featuredItemId ?? ""}
               onChange={(event) => setEditing({ ...editing, featuredItemId: event.target.value || null })}>
-              <option value="">이미지만 표시</option>
+              <option value="">{effectiveItemOptions.length ? "대표 상품을 선택하세요" : "연결할 수 있는 상품이 없어요"}</option>
               {itemUnavailable && <option value={editing.featuredItemId ?? ""} disabled>숨겨졌거나 삭제된 상품</option>}
               {Array.from(categoryGroups, ([category, items]) => (
                 <optgroup key={category} label={category}>
@@ -178,14 +195,21 @@ export default function FeaturedSlidesEditor({
             </select>
             {itemUnavailable && <p className="type-body-sm">선택한 상품을 표시할 수 없습니다. 다른 상품을 고르거나 이미지만 표시하세요.</p>}
             {itemTaken && <p className="type-body-sm">다른 대표 이미지에 연결된 상품입니다.</p>}
-          </div>
+          </div>}
         </div>
         <div className="site-action-row" data-distribution="center">
-          <button type="button" className="site-button site-button-primary" disabled={uploadPending || !editing.imageUrl || itemUnavailable || itemTaken}
+          <button type="button" className="site-button site-button-primary" disabled={uploadPending || !editing.imageUrl || (editing.mode === "linked" && !linkedItemId) || itemUnavailable || itemTaken}
             onClick={() => {
+              const slide: FeaturedSlideDraft = {
+                id: editing.id,
+                imageUrl: editing.imageUrl,
+                imagePath: editing.imagePath,
+                sortOrder: editing.sortOrder,
+                featuredItemId: linkedItemId,
+              };
               setSlides((current) => {
-                if (registered) return normalizeSlides(current.map((slide) => slide.id === editing.id ? editing : slide));
-                return current.length < effectiveMaxSlides ? normalizeSlides([...current, editing]) : current;
+                if (registered) return normalizeSlides(current.map((entry) => entry.id === slide.id ? slide : entry));
+                return current.length < effectiveMaxSlides ? normalizeSlides([...current, slide]) : current;
               });
               setEditing(null);
             }}>{registered ? "저장" : "추가"}</button>
@@ -207,7 +231,7 @@ export default function FeaturedSlidesEditor({
           <h3 className="type-subsection-title site-basic-editor-cover-title">대표 이미지·상품 등록</h3>
           <div className="site-content-divider site-action-row" data-density="compact" data-distribution="end">
             <button type="button" className="site-button site-button-outline" disabled={Boolean(editing) || slides.length >= effectiveMaxSlides}
-              onClick={() => setEditing({ id: createSlideId(), imageUrl: null, imagePath: null, featuredItemId: null, sortOrder: slides.length })}>
+              onClick={() => setEditing({ mode: "image", id: createSlideId(), imageUrl: null, imagePath: null, featuredItemId: null, sortOrder: slides.length })}>
               추가 {slides.length}/{effectiveMaxSlides}
             </button>
           </div>
@@ -237,7 +261,7 @@ export default function FeaturedSlidesEditor({
                         <p className="type-item-title site-featured-registration-title">{index + 1}. {item?.label ?? (slide.featuredItemId ? "숨겨졌거나 삭제된 상품" : "대표 이미지")}</p>
                         {!isEditing && (
                           <div className="site-action-row" data-distribution="end" data-wrap="nowrap">
-                            <button type="button" className="site-button site-button-outline site-button-compact" disabled={Boolean(editing)} onClick={() => setEditing({ ...slide })}>수정</button>
+                            <button type="button" className="site-button site-button-outline site-button-compact" disabled={Boolean(editing)} onClick={() => setEditing({ ...slide, mode: slide.featuredItemId ? "linked" : "image" })}>수정</button>
                             <button type="button" className="site-button site-button-outline-danger site-button-compact" disabled={Boolean(editing)} onClick={() => setSlides((current) => normalizeSlides(current.filter((entry) => entry.id !== slide.id)))}>삭제</button>
                           </div>
                         )}
