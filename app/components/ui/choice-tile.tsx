@@ -2,18 +2,6 @@
 
 import { useId, type ComponentProps, type ReactNode } from "react";
 import { cn } from "./utils";
-import { Check } from "./site-icon";
-
-function ChoiceIndicator() {
-  return <span className="site-choice-indicator" aria-hidden="true"><Check /></span>;
-}
-
-/** A settings value choice; its indicator is separate from an execution action. */
-export function ChoiceControl({ children, className, ...props }: ComponentProps<"button">) {
-  return <button type="button" className={cn("site-choice site-choice-control", className)} {...props}>
-    <span className="site-choice-control-copy">{children}</span><ChoiceIndicator />
-  </button>;
-}
 
 type ChoiceTileProps = Omit<ComponentProps<"button">, "children"> & {
   icon?: ReactNode;
@@ -35,7 +23,6 @@ export function ChoiceTile({ icon, label, description, selected = false, purpose
     <span className="site-choice-tile-copy"><span className="site-choice-tile-label">{label}</span>
       {description ? <span id={descriptionId} className="site-choice-tile-description">{description}</span> : null}
     </span>
-    {purpose === "choice" ? <ChoiceIndicator /> : null}
   </button>;
 }
 
