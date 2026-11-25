@@ -84,7 +84,7 @@ NHN Cloud KakaoTalk Bizmessage API v2.3용 구현이다. 미배포 SENS 초안�
 검수:
 
 ```sh
-node --import tsx --test lib/merchant-alimtalk-channel.test.ts lib/merchant-alimtalk-channel-service.test.ts lib/order-ready-alimtalk-provider.test.ts
+node --import tsx --test lib/merchant-alimtalk-channel.test.ts lib/merchant-alimtalk-channel-service.test.ts lib/order-ready-alimtalk-provider.test.ts lib/order-ready-alimtalk-service.test.ts
 # PGlite 0.6.0을 별도 임시 폴더에 설치한 경우; 운영 env를 읽지 않는 독립 Postgres 검사
 node scripts/qa-merchant-alimtalk-db.mjs /absolute/path/to/node_modules/@electric-sql/pglite
 npm run check:site-ui
@@ -107,3 +107,11 @@ npx tsc --noEmit --incremental false
 - 서비스 역할만 실행할 수 있는 `link_existing_menu_alimtalk_channel` RPC가 채널 중복을 막는다. 진행 중인 인증이나 다른 연결을 덮어쓰지 않으며, 같은 매장·소유자·키의 반복 클릭은 기존 연결을 반환한다. 모든 연결의 `sending_enabled=false` 조건을 유지한다.
 - 로컬 비공개 설정의 기존 연결 소유자 값은 메뉴판 ID·슬러그를 제한한 운영 SELECT 결과로 확인했다. 실제 NHN 단건 GET도 ID·키·정상/활성·차단/휴면 없음으로 일치했다. NHN에 쓰기 요청을 보내거나 운영 DB에 저장하지 않았다.
 - 이 마이그레이션과 앞선 채널/발송 이력 마이그레이션은 **운영 미적용**이다. 로컬 DB 검사 29건, 소유자·잘못된 매장·미승인 연결 거부와 프로필 검증 테스트를 수행한다. 운영 적용·배포는 후속 단계다.
+
+## 2026-11-25 추가 테스트 기록
+
+- 실제 NHN 프로필·템플릿 조회는 GET 2건만 수행했다. 프로필은 지정한 채널·발신 키와 일치하고 정상 등록/활성, 차단·휴면 없음이었다. 템플릿은 여전히 `TSC02`(검수 중)였다. 실제 `prepare` 코드가 이 응답을 받아 제출 전에 차단했고, 환경변수의 발송 게이트도 닫혀 있었다. NHN 쓰기·고객 발송·운영 DB 쓰기는 하지 않았다.
+- `order-ready-alimtalk-service.test.ts`는 실제 서비스와 실제 NHN 어댑터를 사용하되 DB 응답·HTTP·권한 컨텍스트는 테스트 안에서 격리한다. 실제 환경변수 파일을 읽지 않는다. 신규 7건은 발송 OFF/권한/운영 중지 차단, 승인 대기 차단, 접수·최종 수신·서빙 상태 분리, 실패 재시도와 오래된 클릭 중복 방지, 접수 응답 유실 시 자동 재발송 방지, 준비 도중 서빙 완료된 주문 차단, 경쟁 DB 예약 재사용을 확인했다. 운영 DB 통합 검수나 실제 수신 검수로 간주하지 않는다.
+- 브라우저 모의 주문 #201은 리스트에서 발송 접수 → 발송 완료 이후에도 조리완료와 픽업·서빙 완료 버튼이 유지됐다. 별도 버튼을 누른 뒤에만 픽업·서빙 완료로 바뀌었다.
+- 모의 주문 #202의 첫 실패를 확인한 뒤 테이블뷰의 ‘열기’ 팝업에서 재발송하여 발송 완료를 확인했다. 재발송 성공 뒤에도 주문은 조리완료/미결제로 남았다. #203 연락처 없음과 #204 조리중에는 발송 버튼이 없었다. 브라우저 오류·경고는 없었다.
+- 실제 수신·실제 발송 이력 저장 검수는 남아 있다. 템플릿 승인, 격리한 저장 환경 또는 명시적으로 승인한 테스트 메뉴판의 DB 적용, 동의한 수신 번호를 준비한 뒤 진행한다. 이 기록은 운영 배포 또는 고객 발송 활성화 승인을 의미하지 않는다.
