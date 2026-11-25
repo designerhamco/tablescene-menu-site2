@@ -30,13 +30,13 @@
 .actions, .drawerHeaderActions { gap: clamp(.5rem, 1.5vw, 1.25rem); }
 .accountTools { display: contents; }
 .accountTools > :global(.site-button) { display: none; }
-.accountLink, .accountDivider { display: none; }
+.accountDivider { display: none; }
 .notificationGroup { display: none; align-items: center; gap: .5rem; }
 .profileTrigger { display: none; border: 0; border-radius: 50%; background: transparent; }
-.accountLink, .notificationButton { color: inherit; transition: color 180ms ease; }
-.accountLink:hover, .notificationButton:hover { color: var(--site-header-link-hover); }
+.notificationButton { color: inherit; transition: color 180ms ease; }
+.notificationButton:hover { color: var(--site-header-link-hover); }
 .notificationButton { border: 0; background: transparent; }
-.accountLink:focus-visible, .notificationButton:focus-visible {
+.notificationButton:focus-visible {
   outline: 2px solid var(--ui-focus);
   outline-offset: 4px;
   border-radius: .25rem;
@@ -98,7 +98,6 @@
   .accountTools { display: flex; align-items: center; gap: var(--ui-header-action-gap); }
   .profileTrigger { display: inline-flex; }
   .accountTools > :global(.site-button) { display: inline-flex; }
-  .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }
   .accountDivider { display: block; width: 1px; height: 1.25rem; background: #d1d5db; }
   .primaryNav {
     position: absolute;

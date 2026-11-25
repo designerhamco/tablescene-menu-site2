@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import sharp from "sharp";
+import { readFileSync } from "node:fs";
 import { ACCOUNT_AVATAR_COLORS, ACCOUNT_AVATAR_MAX_BYTES, getAccountAvatarColor, getAccountAvatarPath, getAccountAvatarUrl, getAccountInitial } from "./account-profile";
 import { prepareAccountAvatarImage, readAccountAvatarFile, saveAccountAvatar } from "./account-avatar-image";
 
@@ -25,6 +26,18 @@ test("기본 프로필 색상은 계정별로 안정적이며 사진은 본인�
   for (const path of [previousPath.replace(userId, "someone-else"), "https://outside.test/a.png", `account-avatars/${userId}/../../other.webp`, `${previousPath}?q=1`]) assert.equal(getAccountAvatarPath(userId, { profile_avatar_path: path }), null);
   assert.equal(getAccountAvatarUrl(userId, { avatar_url: "https://oauth.test/avatar" }, "https://storage.test"), null);
   assert.equal(getAccountAvatarUrl(userId, { profile_avatar_path: previousPath }, "https://storage.test/"), `https://storage.test/storage/v1/object/public/menu-images/${previousPath}`);
+});
+
+test("기본 프로필은 난색 팔레트를 사용하고 흰 이니셜과 AA 대비를 유지한다", () => {
+  assert.deepEqual(ACCOUNT_AVATAR_COLORS, ["orange", "terracotta", "rose", "amber", "coral", "wine"]);
+  const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
+  for (const color of ACCOUNT_AVATAR_COLORS) {
+    const hex = css.match(new RegExp(`--ui-profile-${color}:\\s*#([0-9a-f]{6})`))?.[1];
+    assert.ok(hex, color);
+    const rgb = hex.match(/../g)!.map(value => parseInt(value, 16) / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+    const luminance = .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
+    assert.ok(1.05 / (luminance + .05) >= 4.5, color);
+  }
 });
 
 test("사진은 중앙 정사각형 WebP로 최적화하고 EXIF를 제거한다", async () => {

@@ -115,7 +115,7 @@ export default function SiteComponentGallery() {
     <div id="loading-feedback"><Examples title="로딩·진행 표시" description="기다리는 동안 상태 문구와 시각적 표시를 함께 제공합니다. 진행률을 알 수 없는 조회에는 불확정 표시를, 실제 진행률을 아는 작업에만 퍼센트를 사용합니다.">
       <div className="site-collection site-stack-block"><LoadingState label="공지사항을 불러오는 중입니다." /><LoadingState label="계정 정보를 확인 중입니다." inline /><LoadingState label="목록을 불러오는 중입니다." indicator="bar" /><ProgressBar label="파일 업로드 진행률 예시" value={65} /><div className={styles.inverseToolbar}><ProgressBar label="사진 위 장면 진행률 예시" value={65} appearance="media" /></div><p className="type-caption">65%는 컴포넌트 확인용 예시입니다. 모션 감소 설정에서는 반복 애니메이션이 멈추고 상태 문구가 남습니다.</p></div>
     </Examples></div>
-    <div id="mobile-navigation"><Examples title="모바일 전체 메뉴" description="서비스는 같은 크기의 메뉴명으로 나열하고, 고객센터의 하위 링크만 펼쳐 봅니다. 계정·역할·매장 운영·알림·만들기·로그아웃은 계정 상태에 맞춰 표시합니다."><MobileNavigationExamples /></Examples></div>
+    <div id="mobile-navigation"><Examples title="모바일 전체 메뉴" description="서비스는 같은 크기의 메뉴명으로 나열하고, 고객센터의 하위 링크만 펼쳐 봅니다. 디자인 템플릿에는 만들기 칩을 붙이고, 내 메뉴판·매장 운영·알림·계정은 로그인 상태에 맞춰 표시합니다."><MobileNavigationExamples /></Examples></div>
     <Examples title="말풍선 툴팁" description="기본은 왼쪽 아래에 꼬리가 있는 말풍선입니다. 실제 대상과 화면 여유에 따라 왼쪽·가운데·오른쪽과 위·아래 방향을 조절하며, 항상 보이는 안내도 같은 형태를 공유합니다.">
       <div className={styles.buttonRow}>
         <Tooltip><TooltipTrigger asChild><Button variant="outline">밝은 툴팁</Button></TooltipTrigger><TooltipContent tone="light" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
