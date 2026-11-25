@@ -6,6 +6,7 @@ import { formatNotificationBadgeCount } from "@/lib/notification-display-policy"
 import { Badge } from "@/app/components/ui/badge";
 import { MypageNavigationRail } from "@/components/mypage/MypageNavigationRail";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
+import ProfileAvatar from "@/components/account/ProfileAvatar";
 
 export type MypageNavigationKey =
   | "menus"
@@ -47,6 +48,8 @@ export function MypageAccountCard({
   canShowOwnerCommerce,
   accountAiCreditRemaining,
   staffAccountCount,
+  userId,
+  avatarUrl,
 }: {
   businessName?: string | null;
   email: string;
@@ -54,9 +57,13 @@ export function MypageAccountCard({
   canShowOwnerCommerce: boolean;
   accountAiCreditRemaining?: number;
   staffAccountCount?: number;
+  userId?: string;
+  avatarUrl?: string | null;
 }) {
   return (
     <section className="site-account-summary">
+      <div className="site-account-identity-row">
+      {userId ? <Link href="/mypage?tab=account" className="site-profile-link site-profile-mobile" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={avatarUrl} size="identity" /></Link> : null}
       <div className="site-account-identity">
         <p className="site-account-eyebrow">계정</p>
         <h2 className="type-content-title site-account-business-name" title={businessName || "내 계정"}>
@@ -68,6 +75,7 @@ export function MypageAccountCard({
             <Badge>{roleLabel}</Badge>
           </div>
         ) : null}
+      </div>
       </div>
       {canShowOwnerCommerce && (accountAiCreditRemaining !== undefined || staffAccountCount !== undefined) ? (
         <div className="site-account-metrics">

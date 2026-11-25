@@ -9,6 +9,7 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { MypageAccountCard, MypageNavigation } from "@/components/mypage/MypageSidebar";
+import { getAccountAvatarUrl } from "@/lib/account-profile";
 import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
@@ -174,6 +175,8 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
       <main className="site-management-scope site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <AccountPageContent sidebar={<>
             <MypageAccountCard
+              userId={user.id}
+              avatarUrl={getAccountAvatarUrl(user.id, user.user_metadata)}
               businessName={businessProfileResult.data?.business_name}
               email={user.email ?? "이메일 정보 없음"}
               roleLabel="사장"

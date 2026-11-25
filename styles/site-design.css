@@ -1531,3 +1531,40 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-editor-save-feedback > p + p { margin-block-start: var(--site-space-copy); }
 .site-editor-save-error-link { color: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: .2em; }
 .site-editor-save-error-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+/* Account identity: shared header, mobile navigation and profile editor. */
+.site-profile-avatar {
+  width: var(--ui-control-height-header);
+  height: var(--ui-control-height-header);
+  flex: none;
+  --profile-avatar-color: #788e83;
+}
+.site-profile-avatar[data-color="sage"] { --profile-avatar-color: #788e83; }
+.site-profile-avatar[data-color="clay"] { --profile-avatar-color: #b78d73; }
+.site-profile-avatar[data-color="lavender"] { --profile-avatar-color: #8b83b3; }
+.site-profile-avatar[data-color="ocean"] { --profile-avatar-color: #718eaa; }
+.site-profile-avatar[data-color="rose"] { --profile-avatar-color: #b98591; }
+.site-profile-avatar[data-color="amber"] { --profile-avatar-color: #b49b65; }
+.site-profile-avatar[data-size="identity"] { width: 3.5rem; height: 3.5rem; }
+.site-profile-avatar[data-size="editor"] { width: 5rem; height: 5rem; }
+.site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); }
+.site-profile-link { display: inline-flex; flex: none; align-self: start; border-radius: 50%; }
+.site-profile-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
+.site-profile-editor-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--site-space-block); }
+.site-profile-editor-row > .site-stack-block { min-width: 0; flex: 1 1 16rem; }
+.site-account-identity-row { display: flex; align-items: center; gap: var(--site-space-block); }
+.site-account-identity-row > .site-account-identity { min-width: 0; flex: 1; }
+[data-slot="popover-content"].site-account-popover { width: min(23rem, calc(100vw - 2rem)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: 0; border-radius: var(--ui-radius-panel); }
+.site-account-menu { padding: var(--site-panel-inset-wide); }
+.site-account-menu-identity { display: flex; min-width: 0; align-items: center; gap: var(--site-space-block); padding-bottom: var(--site-space-block); color: var(--ui-text); }
+.site-account-menu-identity > div { min-width: 0; }
+.site-account-menu-identity strong, .site-account-menu-identity span { overflow-wrap: anywhere; }
+.site-account-menu-identity:hover strong { text-decoration: underline; text-underline-offset: .2em; }
+.site-account-menu-section { display: grid; gap: var(--site-space-copy); padding-top: var(--site-space-block); border-top: 1px solid var(--ui-border); }
+.site-account-menu-section + .site-account-menu-section { margin-top: var(--site-space-block); }
+.site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-body-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
+.site-account-menu-row strong { flex: none; color: var(--ui-text-muted); font-weight: var(--font-weight-semibold); }
+.site-account-menu-row:is(a,button):hover, .site-account-menu-row > a:hover { color: var(--ui-text-muted); }
+.site-account-menu-row:is(a,button):focus-visible, .site-account-menu-row > a:focus-visible, .site-account-menu-identity:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
+.site-account-menu-signout { justify-content: start; border: 0; background: transparent; color: var(--ui-danger); cursor: pointer; }
+@media (min-width: 1024px) { .site-profile-mobile { display: none; } }
