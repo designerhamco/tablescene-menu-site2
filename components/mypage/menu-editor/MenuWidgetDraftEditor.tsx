@@ -1,7 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+
+import { Switch } from "@/app/components/ui/switch";
+import { AlignLeft, AlignCenter, AlignRight } from "@/app/components/ui/site-icon";
+import HelpTooltip from "@/components/ui/HelpTooltip";
 
 import MenuWidgetImageField from "@/components/mypage/menu-editor/MenuWidgetImageField";
 import MenuWidgetTypePicker from "@/components/mypage/menu-editor/MenuWidgetTypePicker";
@@ -22,6 +26,11 @@ type MenuWidgetDraftEditorMode = "create" | "copy" | "edit";
 
 type MenuWidgetDraftEditorProps = {
   mode: MenuWidgetDraftEditorMode;
+  basicEditor?: boolean;
+  finalSaveDisabled?: boolean;
+  finalSavePending?: boolean;
+  finalSaveError?: string | null;
+  onFinalSave?: () => void;
   menuSiteId: string;
   draft: MenuWidgetDraft;
   persistedImagePath: string | null;
@@ -73,6 +82,11 @@ const TEXT_ALIGN_LABELS: Record<string, string> = {
 
 export default function MenuWidgetDraftEditor({
   mode,
+  basicEditor = false,
+  finalSaveDisabled = false,
+  finalSavePending = false,
+  finalSaveError,
+  onFinalSave,
   menuSiteId,
   draft,
   persistedImagePath,
@@ -88,6 +102,8 @@ export default function MenuWidgetDraftEditor({
   onCancelDelete,
   onConfirmDelete,
 }: MenuWidgetDraftEditorProps) {
+  const fieldId = useId();
+  const [imagePending, setImagePending] = useState(false);
   const validation = useMemo(() => validateMenuWidgetDraft(draft), [draft]);
   const validationErrors = validation.valid ? [] : validation.errors;
   const usesImage = draft.type === "image" || draft.type === "image_text";
@@ -125,6 +141,114 @@ export default function MenuWidgetDraftEditor({
       },
     };
     onChange(nextDraft);
+  }
+
+  if (basicEditor) {
+    const busy = imagePending || finalSavePending;
+    return <div className="site-stack-block" data-basic-widget-form>
+      <h3 className="type-subsection-title">위젯 설정</h3>
+      <fieldset disabled={busy} className="site-stack-group site-content-divider site-editor-section-rule" aria-busy={busy}>
+        <div className="site-field-stack">
+          <div className="site-content-heading-row" data-layout="toolbar">
+            <div className="site-action-row">
+              <span className="type-label" id={`${fieldId}-type`}>위젯 유형</span>
+              <HelpTooltip label="위젯 유형 도움말" hover>이미지, 텍스트 또는 이미지와 텍스트를 함께 표시할 수 있습니다.</HelpTooltip>
+            </div>
+            <label className="site-action-row"><span className="type-label">사용 여부</span>
+              <Switch size="sm" aria-label="위젯 사용 여부" checked={draft.visible} onCheckedChange={visible => patchDraft({ visible })} />
+            </label>
+          </div>
+          <MenuWidgetTypePicker value={draft.type} onChange={changeType} compact />
+        </div>
+        {usesImage && <>
+          <MenuWidgetImageField menuSiteId={menuSiteId} menuPageId={draft.menuPageId} widgetId={draft.id}
+            widgetType={draft.type === "image_text" ? "image_text" : "image"} imageUrl={draft.imageUrl}
+            imagePath={draft.imagePath} persistedImagePath={persistedImagePath} editorLayout
+            onPendingChange={setImagePending} onChange={image => patchDraft(image)} />
+          <div className="site-basic-editor-fields">
+            <div className="site-field-stack">
+              <div className="site-action-row"><span className="type-label">이미지 기준 위치</span>
+                <HelpTooltip label="이미지 기준 위치 도움말" hover>채우기에서는 잘리는 영역의 기준을, 전체 보이기에서는 여백 안의 이미지 위치를 정합니다.</HelpTooltip>
+              </div>
+              <div className="site-editor-image-position" role="group" aria-label="이미지 기준 위치">
+                {MENU_WIDGET_OBJECT_POSITIONS.map(position => <button key={position} type="button"
+                  aria-label={OBJECT_POSITION_LABELS[position]} aria-pressed={(draft.settings.objectPosition ?? "center") === position}
+                  title={OBJECT_POSITION_LABELS[position]} onClick={() => patchSettings({ objectPosition: position })}>
+                  <span aria-hidden="true" />
+                </button>)}
+              </div>
+              <p className="type-caption site-copy-muted">이미지가 보여질 기준 위치를 선택하세요.</p>
+            </div>
+            <div className="site-stack-group">
+              <div className="site-field-stack">
+                <div className="site-action-row"><label htmlFor={`${fieldId}-ratio`} className="type-label">이미지 비율</label>
+                  <HelpTooltip label="이미지 비율 도움말" hover>선택한 비율이 PC·태블릿·모바일에 동일하게 적용됩니다.</HelpTooltip>
+                </div>
+                <select id={`${fieldId}-ratio`} className="site-field site-select" value={draft.settings.aspectRatio}
+                  onChange={event => patchSettings({ aspectRatio: event.currentTarget.value as MenuWidgetDraft["settings"]["aspectRatio"] })}>
+                  {!MENU_WIDGET_ASPECT_RATIOS.some(ratio => ratio === draft.settings.aspectRatio) && <option value={draft.settings.aspectRatio}>{draft.settings.aspectRatio}</option>}
+                  {MENU_WIDGET_ASPECT_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ASPECT_RATIO_LABELS[ratio]}</option>)}
+                </select>
+              </div>
+              <div className="site-field-stack">
+                <div className="site-action-row"><label htmlFor={`${fieldId}-fit`} className="type-label">이미지 맞춤</label>
+                  <HelpTooltip label="이미지 맞춤 도움말" hover>채우기는 영역을 빈틈없이 채우며 이미지 일부가 잘릴 수 있습니다. 전체 보이기는 이미지 전체를 표시합니다.</HelpTooltip>
+                </div>
+                <select id={`${fieldId}-fit`} className="site-field site-select" value={draft.settings.objectFit}
+                  onChange={event => patchSettings({ objectFit: event.currentTarget.value as MenuWidgetDraft["settings"]["objectFit"] })}>
+                  {MENU_WIDGET_OBJECT_FITS.map(fit => <option key={fit} value={fit}>{OBJECT_FIT_LABELS[fit]}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+        </>}
+        {usesText && <>
+          <div className="site-field-stack">
+            <label htmlFor={`${fieldId}-title`} className="type-label">위젯 제목 텍스트</label>
+            <input id={`${fieldId}-title`} className="site-field site-input" value={draft.title} maxLength={MAX_MENU_WIDGET_TITLE_LENGTH}
+              onChange={event => patchDraft({ title: event.currentTarget.value })} placeholder="예: 매장 이용 안내" />
+            <p className="type-caption site-copy-muted text-right">{draft.title.length}/{MAX_MENU_WIDGET_TITLE_LENGTH}</p>
+          </div>
+          <div className="site-field-stack">
+            <label htmlFor={`${fieldId}-body`} className="type-label">위젯 본문 텍스트</label>
+            <textarea id={`${fieldId}-body`} className="site-field site-textarea" rows={3} value={draft.description} maxLength={MAX_MENU_WIDGET_DESCRIPTION_LENGTH}
+              onChange={event => patchDraft({ description: event.currentTarget.value })} placeholder="예: 계절 메뉴와 매장 소식을 확인해 주세요." />
+            <p className="type-caption site-copy-muted text-right">{draft.description.length}/{MAX_MENU_WIDGET_DESCRIPTION_LENGTH}</p>
+          </div>
+          <div className="site-field-stack">
+            <span className="type-label">텍스트 정렬</span>
+            <div className="site-action-row site-editor-widget-choices" role="group" aria-label="텍스트 정렬">
+              {MENU_WIDGET_TEXT_ALIGNS.map(align => {
+                const Icon = { left: AlignLeft, center: AlignCenter, right: AlignRight }[align];
+                return <button key={align} type="button" className="site-choice site-choice-control"
+                  aria-pressed={draft.settings.textAlign === align} onClick={() => patchSettings({ textAlign: align })}>
+                  <Icon />{TEXT_ALIGN_LABELS[align]} 정렬
+                </button>;
+              })}
+            </div>
+          </div>
+        </>}
+        {(validationErrors.length > 0 || countExceeded) && <div role="alert" className="site-notice site-notice-warning type-body-sm">
+          {countExceeded && <p>한 페이지에는 위젯을 최대 {maxWidgetCount}개까지 등록할 수 있습니다.</p>}
+          {validationErrors.map(error => <p key={`${error.field}:${error.code}`}>{error.message}</p>)}
+        </div>}
+        <div className="site-action-row site-editor-action-row">
+          <button type="button" className="site-button site-button-primary" disabled={finalSaveDisabled || validationErrors.length > 0 || countExceeded}
+            onClick={onFinalSave}>{finalSavePending ? "저장 중…" : "최종 저장"}</button>
+          {mode === "edit" && onCopy && <button type="button" className="site-button site-button-outline"
+            disabled={widgetCount >= maxWidgetCount} onClick={onCopy}>복사</button>}
+          {mode === "edit" && onRequestDelete && !isConfirmingDelete && <button type="button"
+            className="site-button site-button-outline-danger" onClick={onRequestDelete}>삭제</button>}
+          {mode !== "edit" && <button type="button" className="site-button site-button-outline" onClick={onCancel}>취소</button>}
+        </div>
+        {isConfirmingDelete && <div className="site-action-row" role="alert">
+          <span className="type-body-sm">이 위젯을 삭제할까요?</span>
+          <button type="button" className="site-button site-button-danger" onClick={onConfirmDelete}>삭제</button>
+          <button type="button" className="site-button site-button-outline" onClick={onCancelDelete}>취소</button>
+        </div>}
+        {finalSaveError && <p role="alert" className="type-body-sm text-red-600">{finalSaveError}</p>}
+      </fieldset>
+    </div>;
   }
 
   return (

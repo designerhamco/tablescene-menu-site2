@@ -20,6 +20,9 @@ function icon(name: string, outline: ReactNode, solid?: ReactNode) {
   return SiteIcon;
 }
 
+export const AlignLeft = /* @__PURE__ */ icon("align-left", <path fill="currentColor" d="M3 4H21V6H3V4ZM3 19H17V21H3V19ZM3 14H21V16H3V14ZM3 9H17V11H3V9Z"/>);
+export const AlignCenter = /* @__PURE__ */ icon("align-center", <path fill="currentColor" d="M3 4H21V6H3V4ZM5 19H19V21H5V19ZM3 14H21V16H3V14ZM5 9H19V11H5V9Z"/>);
+export const AlignRight = /* @__PURE__ */ icon("align-right", <path fill="currentColor" d="M3 4H21V6H3V4ZM7 19H21V21H7V19ZM3 14H21V16H3V14ZM7 9H21V11H7V9Z"/>);
 export const FilterFill = /* @__PURE__ */ icon("filter-fill", <><path fill="currentColor" d="M21 4v2h-1l-6 9v7h-4v-7L4 6H3V4z"/></>);
 export const AlertCircle = /* @__PURE__ */ icon("error-warning-line", <><path fill="currentColor" d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10s-4.477 10-10 10m0-2a8 8 0 1 0 0-16a8 8 0 0 0 0 16m-1-5h2v2h-2zm0-8h2v6h-2z"/></>);
 export const AlertTriangle = /* @__PURE__ */ icon("alert-line", <><path fill="currentColor" d="m12.866 3l9.526 16.5a1 1 0 0 1-.866 1.5H2.474a1 1 0 0 1-.866-1.5L11.134 3a1 1 0 0 1 1.732 0m-8.66 16h15.588L12 5.5zM11 16h2v2h-2zm0-7h2v5h-2z"/></>);

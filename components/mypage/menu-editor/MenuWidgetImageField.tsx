@@ -1,6 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
+
+import { X } from "@/app/components/ui/site-icon";
+import HelpTooltip from "@/components/ui/HelpTooltip";
 
 import type { MenuWidgetType } from "@/lib/menu-widgets";
 
@@ -22,6 +25,8 @@ type MenuWidgetImageFieldProps = {
   persistedImagePath: string | null;
   onChange: (value: { imageUrl: string | null; imagePath: string | null }) => void;
   onError?: (message: string) => void;
+  editorLayout?: boolean;
+  onPendingChange?: (pending: boolean) => void;
 };
 
 export default function MenuWidgetImageField({
@@ -34,7 +39,11 @@ export default function MenuWidgetImageField({
   persistedImagePath,
   onChange,
   onError,
+  editorLayout = false,
+  onPendingChange,
 }: MenuWidgetImageFieldProps) {
+  const fileNameId = useId();
+  const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
@@ -50,6 +59,7 @@ export default function MenuWidgetImageField({
   async function uploadImage(file: File) {
     setLocalError("");
     setIsUploading(true);
+    onPendingChange?.(true);
 
     try {
       const formData = new FormData();
@@ -73,11 +83,13 @@ export default function MenuWidgetImageField({
         return;
       }
 
+      setFileName(file.name);
       onChange({ imageUrl: result.imageUrl, imagePath: result.imagePath });
     } catch {
       setError("위젯 이미지를 업로드하지 못했습니다.");
     } finally {
       setIsUploading(false);
+      onPendingChange?.(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
@@ -87,6 +99,7 @@ export default function MenuWidgetImageField({
 
     if (currentImageIsUnsaved && imagePath) {
       setIsRemoving(true);
+      onPendingChange?.(true);
       try {
         const response = await fetch("/api/menu-widget-images", {
           method: "DELETE",
@@ -104,10 +117,42 @@ export default function MenuWidgetImageField({
         return;
       } finally {
         setIsRemoving(false);
+        onPendingChange?.(false);
       }
     }
 
+    setFileName("");
     onChange({ imageUrl: null, imagePath: null });
+  }
+
+  if (editorLayout) {
+    return <div className="site-field-stack">
+      <div className="site-action-row">
+        <label htmlFor={fileNameId} className="type-label">위젯 이미지</label>
+        <HelpTooltip label="위젯 이미지 업로드 주의사항" hover>
+          본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해 주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+        </HelpTooltip>
+      </div>
+      <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+        disabled={isUploading || isRemoving} aria-label="위젯 이미지 파일 선택"
+        onChange={event => { const file = event.currentTarget.files?.[0]; if (file) void uploadImage(file); }} />
+      <div className="site-editor-file-row">
+        <input id={fileNameId} className="site-field site-input" readOnly value={hasImage ? fileName || "등록된 이미지" : ""} placeholder="선택한 파일 없음" />
+        <button type="button" className="site-button site-button-primary" disabled={isUploading || isRemoving}
+          onClick={() => fileInputRef.current?.click()}>{isUploading ? "업로드 중…" : "파일 선택"}</button>
+      </div>
+      {hasImage && <div className="site-editor-image-preview">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {imageUrl && <img src={imageUrl} alt="" />}
+        <button type="button" className="site-button site-button-outline site-button-icon" data-icon-size="compact"
+          aria-label="위젯 이미지 삭제" disabled={isUploading || isRemoving} onClick={() => void removeImage()}><X /></button>
+      </div>}
+      <div className="site-stack-detail type-caption site-copy-muted">
+        <p>메뉴판에 표시할 위젯 이미지를 등록하세요.</p>
+        <p>PNG, JPG, WebP · 최대 5MB. 업로드된 이미지는 화면에 맞게 자동 최적화될 수 있습니다.</p>
+      </div>
+      {localError && <p role="alert" className="site-notice site-notice-error type-body-sm">{localError}</p>}
+    </div>;
   }
 
   return (
