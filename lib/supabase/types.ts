@@ -18,7 +18,8 @@ type AlimtalkTable<Row, Required extends keyof Row = never> = {
   Row: Row; Insert: Partial<Row> & Pick<Row, Required>; Update: Partial<Row>; Relationships: [];
 }
 type AlimtalkWalletRow = { owner_id: string; balance: number; reserved: number; frozen: boolean; updated_at: string }
-type AlimtalkTopupRow = { payment_id: string; owner_id: string; menu_site_id: string; amount: number; store_id: string; channel_key: string; state: string; created_at: string; credited_at: string | null }
+type AlimtalkTopupRow = { payment_id: string; owner_id: string; menu_site_id: string; amount: number; store_id: string; channel_key: string; state: string; created_at: string; credited_at: string | null; terms_version: string | null; terms_accepted_at: string | null; agreed_unit_price: number | null; refunded_amount: number }
+type AlimtalkRefundRow = { id: string; owner_id: string; menu_site_id: string; amount: number; refunded_amount: number; state: string; terms_version: string; created_at: string; processed_by: string | null; processing_at: string | null; resolved_at: string | null }
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
@@ -28,11 +29,13 @@ export type Database = {
   }
   public: {
     Tables: {
-      alimtalk_billing_policy: AlimtalkTable<{ id: boolean; unit_price: number | null; topup_enabled: boolean; metering_enabled: boolean }>
+      alimtalk_billing_policy: AlimtalkTable<{ id: boolean; unit_price: number | null; topup_enabled: boolean; metering_enabled: boolean; terms_version: string; pg_reviewed_at: string | null; approved_store_id:string|null;approved_channel_key:string|null }>
+      alimtalk_refund_requests: AlimtalkTable<AlimtalkRefundRow, "id" | "owner_id" | "menu_site_id" | "amount" | "terms_version">
+      alimtalk_refund_payments: AlimtalkTable<{ refund_id: string; payment_id: string; amount: number; refunded_amount: number; baseline_cancelled: number }, "refund_id" | "payment_id" | "amount" | "baseline_cancelled">
       alimtalk_wallets: AlimtalkTable<AlimtalkWalletRow, "owner_id">
       alimtalk_topups: AlimtalkTable<AlimtalkTopupRow, "payment_id" | "owner_id" | "menu_site_id" | "amount" | "store_id" | "channel_key">
       alimtalk_wallet_holds: AlimtalkTable<{ id: string; attempt_id: string | null; owner_id: string; menu_site_id: string; amount: number; state: string; created_at: string; resolved_at: string | null }, "attempt_id" | "owner_id" | "menu_site_id" | "amount">
-      alimtalk_wallet_entries: AlimtalkTable<{ id: string; owner_id: string; menu_site_id: string; kind: string; amount: number; balance_after: number; reserved_after: number; payment_id: string | null; attempt_id: string | null; created_at: string }, "owner_id" | "menu_site_id" | "kind" | "amount" | "balance_after" | "reserved_after">
+      alimtalk_wallet_entries: AlimtalkTable<{ id: string; owner_id: string; menu_site_id: string; kind: string; amount: number; balance_after: number; reserved_after: number; payment_id: string | null; attempt_id: string | null; refund_id: string | null; created_at: string }, "owner_id" | "menu_site_id" | "kind" | "amount" | "balance_after" | "reserved_after">
       admin_users: {
         Row: {
           created_at: string
@@ -3773,7 +3776,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_alimtalk_topup: { Args: { p_menu_id: string; p_actor_id: string; p_payment_id: string; p_amount: number; p_store_id: string; p_channel_key: string }; Returns: AlimtalkTopupRow[] }
+      create_alimtalk_topup: { Args: { p_menu_id: string; p_actor_id: string; p_payment_id: string; p_amount: number; p_store_id: string; p_channel_key: string; p_terms_version: string; p_unit_price: number }; Returns: AlimtalkTopupRow[] }
+      request_alimtalk_refund: { Args: { p_menu_id: string|null; p_actor_id: string; p_request_id: string; p_expected_balance: number; p_terms_version: string }; Returns: AlimtalkRefundRow[] }
+      cancel_alimtalk_refund: { Args: { p_actor_id: string; p_request_id: string }; Returns: undefined }
+      claim_alimtalk_refund: { Args: { p_admin_id: string; p_request_id: string }; Returns: undefined }
+      reconcile_alimtalk_refund: { Args: { p_payment_id: string; p_verified_cancelled: number }; Returns: string }
       credit_alimtalk_topup: { Args: { p_payment_id: string; p_owner_id: string; p_verified_amount: number }; Returns: AlimtalkWalletRow[] }
       flag_alimtalk_topup_review: { Args: { p_payment_id: string }; Returns: undefined }
       reserve_menu_alimtalk_template: {

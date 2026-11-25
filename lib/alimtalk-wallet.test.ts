@@ -4,7 +4,7 @@ import { isAlimtalkPaymentId, isAlimtalkTopupAmount } from "./alimtalk-wallet";
 import { verifyAlimtalkPayment, type AlimtalkPayment } from "./server/alimtalk-payment-verification";
 
 const intent = { payment_id: "alimtalk_11111111-1111-4111-8111-111111111111", owner_id: "owner", menu_site_id: "menu", amount: 10000, store_id: "store", channel_key: "channel" };
-const paid = (): AlimtalkPayment => ({ id: intent.payment_id, storeId: "store", currency: "KRW", status: "PAID", channel: { id: "provider-channel-id", key: "channel" },
+const paid = (): AlimtalkPayment => ({ id: intent.payment_id, storeId: "store", currency: "KRW", status: "PAID", channel: { id: "provider-channel-id", key: "channel",type:"LIVE" },
   amount: { total: 10000, paid: 10000, cancelled: 0 }, customData: { purpose: "alimtalk_topup", owner_id: "owner", menu_site_id: "menu" } });
 test("only approved denominations and server payment ID format", () => {
   for (const amount of [10000,30000,50000]) assert(isAlimtalkTopupAmount(amount));
@@ -17,7 +17,9 @@ test("verified paid payment and string customData can settle", () => {
 });
 for (const [label, mutate] of [
   ["payment replay", { id: "another-payment" }], ["other store", { storeId: "other-store" }],
-  ["other PG channel", { channel: { id: "channel", key: "another-channel" } }], ["other currency", { currency: "USD" }],
+  ["other PG channel", { channel: { id: "channel", key: "another-channel",type:"LIVE" } }], ["other currency", { currency: "USD" }],
+  ["TEST channel funding production wallet",{channel:{id:"provider-channel-id",key:"channel",type:"TEST"}}],
+  ["unknown channel environment",{channel:{id:"provider-channel-id",key:"channel"}}],
   ["underpayment", { amount: { total: 10000, paid: 9999, cancelled: 0 } }],
   ["price tampering", { amount: { total: 50000, paid: 50000, cancelled: 0 } }],
   ["unknown cancellation", { amount: { total: 10000, paid: 10000 } }],
@@ -29,5 +31,7 @@ for (const [label, mutate] of [
 test("unpaid is pending; partial or full refunds require review, never another credit", () => {
   assert.equal(verifyAlimtalkPayment({ ...paid(), status: "READY" }, intent), "pending");
   assert.equal(verifyAlimtalkPayment({ ...paid(), amount: { total: 10000, paid: 10000, cancelled: 12 } }, intent), "review");
-  assert.equal(verifyAlimtalkPayment({ ...paid(), status: "CANCELLED" }, intent), "review");
+  assert.equal(verifyAlimtalkPayment({ ...paid(), status: "CANCELLED",amount:{total:10000,paid:10000,cancelled:10000} }, intent), "review");
+  assert.throws(()=>verifyAlimtalkPayment({...paid(),status:"CANCELLED"},intent));
+  assert.throws(()=>verifyAlimtalkPayment({...paid(),amount:{total:10000,paid:10000,cancelled:10001}},intent));
 });

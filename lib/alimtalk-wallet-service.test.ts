@@ -7,21 +7,22 @@ const fixture: Fixture = { db: null, actor: "11111111-1111-4111-8111-11111111111
 (globalThis as unknown as { __walletTest: Fixture }).__walletTest = fixture;
 const bundle = await build({ entryPoints: [fileURLToPath(new URL("./server/alimtalk-wallet-service.ts", import.meta.url))], bundle: true, platform: "node", format: "esm", write: false,
   plugins: [{ name: "isolated", setup(b) {
-    b.onResolve({ filter: /^(server-only|.*supabase\/admin|.*menu-site-access-service|.*lib\/portone)$/ }, a => ({ path: a.path, namespace: "test" }));
+    b.onResolve({ filter: /^(server-only|.*supabase\/(admin|server)|.*menu-site-access-service|.*lib\/portone)$/ }, a => ({ path: a.path, namespace: "test" }));
     b.onLoad({ filter: /.*/, namespace: "test" }, a => ({ contents: a.path === "server-only" ? "export {};"
       : a.path.endsWith("supabase/admin") ? "export function createAdminClient(){return globalThis.__walletTest.db}"
+      : a.path.endsWith("supabase/server") ? "export async function createClient(){throw new Error('Unexpected authenticated client');}"
       : a.path.endsWith("lib/portone") ? "export const portOneStoreId='test-store',portOneChannelKey='test-channel';export function requirePortOneApiSecret(){return 'fake-secret'}"
       : "export async function requireMenuSitePermission(){return {actorUserId:globalThis.__walletTest.actor,isOwner:globalThis.__walletTest.owner}};export async function requireMenuSiteWriteAccess(){if(!globalThis.__walletTest.writeAllowed)throw new Error('lifecycle read only');return {}}" }));
   } }] });
 const { reconcileAlimtalkTopup, loadAlimtalkWallet, handleAlimtalkWallet } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`) as typeof import("./server/alimtalk-wallet-service");
 const id = "alimtalk_33333333-3333-4333-8333-333333333333", menu = "22222222-2222-4222-8222-222222222222";
 const intent = { payment_id: id, owner_id: fixture.actor, menu_site_id: menu, amount: 10000, store_id: "test-store", channel_key: "test-channel", state: "pending" };
-const paid = () => ({ id, storeId: "test-store", currency: "KRW", channel: { id: "internal-channel-id", key: "test-channel" }, status: "PAID", amount: { total: 10000, paid: 10000, cancelled: 0 }, customData: { purpose: "alimtalk_topup", owner_id: intent.owner_id, menu_site_id: menu } });
+const paid = () => ({ id, storeId: "test-store", currency: "KRW", channel: { id: "internal-channel-id", key: "test-channel",type:"LIVE" }, status: "PAID", amount: { total: 10000, paid: 10000, cancelled: 0 }, customData: { purpose: "alimtalk_topup", owner_id: intent.owner_id, menu_site_id: menu } });
 function setup(t: TestContext, row: unknown = intent) {
   const calls: { name: string; args: unknown }[] = [];
   fixture.owner = true; fixture.actor = intent.owner_id; fixture.writeAllowed = true;
   fixture.db = { from(table: string) { assert.equal(table,"alimtalk_topups"); const q = { select() { return q; }, eq(key: string,val: string) { assert.equal(key,"payment_id");assert.equal(val,id);return q; }, async maybeSingle() { return { data: row, error: null }; } }; return q; },
-    async rpc(name: string,args: unknown) { calls.push({name,args});return {data:[],error:null}; } };
+    async rpc(name: string,args: unknown) { calls.push({name,args});return {data:name==="reconcile_alimtalk_refund"?"review":[],error:null}; } };
   const oldFetch = globalThis.fetch; t.after(() => { globalThis.fetch = oldFetch; });
   globalThis.fetch = async () => { throw new Error("unexpected external request"); };
   return calls;
@@ -61,14 +62,37 @@ test("a delayed provider result can settle after merchant checkout was disabled"
 test("partial refund goes to review and never credits again", async t => {
   const calls = setup(t,{...intent,state:"credited"});
   globalThis.fetch = async () => Response.json({...paid(),status:"PARTIAL_CANCELLED",amount:{total:10000,paid:10000,cancelled:12}});
-  assert.equal(await reconcileAlimtalkTopup(id),"review"); assert.deepEqual(calls,[{name:"flag_alimtalk_topup_review",args:{p_payment_id:id}}]);
+  assert.equal(await reconcileAlimtalkTopup(id),"review"); assert.deepEqual(calls,[{name:"reconcile_alimtalk_refund",args:{p_payment_id:id,p_verified_cancelled:12}}]);
+});
+test("an expected refund only settles the verified cancellation, never another topup",async t=>{
+  const calls=setup(t,{...intent,state:"credited"});
+  (fixture.db as {rpc:unknown}).rpc=async(name:string,args:unknown)=>{calls.push({name,args});return {data:"expected",error:null};};
+  globalThis.fetch=async()=>Response.json({...paid(),status:"PARTIAL_CANCELLED",amount:{total:10000,paid:10000,cancelled:9988}});
+  assert.equal(await reconcileAlimtalkTopup(id),"refund_updated");
+  assert.deepEqual(calls,[{name:"reconcile_alimtalk_refund",args:{p_payment_id:id,p_verified_cancelled:9988}}]);
+});
+test("a successful TEST payment cannot credit production messaging money",async t=>{
+  const calls=setup(t);
+  globalThis.fetch=async()=>Response.json({...paid(),channel:{id:"internal-channel-id",key:"test-channel",type:"TEST"}});
+  await assert.rejects(reconcileAlimtalkTopup(id),/테스트 결제/);assert.equal(calls.length,0);
+});
+test("contradictory provider cancellation requires review, without inventing a refund amount",async t=>{
+  const calls=setup(t,{...intent,state:"credited"});
+  globalThis.fetch=async()=>Response.json({...paid(),status:"CANCELLED",amount:{total:10000,paid:10000,cancelled:0}});
+  await assert.rejects(reconcileAlimtalkTopup(id),/일치하지/);
+  assert.deepEqual(calls,[{name:"flag_alimtalk_topup_review",args:{p_payment_id:id}}]);
+});
+test("legacy topup calls without current consent cannot open a payment",async t=>{
+  const calls=setup(t);
+  await assert.rejects(handleAlimtalkWallet(menu,{intent:"topup",amount:10000} as Parameters<typeof handleAlimtalkWallet>[1]),/동의해/);
+  assert.equal(calls.length,0);
 });
 test("staff cannot read account-wide balances or start a topup", async t => {
   setup(t); fixture.owner = false;
   await assert.rejects(loadAlimtalkWallet(menu),/사장님만/);
-  await assert.rejects(handleAlimtalkWallet(menu,{intent:"topup",amount:10000}),/사장님만/);
+  await assert.rejects(handleAlimtalkWallet(menu,{intent:"topup",amount:10000,termsVersion:"alimtalk_20261125_v1",unitPrice:12}),/사장님만/);
 });
 test("new topup respects lifecycle write restriction", async t => {
   setup(t); fixture.writeAllowed = false;
-  await assert.rejects(handleAlimtalkWallet(menu,{intent:"topup",amount:10000}),/lifecycle read only/);
+  await assert.rejects(handleAlimtalkWallet(menu,{intent:"topup",amount:10000,termsVersion:"alimtalk_20261125_v1",unitPrice:12}),/lifecycle read only/);
 });
