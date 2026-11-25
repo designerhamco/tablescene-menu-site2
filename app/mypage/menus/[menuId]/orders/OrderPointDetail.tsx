@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
-import { Link2, MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
+import { Link2, PrinterFill } from "@/app/components/ui/site-icon";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import OrderStage from "@/components/mypage/OrderStage";
@@ -16,6 +16,8 @@ import { initialOrderManagementActionState, type OrderManagementActionState } fr
 import OrderPointOperationDialog, { canPrintPointOrder, isPointOrderOperationAllowed, type PointOrderOperation, type PointOrderMutation } from "./OrderPointOperationDialog";
 import type { OrderSettlementGroup, OrderSettlementIntent } from "@/lib/order-settlement";
 import OrderSettlementDialog from "./OrderSettlementDialog";
+import type { OrderAlimtalkAction } from "@/lib/order-ready-alimtalk";
+import OrderAlimtalkCell from "./OrderAlimtalkCell";
 import styles from "./OrderPointDetail.module.css";
 
 type Order = OrderDashboardOrder;
@@ -62,12 +64,14 @@ function PointOrderItems({ order }: { order: Order }) {
   );
 }
 
-export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permissions, onPrint, mutateAction, group, groupTableLabels, settlementAction, onGroupPaid, openOtherOrders }: {
+export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permissions, onPrint, mutateAction, group, groupTableLabels, settlementAction, onGroupPaid, openOtherOrders, alimtalkAction, autoCheckAlimtalk }: {
   group?: OrderSettlementGroup;
   groupTableLabels?: string[];
   settlementAction?: PointOrderMutation;
   onGroupPaid?: (result: OrderManagementActionState) => void;
   openOtherOrders?: () => void;
+  alimtalkAction?: OrderAlimtalkAction;
+  autoCheckAlimtalk: boolean;
   pointLabel: string;
   menuSiteId: string;
   orders: Order[];
@@ -180,7 +184,8 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
                             disabled={!canPrintPointOrder(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
                             title={canPrintPointOrder(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
                           {(order.status === "ready" || order.status === "served") && (
-                            <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
+                            <OrderAlimtalkCell orderId={order.id} orderNumber={order.orderNumber} orderStatus={order.status}
+                              details={order.alimtalk} action={alimtalkAction} inOrderDetail autoCheck={autoCheckAlimtalk} />
                           )}
                         </div>
                       </div>

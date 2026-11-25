@@ -9,6 +9,8 @@ import OperationalSoundSettings from "@/components/mypage/OperationalSoundSettin
 import OperationFeatureNavigation from "@/components/mypage/OperationFeatureNavigation";
 import { loadOperationSettingsPage } from "@/lib/server/operation-settings-page";
 import OrderSettingsForm from "../../order-settings/OrderSettingsForm";
+import { loadMerchantChannelPage } from "@/lib/server/merchant-alimtalk-channel-service";
+import { updateMerchantAlimtalkChannel } from "./alimtalk-channel-actions";
 
 export const metadata: Metadata = { title: "주문 설정 | 아티메뉴", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -21,13 +23,16 @@ export default async function OrderSettingsPage({ params, searchParams }: { para
     redirect(`/mypage/menus/${menuId}/tables`);
   }
   const { operations, site, data, canManageDevices } = await loadOperationSettingsPage(menuId, "orders", { includeDevices: false });
+  const channel = site.isOwner ? await loadMerchantChannelPage(menuId) : {
+    available: false, connection: null, categories: [], message: "매장 채널은 사장님만 연결할 수 있습니다.",
+  };
   return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection="order-settings">
     <div className="site-stack-content">
       <SectionHeader title="주문 관리"/>
       <OperationFeatureNavigation menuId={menuId} feature="orders" settings historyAvailable={site.operationAccess.orders} canConfigure={site.isOwner} canManageDevices={canManageDevices} />
       <OrderSettingsCategories payment={<>
       {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">주문 사용 설정은 사장님이 변경할 수 있습니다. {canManageDevices ? "기기 연결은 ‘테이블·키오스크 관리’에서 관리하세요." : "이 브라우저의 주문 알림음은 ‘주문 알림’에서 설정할 수 있습니다."}</p></ContentPanel>}
-      </>} notifications={data || site.operationAccess.orders ? <OperationalSoundSettings menuSiteId={menuId} kind="orders" /> : null} ready={<OrderReadyNotificationSettings />} />
+      </>} notifications={data || site.operationAccess.orders ? <OperationalSoundSettings menuSiteId={menuId} kind="orders" /> : null} ready={<OrderReadyNotificationSettings key={menuId} initial={channel} action={site.isOwner ? updateMerchantAlimtalkChannel.bind(null, menuId) : undefined} />} />
     </div>
   </StoreOperationsShell>;
 }

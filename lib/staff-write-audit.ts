@@ -10,6 +10,7 @@ export const MENU_SITE_WRITE_SURFACES = [
   "menu_table_management",
   "menu_order_settings",
   "order_status_management",
+  "order_alimtalk",
   "order_unpaid_cancellation",
   "order_manual_payment",
   "call_acknowledgement",

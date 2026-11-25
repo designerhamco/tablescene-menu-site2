@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import type { OrderAlimtalkAction } from "@/lib/order-ready-alimtalk";
+import OrderAlimtalkCell from "./OrderAlimtalkCell";
 import { createPortal } from "react-dom";
 import type { OrderSettlementGroup } from "@/lib/order-settlement";
 import type { ManualOrderActions } from "@/lib/manual-order";
@@ -52,12 +54,14 @@ function OrderItems({ order }: { order: Order }) {
 export default function OrderDashboard({
   menuSiteId,
   menuSiteName,
+  alimtalkAction,
   orders: serverOrders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
   recordSources, arrivalGroups, historyPath, receptionControl, manualOrderActions, moveAction, settlementAction, settlementGroups = [], mutationAction = mutateOrderAction,
 }: {
   manualOrderActions?: ManualOrderActions;
+  alimtalkAction?: OrderAlimtalkAction;
   settlementAction?: typeof mutateOrderAction;
   settlementGroups?: OrderSettlementGroup[];
   moveAction?: typeof mutateOrderAction;
@@ -140,6 +144,8 @@ export default function OrderDashboard({
           <p className="type-metric">{formatAmount(order.totalAmount)}</p>
         </div>
         <OrderItems order={order} />
+        {order.alimtalk?.attempt && <OrderAlimtalkCell orderId={order.id} orderNumber={order.orderNumber}
+          orderStatus={order.status} details={order.alimtalk} inOrderDetail />}
         {order.requestText ? (
           <p className="type-body-sm">요청사항: {order.requestText}</p>
         ) : null}
@@ -269,6 +275,8 @@ export default function OrderDashboard({
                   <Badge>{STATUS_LABELS[order.status] ?? order.status}</Badge>
                   <Badge>{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</Badge>
                   <p>{formatAmount(order.totalAmount)}</p>
+                  {order.alimtalk?.attempt && <OrderAlimtalkCell orderId={order.id} orderNumber={order.orderNumber}
+                    orderStatus={order.status} details={order.alimtalk} inOrderDetail />}
                 </div>
               </TableCell>
               <TableCell>
@@ -334,6 +342,7 @@ export default function OrderDashboard({
         {!view?.error && (tableWorkspace ? (
           <OrderTableWorkspace menuSiteId={menuSiteId} floorPlan={floorPlan} records={records} orders={orders}
             permissions={permissions} receptionControl={receptionControl} mutateAction={mutationAction}
+            alimtalkAction={alimtalkAction}
             transitionAction={action} pending={pending} onPrint={setPrintOrders} manualOrderActions={manualOrderActions} moveAction={moveAction} settlementAction={settlementAction} settlementGroups={settlementGroups}
             refreshControl={<Button variant="outline" size="compact" disabled={refreshing}
               aria-busy={refreshing} onClick={() => refresh(() => router.refresh())}>{refreshing ? "새로고침 중" : "새로고침"}</Button>} />
