@@ -59,9 +59,10 @@ export function MypageNavigation({
           <span>구독/결제 내역</span>
         </Link>
       ) : (
-        <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
+        <Link href="/mypage?tab=payments&billingTab=alimtalk" aria-current={active === "payments" ? "page" : undefined} className={getNavigationClassName(active === "payments")}>
+          <span>구독/결제 내역</span>
+        </Link>
       )}
-      <Link href="/mypage/alimtalk" className={getNavigationClassName(false)}><span>알림톡 잔액</span></Link>
       {isStaffManagementAvailable() ? canShowOwnerCommerce ? (
         <Link href="/mypage/staff" aria-current={active === "staff" ? "page" : undefined} className={getNavigationClassName(active === "staff")}>
           <span>직원 관리</span>

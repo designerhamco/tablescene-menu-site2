@@ -11,7 +11,7 @@ export async function updateAccountAlimtalkWallet(input:Parameters<AlimtalkWalle
     if(!input||!["refresh","complete","refund-request","refund-cancel"].includes(input.intent))throw new AlimtalkWalletError("충전은 메뉴판의 주문 설정에서 이용해 주세요.");
     if(input.intent==="refund-request"||input.intent==="refund-cancel")await handleAccountAlimtalkRefund(input);
     if(input.intent==="complete")await reconcileAlimtalkTopup(input.paymentId,user.id);
-    revalidatePath("/mypage/alimtalk");
+    revalidatePath("/mypage");
     return {wallet:await loadAccountAlimtalkWallet(),notice:input.intent==="refund-request"?"환불 신청 상태를 저장했습니다.":input.intent==="refund-cancel"?"환불 신청을 취소했습니다.":input.intent==="complete"?"결제 상태를 확인했습니다.":undefined};
   }catch(error){return {error:error instanceof AlimtalkWalletError||error instanceof AlimtalkRefundError?error.message:"알림톡 잔액을 확인하지 못했습니다."};}
 }

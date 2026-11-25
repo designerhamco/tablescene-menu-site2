@@ -2,6 +2,7 @@ import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
+import AccountAlimtalkSection from "@/components/mypage/AccountAlimtalkSection";
 import { getTemplateByKey } from "@/lib/templates";
 import Link from "next/link";
 import FavoriteTemplates from "@/components/mypage/FavoriteTemplates";
@@ -88,7 +89,7 @@ const MYPAGE_QUERY_TIMEOUT_MS = 5000;
 
 type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account" | "favorites";
 type MenuTab = "active" | "holding" | "deleted";
-type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits";
+type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits" | "alimtalk";
 
 const MENU_SITE_MEMBER_ROLE_LABELS: Record<MenuSiteMemberRole, string> = {
   manager: "매니저",
@@ -405,8 +406,8 @@ function getMenuTab(value: string | string[] | undefined): MenuTab {
 function getBillingTab(value: string | string[] | undefined): BillingTab {
   const tab = Array.isArray(value) ? value[0] : value;
 
-  if (tab === "ai-credits") {
-    return "ai-credits";
+  if (tab === "ai-credits" || tab === "alimtalk") {
+    return tab;
   }
 
   return "history";
@@ -1305,7 +1306,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const user = userResult?.data.user ?? null;
 
   if (!user) {
-    redirect(`/sign-in?next=${encodeURIComponent(activeTab === "favorites" ? "/mypage?tab=favorites" : "/mypage")}`);
+    const nextPath = activeTab === "favorites" ? "/mypage?tab=favorites"
+      : activeTab === "payments" && activeBillingTab === "alimtalk" ? "/mypage?tab=payments&billingTab=alimtalk" : "/mypage";
+    redirect(`/sign-in?next=${encodeURIComponent(nextPath)}`);
   }
 
   if (isDeletedAccountStatus(user.app_metadata)) {
@@ -1344,7 +1347,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const hasOwnedMenuSites = sites.length > 0 || accessibleMenuSites.some((menuSite) => menuSite.isOwner);
   const isStaffOnlyAccount = staffMenuSites.length > 0 && !hasOwnedMenuSites;
 
-  if (isStaffOnlyAccount && activeTab === "payments") {
+  // Personal wallet access survives menu deletion/transfer. It never reads the employer's wallet.
+  if (isStaffOnlyAccount && activeTab === "payments" && activeBillingTab !== "alimtalk") {
     redirect("/mypage?tab=menus&message=owner-commerce-permission-required");
   }
   if (isStaffOnlyAccount && activeTab === "menus" && activeMenuTab !== "active") {
@@ -1591,7 +1595,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     });
   }
 
-  if (activeTab === "payments") {
+  if (activeTab === "payments" && activeBillingTab !== "alimtalk") {
     try {
       const adminSupabase = createAdminClient();
       const [
@@ -2787,9 +2791,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </div>
 
                 <NavigationTabs purpose="section" label="구독/결제 내역 탭" items={[
-                  { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history" },
-                  { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits" },
+                  { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history", disabledReason: canShowOwnerCommerce ? undefined : "구독과 결제 내역은 사장 계정에서 관리합니다." },
+                  { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits", disabledReason: canShowOwnerCommerce ? undefined : "AI 충전·사용내역은 사장 계정에서 관리합니다." },
+                  { label: "알림톡 충전/사용내역", href: "/mypage?tab=payments&billingTab=alimtalk", active: activeBillingTab === "alimtalk" },
                 ]} />
+
+                {activeBillingTab === "alimtalk" ? <AccountAlimtalkSection /> : null}
 
                 {paymentsErrors.length > 0 ? (
                   <ContentPanel surface="notice" density="compact">
