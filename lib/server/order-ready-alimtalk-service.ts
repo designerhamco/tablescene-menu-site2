@@ -6,7 +6,7 @@ import type { OrderAlimtalkAttempt, OrderAlimtalkDetails, OrderAlimtalkRequest }
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireMenuSitePermission, requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 import { assertDashboardEnabled } from "@/lib/server/order-management-service";
-import { createOrderAlimtalkProvider, getOrderAlimtalkConfig, getOrderAlimtalkPhone } from "./order-ready-alimtalk-provider";
+import { createOrderAlimtalkProvider, getOrderAlimtalkConfig, getOrderAlimtalkReceiptConfig, getOrderAlimtalkPhone } from "./order-ready-alimtalk-provider";
 
 const attemptColumns = "id, attempt_no, status, provider_message_id, submission_started_at, created_at";
 const unsentRecoveryMs = 60_000;
@@ -29,8 +29,8 @@ function summarize(attempt: Pick<AttemptRow, "id" | "attempt_no" | "status">): O
 
 export async function listOrderAlimtalkDetails(menuSiteId: string, orderIds: string[]) {
   const details = new Map<string, OrderAlimtalkDetails>();
-  if (!getOrderAlimtalkConfig(menuSiteId)) return details;
   await requireMenuSitePermission(menuSiteId, "order.read");
+  const sendingEnabled = Boolean(getOrderAlimtalkConfig(menuSiteId));
 
   const supabase = createAdminClient();
   for (let index = 0; index < orderIds.length; index += 100) {
@@ -48,6 +48,7 @@ export async function listOrderAlimtalkDetails(menuSiteId: string, orderIds: str
       const phone = getOrderAlimtalkPhone(row.notification_phone);
       const attempt = row.menu_order_alimtalk_attempts[0];
       details.set(row.id, {
+        sendingEnabled,
         maskedPhone: phone ? `${phone.slice(0, 3)}-****-${phone.slice(-2).padStart(4, "*")}` : null,
         attempt: attempt ? summarize(attempt) : null,
       });
@@ -66,7 +67,7 @@ export async function handleOrderAlimtalk(menuSiteIdInput: string, input: OrderA
 
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "order.manage", "order_alimtalk");
   await assertDashboardEnabled(menuSiteId);
-  const config = getOrderAlimtalkConfig(menuSiteId);
+  const config = input.intent === "check" ? getOrderAlimtalkReceiptConfig(menuSiteId) : getOrderAlimtalkConfig(menuSiteId);
   if (!config) throw new OrderAlimtalkError("알림톡 발송 설정을 확인해 주세요.");
 
   const provider = createOrderAlimtalkProvider(config);

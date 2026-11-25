@@ -5,6 +5,7 @@ export type OrderAlimtalkAttempt = {
 };
 
 export type OrderAlimtalkDetails = {
+  sendingEnabled: boolean;
   maskedPhone: string | null;
   attempt: OrderAlimtalkAttempt | null;
 };

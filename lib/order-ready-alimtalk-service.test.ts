@@ -23,6 +23,7 @@ const harness = {
         insert(value: Row) { kind = "insert"; patch = value; return chain; },
         update(value: Row) { kind = "update"; patch = value; return chain; },
         eq(key: string, value: unknown) { filters.push([key, value]); return chain; },
+        in(key: string, values: unknown[]) { filters.push([key, values]); return chain; },
         is(key: string, value: unknown) { filters.push([key, value]); return chain; },
         order() { return chain; }, limit() { return chain; },
         async single() { const result = run(); return { ...result, data: result.data?.[0] ?? null }; },
@@ -54,10 +55,12 @@ const harness = {
         else if (table === "menu_floor_plans") rows = [];
         else throw new Error("Unexpected test table");
         if (table !== "menu_sites") assert(filters.some(([key, value]) => key === "menu_site_id" && value === menuId), `${table} must be scoped to the menu`);
-        const matched = rows.filter(row => filters.every(([key, value]) => row[key] === value));
+        const matched = rows.filter(row => filters.every(([key, value]) => Array.isArray(value) ? value.includes(row[key]) : row[key] === value));
         if (kind === "update") for (const row of matched) Object.assign(row, patch);
         assert(fields.length > 0 || kind === "update");
-        return { data: matched, error: null };
+        return { data: fields.includes("menu_order_alimtalk_attempts(")
+          ? matched.map(row => ({ ...row, menu_order_alimtalk_attempts: [...harness.attempts].sort((a, b) => Number(b.attempt_no) - Number(a.attempt_no)).slice(0, 1) }))
+          : matched, error: null };
       }
       return chain;
     } };
@@ -79,7 +82,7 @@ const bundle = await build({
            await requireMenuSitePermission();return {context:{actorUserId:'${actorId}'},supabase:globalThis.orderAlimtalkTest.getDb()};}` }));
   } }],
 });
-const { handleOrderAlimtalk } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`) as typeof import("./server/order-ready-alimtalk-service");
+const { handleOrderAlimtalk, listOrderAlimtalkDetails } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`) as typeof import("./server/order-ready-alimtalk-service");
 const ok = { isSuccessful: true, resultCode: 0 };
 function setup(t: test.TestContext, scenario: "success" | "unapproved" | "timeout" | "reject-first" | "served-during-prepare" = "success") {
   const saved = { ...process.env }; t.after(() => { process.env = saved; });
@@ -145,6 +148,23 @@ test("acceptance, delivery confirmation and physical serving remain separate", a
   assert.equal(delivered.status, "sent"); assert.equal(harness.order.status, "ready");
   assert.equal(calls.filter(c => c.method === "POST").length, 1);
   assert(!harness.operations.some(o => o.table === "menu_customer_orders" && o.kind === "update"));
+});
+test("pausing new messages preserves history and allows an accepted receipt to finish", async t => {
+  const calls = setup(t);
+  const accepted = await send();
+  process.env.ORDER_ALIMTALK_ENABLED = "false";
+  const pending = (await listOrderAlimtalkDetails(menuId, [orderId])).get(orderId);
+  assert.equal(pending?.sendingEnabled, false);
+  assert.equal(pending?.attempt?.id, accepted.id);
+  assert.equal(pending?.attempt?.status, "pending");
+  const delivered = await handleOrderAlimtalk(menuId, { intent: "check", orderId, expectedAttemptId: accepted.id });
+  assert.equal(delivered.status, "sent");
+  const history = (await listOrderAlimtalkDetails(menuId, [orderId])).get(orderId);
+  assert.equal(history?.attempt?.status, "sent");
+  await assert.rejects(send(delivered.id), /발송 설정/);
+  assert.equal(calls.filter(c => c.method === "POST").length, 1);
+  harness.authorized = false;
+  await assert.rejects(listOrderAlimtalkDetails(menuId, [orderId]), /PERMISSION_DENIED/);
 });
 test("a rejected attempt can be resent once; stale clicks reuse the latest pending attempt", async t => {
   const calls = setup(t, "reject-first");

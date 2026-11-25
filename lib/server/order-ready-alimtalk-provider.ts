@@ -12,13 +12,17 @@ export function getOrderAlimtalkPhone(value: unknown) {
 
 /** Pilot binding: never use ArtiMenu's sender for an unconfigured merchant. */
 export function getOrderAlimtalkConfig(menuSiteId: string) {
+  return process.env.ORDER_ALIMTALK_ENABLED === "true" ? getOrderAlimtalkReceiptConfig(menuSiteId) : null;
+}
+
+/** Receipt lookup remains available after pausing new messages. Never use this to authorize a send. */
+export function getOrderAlimtalkReceiptConfig(menuSiteId: string) {
   const appKey = process.env.ORDER_ALIMTALK_NHN_APP_KEY?.trim();
   const secretKey = process.env.ORDER_ALIMTALK_NHN_SECRET_KEY?.trim();
   const senderKey = process.env.ORDER_ALIMTALK_NHN_SENDER_KEY?.trim();
   const channelId = process.env.ORDER_ALIMTALK_NHN_CHANNEL_ID?.trim();
   const templateCode = process.env.ORDER_ALIMTALK_NHN_TEMPLATE_CODE?.trim();
-  if (process.env.ORDER_ALIMTALK_ENABLED !== "true"
-    || menuSiteId !== process.env.ORDER_ALIMTALK_MENU_SITE_ID?.trim()
+  if (menuSiteId !== process.env.ORDER_ALIMTALK_MENU_SITE_ID?.trim()
     || !appKey || !keyPattern.test(appKey) || !secretKey || /[\r\n]/.test(secretKey)
     || !senderKey || !/^[a-f0-9]{40}$/i.test(senderKey)
     || !channelId?.startsWith("@") || channelId.length < 2 || /[\r\n]/.test(channelId)

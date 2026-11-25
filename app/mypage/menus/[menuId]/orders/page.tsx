@@ -74,7 +74,7 @@ export default async function OrderDashboardPage({
   const [floorPlan, settlementGroups, alimtalkDetails] = await Promise.all([
     loadOperationsFloorPlan(menuId, "orders"),
     current ? listOpenOrderSettlements(menuId) : [],
-    current ? listOrderAlimtalkDetails(menuId, data.orders.map(order => order.id)) : undefined,
+    listOrderAlimtalkDetails(menuId, data.orders.map(order => order.id)),
   ]);
 
   const orders = data.orders.map(order => ({ ...order, alimtalk: alimtalkDetails?.get(order.id) }));
@@ -84,7 +84,7 @@ export default async function OrderDashboardPage({
       <OperationsViewLayout title="주문 관리" selectable={false} help={<InfoTooltip label="주문 관리 안내"><p>ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.</p><p>조리 상태는 주방 대시보드와 함께 갱신됩니다. 테이블·키오스크를 선택하면 전체 주문과 처리 상태를 확인할 수 있습니다.</p></InfoTooltip>}>
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} orderHistory={data.view?.kind === "history"} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
-        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={orders} alimtalkAction={alimtalkDetails?.size && data.permissions.canManage ? updateOrderAlimtalkAction.bind(null, menuId) : undefined} view={data.view} permissions={data.permissions}
+        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={orders} alimtalkAction={current && alimtalkDetails.size && data.permissions.canManage ? updateOrderAlimtalkAction.bind(null, menuId) : undefined} view={data.view} permissions={data.permissions}
           settlementGroups={settlementGroups} settlementAction={mutateOrderAction}
           moveAction={data.permissions.canManage ? mutateOrderAction : undefined}
           manualOrderActions={data.permissions.canManage && data.view?.kind !== "history" ? {

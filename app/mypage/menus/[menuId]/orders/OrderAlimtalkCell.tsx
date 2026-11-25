@@ -50,9 +50,9 @@ export default function OrderAlimtalkCell({ details, orderId, orderNumber, order
 
   if (!details && !inOrderDetail) return <span className="site-copy-muted">사용 불가</span>;
 
-  const canSend = Boolean(action && details?.maskedPhone && orderStatus === "ready" && !pendingId);
+  const canSend = Boolean(action && details?.sendingEnabled && details.maskedPhone && orderStatus === "ready" && !pendingId);
   const sendLabel = attempt ? "재발송" : "발송";
-  const unavailableReason = !details ? "알림톡 발송 설정이 필요해요."
+  const unavailableReason = !details || !details.sendingEnabled ? "알림톡 발송 설정이 필요해요."
     : !details.maskedPhone ? "연락처 없음"
     : orderStatus !== "ready" ? "조리완료 주문만 발송할 수 있어요."
     : "알림톡 발송 권한이 필요해요.";
@@ -62,6 +62,7 @@ export default function OrderAlimtalkCell({ details, orderId, orderNumber, order
       {(!inOrderDetail || attempt) && (
         <span role="status" className={inOrderDetail ? "type-caption" : attempt ? undefined : "site-copy-muted"}>
           {attempt ? labels[attempt.status]
+            : !details?.sendingEnabled ? "사용 불가"
             : !details?.maskedPhone ? "연락처 없음"
             : orderStatus === "ready" ? "발송 전" : "—"}
         </span>

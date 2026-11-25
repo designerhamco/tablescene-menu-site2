@@ -42,7 +42,7 @@ export function getOrders(state: DemoState): OrderDashboardOrder[] {
       paymentStatus: "unpaid", paymentMethod: null, requestText: null, totalAmount: sample.price, currency: "KRW",
       createdAt: time, updatedAt: time, statusUpdatedBy: null, paymentCompletedBy: null, paymentCompletedAt: null,
       cancellationReason: null, canCancelUnpaid: false, canMarkManualPayment: status === "served",
-      alimtalk: { maskedPhone: sample.phone, attempt: data?.attempt ?? null },
+      alimtalk: { sendingEnabled: true, maskedPhone: sample.phone, attempt: data?.attempt ?? null },
       items: [{
         id: `item-${sample.number}`, name: sample.name, basePrice: sample.price, optionPrice: 0,
         unitPrice: sample.price, quantity: 1, lineTotal: sample.price, cookingDone: status !== "cooking", options: [],
