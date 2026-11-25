@@ -66,7 +66,7 @@ export default function SupportNavigation({ pathname }: { pathname: string }) {
               pointerOpened.current = false;
             }}
           >
-            고객센터 <ChevronDown size={14} aria-hidden="true" />
+            고객센터 <ChevronDown size={16} aria-hidden="true" />
           </button>
         </PopoverTrigger>
         <PopoverContent

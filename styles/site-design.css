@@ -1118,13 +1118,28 @@
 
 .site-document-tabs.site-tab-size-md { --site-tab-font: var(--site-type-14); }
 
-/* Tab purpose sets desktop lettering. List sizes keep their own hit areas. */
+/* Desktop navigation keeps its hierarchy above compact working controls. */
 @media (min-width: 1024px) {
-  :is(.site-page-tabs, .site-area-tabs, .site-topic-tabs, .site-tabs-outline, .site-document-tabs, .site-document-tabs-header):is(.site-tab-size-sm, .site-tab-size-md, .site-tab-size-lg) {
-    --site-tab-font: var(--type-control-size);
-    --site-segment-font: var(--type-control-size);
+  .site-notification-bell { width: var(--ui-header-icon-size); height: var(--ui-header-icon-size); }
+  :is(.site-area-tabs, .site-topic-tabs:not(.site-notification-tabs), .site-tabs-outline, .site-document-tabs, .site-document-tabs-header):is(.site-tab-size-md, .site-tab-size-lg) {
+    --site-tab-font: var(--site-type-16);
+    --site-segment-font: var(--site-type-16);
+    --ui-label-icon-size: var(--ui-label-icon-action);
   }
-  .site-page-tabs[data-purpose="page"] { --site-tab-font: var(--type-primary-control-size); }
+  .site-page-tabs[data-purpose="page"]:is(.site-tab-size-md, .site-tab-size-lg) {
+    --site-tab-font: var(--site-type-18);
+    --site-tab-height: var(--ui-control-height-header);
+    --ui-label-icon-size: var(--ui-label-icon-action);
+  }
+  .site-page-tabs[data-purpose="page"].site-tab-size-sm { --site-tab-font: var(--site-type-16); }
+  .site-topic-tabs:not(.site-notification-tabs):is(.site-tab-size-md, .site-tab-size-lg),
+  .site-tabs-outline[data-purpose="state"].site-tab-size-md { --site-tab-height: var(--ui-control-height-header); }
+  .site-tabs-outline[data-purpose="state"].site-tab-size-lg { --site-tab-height: var(--ui-control-height-lg); }
+  :is(.site-page-tabs, .site-area-tabs, .site-topic-tabs:not(.site-notification-tabs), .site-tabs-outline, .site-document-tabs):is(.site-tab-size-md, .site-tab-size-lg) .site-tab-count { font-size: inherit; }
+  :is(.site-tab, .site-area-tab, .site-topic-tab, .site-document-tab) > svg[data-site-icon]:not(.site-edit-icon) {
+    width: var(--ui-label-icon-size, var(--ui-label-icon-supporting));
+    height: var(--ui-label-icon-size, var(--ui-label-icon-supporting));
+  }
 }
 
 /* One room toolbar size owns both the fixed action and scrolling selectors. */
@@ -1452,7 +1467,7 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-account-menu-identity:hover strong { text-decoration: underline; text-underline-offset: .2em; }
 .site-account-menu-section { display: grid; gap: 0; padding-top: var(--site-space-title-copy); border-top: 1px solid var(--ui-border); }
 .site-account-menu-section + .site-account-menu-section { margin-top: var(--site-space-title-copy); }
-.site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height-md); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-body-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
+.site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height-md); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-menu-nav-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
 .site-account-menu-row strong { flex: none; color: var(--ui-text-muted); font-weight: var(--font-weight-semibold); }
 .site-account-menu-row:is(a,button):hover, .site-account-menu-row > a:hover { color: var(--ui-text-muted); }
 .site-account-menu-row:is(a,button):focus-visible, .site-account-menu-row > a:focus-visible, .site-account-menu-identity:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }

@@ -169,6 +169,18 @@ export const SITE_TYPE_ROLES = [
     "letterSpacing": "-0.025em"
   },
   {
+    "key": "menu-nav",
+    "label": "레이어 탐색",
+    "mobile": 16,
+    "tablet": 16,
+    "desktop": 16,
+    "weight": 500,
+    "lineHeight": 1.4,
+    "className": "type-menu-nav",
+    "usage": "헤더 고객센터·계정 레이어의 페이지 이동",
+    "letterSpacing": "-0.025em"
+  },
+  {
     "key": "caption",
     "label": "날짜·분류",
     "mobile": 13,
