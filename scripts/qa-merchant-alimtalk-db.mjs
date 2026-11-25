@@ -25,12 +25,13 @@ try {
   await db.query("insert into auth.users values($1),($2)", [actor, other]);
   await db.query("insert into menu_sites values($1,$2),($3,$2),($4,$5)", [menu, actor, menu2, menu3, other]);
   await db.exec(await readFile(new URL("../supabase/migrations/20261125045027_add_merchant_alimtalk_channels.sql", import.meta.url), "utf8"));
+  await db.exec(await readFile(new URL("../supabase/migrations/20261125053650_add_existing_merchant_alimtalk_binding.sql", import.meta.url), "utf8"));
   assert.equal((await db.query("select relrowsecurity as enabled from pg_class where relname='menu_alimtalk_channels'")).rows[0].enabled, true); pass();
   for (const role of ["anon", "authenticated"]) {
     for (const permission of ["select", "insert", "update", "delete"]) {
       assert.equal((await db.query("select has_table_privilege($1,'menu_alimtalk_channels',$2) as allowed", [role, permission])).rows[0].allowed, false);
     }
-    for (const fn of ["reserve_menu_alimtalk_request(uuid,uuid,text,text,text)", "reserve_menu_alimtalk_verification(uuid,uuid,uuid)"]) {
+    for (const fn of ["reserve_menu_alimtalk_request(uuid,uuid,text,text,text)", "reserve_menu_alimtalk_verification(uuid,uuid,uuid)", "link_existing_menu_alimtalk_channel(uuid,uuid,text,text,text)"]) {
       assert.equal((await db.query("select has_function_privilege($1,$2,'execute') as allowed", [role, fn])).rows[0].allowed, false);
     }
     await db.exec(`set role ${role}`);
@@ -78,5 +79,23 @@ try {
   await assert.rejects(db.query("update menu_alimtalk_channels set sending_enabled=false where menu_site_id=$1", [menu3]), /CHANNEL_OWNER_REQUIRED/); pass();
   const columns = (await db.query("select column_name from information_schema.columns where table_name='menu_alimtalk_channels'")).rows.map(r => r.column_name);
   assert(!columns.includes("phone_no") && !columns.includes("token") && !columns.includes("admin_phone")); pass();
+  const link = async (id = menu2, user = actor, channel = "@기존채널", key = "b".repeat(40)) => (await db.query(
+    "select * from link_existing_menu_alimtalk_channel($1,$2,$3,'01800010001',$4)", [id, user, channel, key])).rows[0];
+  await assert.rejects(link(menu2, other), /CHANNEL_OWNER_REQUIRED/); pass();
+  await assert.rejects(link(menu), /CHANNEL_PENDING/); pass();
+  const linked = await link();
+  assert.equal(linked.state, "connected");
+  assert.equal(linked.masked_phone, null);
+  assert.equal(linked.verification_method, "operator_binding");
+  assert.equal(linked.sending_enabled, false); pass();
+  const repeated = await link();
+  assert.equal(repeated.challenge_id, linked.challenge_id);
+  assert.equal(repeated.verified_at.toISOString(), linked.verified_at.toISOString()); pass();
+  await assert.rejects(link(menu2, actor, "@기존채널", "c".repeat(40)), /CHANNEL_ALREADY_CONNECTED/); pass();
+  await db.query("update menu_alimtalk_channels set state='failed' where menu_site_id=$1", [menu]);
+  await assert.rejects(link(menu), /CHANNEL_IN_USE/); pass();
+  await assert.rejects(db.query("update menu_alimtalk_channels set masked_phone=null where menu_site_id=$1", [menu]), e => e.code === "23514"); pass();
+  await assert.rejects(db.query("update menu_alimtalk_channels set verification_method='operator_binding' where menu_site_id=$1", [menu]), e => e.code === "23514"); pass();
+  await assert.rejects(db.query("update menu_alimtalk_channels set sending_enabled=true where menu_site_id=$1", [menu2]), e => e.code === "23514"); pass();
   console.log(`PASS: ${checks} database checks (RLS, owner, duplicate channel, cooldown, stale/expired proof, attempt/rate limits, key constraints, sending off, ownership transfer, masked storage)`);
 } finally { await db.close(); }

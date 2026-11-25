@@ -6,10 +6,11 @@ import { fileURLToPath } from "node:url";
 type Query = { patch?: Record<string, unknown>; filters: Record<string, unknown> };
 const fixture = {
   menu_site_id: "33333333-3333-4333-8333-333333333333", actor_id: "11111111-1111-4111-8111-111111111111",
-  channel_id: "@샘플매장", category_code: "01100040001", masked_phone: "010-****-0000", state: "pending",
+  channel_id: "@샘플매장", category_code: "01100040001", masked_phone: "010-****-0000" as string | null, state: "pending",
   challenge_id: "44444444-4444-4444-8444-444444444444", requested_at: new Date().toISOString(), expires_at: new Date(Date.now() + 600_000).toISOString(),
   verified_at: null as string | null, verify_attempts: 0, request_count: 1, request_window_started_at: new Date().toISOString(),
   sender_key: null as string | null, sending_enabled: false,
+  verification_method: "kakao_token",
 };
 const harness = {
   context: { isOwner: true, actorUserId: fixture.actor_id },
@@ -18,7 +19,12 @@ const harness = {
     return {
       rpc(name: string, args: Record<string, unknown>) {
         harness.rpcs.push({ name, args });
-        return { async single() { harness.row = { ...harness.row, state: name.endsWith("verification") ? "verifying" : "requesting", verify_attempts: name.endsWith("verification") ? 1 : 0 }; return { data: { ...harness.row }, error: null }; } };
+        return { async single() {
+          harness.row = name === "link_existing_menu_alimtalk_channel"
+            ? { ...harness.row, state: "connected", masked_phone: null, sender_key: String(args.p_sender_key), verified_at: new Date().toISOString(), verification_method: "operator_binding" }
+            : { ...harness.row, state: name.endsWith("verification") ? "verifying" : "requesting", verify_attempts: name.endsWith("verification") ? 1 : 0 };
+          return { data: { ...harness.row }, error: null };
+        } };
       },
       from(table: string) {
         assert.equal(table, "menu_alimtalk_channels");
@@ -61,9 +67,14 @@ function setup(t: test.TestContext, rejected = false) {
   process.env.ORDER_ALIMTALK_ENABLED = "false";
   process.env.ORDER_ALIMTALK_NHN_APP_KEY = "fake-app";
   process.env.ORDER_ALIMTALK_NHN_SECRET_KEY = "fake-secret";
+  delete process.env.ORDER_ALIMTALK_NHN_EXISTING_OWNER_ID;
   t.mock.method(globalThis, "fetch", async (url: string) => {
     if (url.endsWith("/sender/categories")) return Response.json({ header: ok, categories: [{ code: "011", name: "음식점", subCategories: [{ code: "0004", name: "카페", subCategories: [{ code: "0001", name: "카페" }] }] }] });
     if (url.endsWith("/senders")) return Response.json({ header: ok });
+    if (url.endsWith("/senders/" + "a".repeat(40))) return Response.json({ header: ok, sender: {
+      plusFriendId: fixture.channel_id, senderKey: "a".repeat(40), categoryCode: fixture.category_code,
+      status: "YSC03", kakaoStatus: "A", kakaoProfileStatus: "A", block: false, dormant: false,
+    } });
     assert(url.endsWith("/sender/token")); // No customer /messages endpoint is permitted in this suite.
     return Response.json(rejected ? { header: { isSuccessful: false, resultCode: -1008 } }
       : { header: ok, sender: { plusFriendId: fixture.channel_id, senderKey: "a".repeat(40), status: "YSC03" } });
@@ -106,4 +117,38 @@ test("verified proof stores server key but returns neither key nor OTP; sending 
   assert.equal(harness.row.sender_key, "a".repeat(40));
   assert.doesNotMatch(JSON.stringify(result), /aaaaaaa|123456|fake-secret|actor_id/);
   assert.deepEqual(harness.queries[0].filters, { menu_site_id: fixture.menu_site_id, actor_id: fixture.actor_id, challenge_id: fixture.challenge_id, state: "verifying" });
+});
+
+function approveExisting() {
+  process.env.ORDER_ALIMTALK_MENU_SITE_ID = fixture.menu_site_id;
+  process.env.ORDER_ALIMTALK_NHN_EXISTING_OWNER_ID = fixture.actor_id;
+  process.env.ORDER_ALIMTALK_NHN_CHANNEL_ID = fixture.channel_id;
+  process.env.ORDER_ALIMTALK_NHN_SENDER_KEY = "a".repeat(40);
+}
+test("existing channels cannot be attached without an explicit operator-approved owner binding", async t => {
+  setup(t);
+  await assert.rejects(service.handleMerchantChannel(fixture.menu_site_id, { intent: "connect-existing" }), /승인된 기존 채널/);
+  assert.equal(harness.rpcs.length, 0);
+});
+test("existing proof returns no secret and persists via a single owner-scoped RPC without registering again", async t => {
+  setup(t); approveExisting();
+  const result = await service.handleMerchantChannel(fixture.menu_site_id, { intent: "connect-existing" });
+  assert.equal(result.connection?.state, "connected");
+  assert.equal(result.connection?.verificationMethod, "operator_binding");
+  assert.equal(result.connection?.maskedPhone, null);
+  assert.equal(result.connection?.sendingEnabled, false);
+  assert.doesNotMatch(JSON.stringify(result), /aaaaaaa|fake-secret|actor_id/);
+  assert.deepEqual(harness.rpcs, [{ name: "link_existing_menu_alimtalk_channel", args: {
+    p_menu_id: fixture.menu_site_id, p_actor_id: fixture.actor_id, p_channel_id: fixture.channel_id,
+    p_category_code: fixture.category_code, p_sender_key: "a".repeat(40),
+  } }]);
+  assert.equal(harness.queries.length, 0);
+});
+test("another owner or menu cannot claim the approved existing profile", async t => {
+  setup(t); approveExisting();
+  harness.context.actorUserId = "22222222-2222-4222-8222-222222222222";
+  await assert.rejects(service.handleMerchantChannel(fixture.menu_site_id, { intent: "connect-existing" }), /승인된 기존 채널/);
+  harness.context.actorUserId = fixture.actor_id;
+  await assert.rejects(service.handleMerchantChannel(fixture.challenge_id, { intent: "connect-existing" }), /승인된 기존 채널/);
+  assert.equal(harness.rpcs.length, 0);
 });

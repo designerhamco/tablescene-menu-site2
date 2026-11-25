@@ -69,6 +69,11 @@ export default function OrderReadyNotificationSettings({ initial, action }: { in
       <p className="type-body">{connection.channelId}</p>
       {connection.verifiedAt && <p className="type-caption site-copy-muted">연결일 {formatKoreanDateTime(connection.verifiedAt)}</p>}
     </div> : <div className="site-stack-group">
+      {initial.existingChannelId && <div className="site-action-row">
+        <Button type="button" variant="outline" disabled={disabled || waiting} aria-busy={busy}
+          onClick={() => run({ intent: "connect-existing" })}>기존 {initial.existingChannelId} 연결</Button>
+        <InfoTooltip label="기존 채널 연결 안내"><p>NHN에서 이미 인증했고 이 매장에 연결하도록 승인된 채널입니다. 등록 상태를 다시 확인한 뒤 연결하며, 고객 알림톡 발송은 켜지지 않습니다.</p></InfoTooltip>
+      </div>}
       <form className="site-stack-block" onSubmit={event => { event.preventDefault(); run({ intent: "request", channelId, adminPhone: phone, categoryCode }); }}>
         <div className="site-field-grid">
           <label className="site-field-stack"><span className="type-label">채널 검색용 ID</span>
@@ -77,7 +82,7 @@ export default function OrderReadyNotificationSettings({ initial, action }: { in
             {fieldError("channelId") && <FieldMessage id={`${prefix}-channel-error`}>{fieldError("channelId")}</FieldMessage>}
           </label>
           <label className="site-field-stack"><span className="type-label">채널 관리자 휴대폰 번호</span>
-            <Input type="tel" value={phone} onChange={event => setPhone(event.target.value)} placeholder={waiting ? connection?.maskedPhone : "010-0000-0000"}
+            <Input type="tel" value={phone} onChange={event => setPhone(event.target.value)} placeholder={waiting ? connection?.maskedPhone ?? undefined : "010-0000-0000"}
               autoComplete="off" maxLength={15} required disabled={disabled}
               aria-invalid={Boolean(fieldError("adminPhone"))} aria-describedby={fieldError("adminPhone") ? `${prefix}-phone-error` : undefined} />
             {fieldError("adminPhone") && <FieldMessage id={`${prefix}-phone-error`}>{fieldError("adminPhone")}</FieldMessage>}

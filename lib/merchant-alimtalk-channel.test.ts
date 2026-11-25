@@ -12,7 +12,7 @@ const bundle = await build({
     b.onLoad({ filter: /.*/, namespace: "test" }, () => ({ contents: "export {};" }));
   } }],
 });
-const { createMerchantChannelProvider, getMerchantChannelCredentials } = await import(
+const { createMerchantChannelProvider, getApprovedExistingChannel, getMerchantChannelCredentials } = await import(
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].contents).toString("base64")}`
 ) as typeof import("./server/merchant-alimtalk-channel-provider");
 const config = { appKey: "fake-app", secretKey: "fake-secret" };
@@ -97,4 +97,39 @@ test("project credentials permit channel onboarding while the customer sending g
   assert.deepEqual(getMerchantChannelCredentials(), config);
   process.env.ORDER_ALIMTALK_NHN_SECRET_KEY = "invalid\r\nheader";
   assert.equal(getMerchantChannelCredentials(), null);
+});
+
+test("existing-profile approval is bound to an explicit menu, owner and sender key", t => {
+  const saved = { ...process.env }; t.after(() => { process.env = saved; });
+  const menu = "33333333-3333-4333-8333-333333333333", owner = "11111111-1111-4111-8111-111111111111";
+  process.env.ORDER_ALIMTALK_MENU_SITE_ID = menu;
+  process.env.ORDER_ALIMTALK_NHN_CHANNEL_ID = "@샘플매장";
+  process.env.ORDER_ALIMTALK_NHN_SENDER_KEY = "a".repeat(40);
+  delete process.env.ORDER_ALIMTALK_NHN_EXISTING_OWNER_ID;
+  assert.equal(getApprovedExistingChannel(menu, owner), null);
+  process.env.ORDER_ALIMTALK_NHN_EXISTING_OWNER_ID = owner;
+  assert.deepEqual(getApprovedExistingChannel(menu, owner), { channelId: "@샘플매장", senderKey: "a".repeat(40) });
+  assert.equal(getApprovedExistingChannel(owner, owner), null);
+  assert.equal(getApprovedExistingChannel(menu, menu), null);
+  process.env.ORDER_ALIMTALK_NHN_SENDER_KEY = "invalid";
+  assert.equal(getApprovedExistingChannel(menu, owner), null);
+});
+
+test("existing profile uses GET only and requires exact registered, active, unblocked credentials", async t => {
+  const baseSender = { plusFriendId: "@샘플매장", senderKey: "a".repeat(40), categoryCode: "01100040001",
+    status: "YSC03", kakaoStatus: "A", kakaoProfileStatus: "A", block: false, dormant: false };
+  let sender: object = baseSender;
+  t.mock.method(globalThis, "fetch", async (url: string, init: RequestInit) => {
+    assert.equal(new URL(url).pathname, "/alimtalk/v2.3/appkeys/fake-app/senders/" + "a".repeat(40));
+    assert.equal(init.method, "GET"); assert.equal(init.body, undefined);
+    return Response.json({ header: ok, sender });
+  });
+  const binding = { channelId: "@샘플매장", senderKey: "a".repeat(40) };
+  assert.deepEqual(await provider.existingProfile(binding), { ...binding, categoryCode: "01100040001" });
+  for (const patch of [{ plusFriendId: "@다른채널" }, { senderKey: "b".repeat(40) }, { status: "YSC02" },
+    { kakaoStatus: "S" }, { kakaoProfileStatus: "C" }, { block: true }, { dormant: true }, { categoryCode: "0001" },
+    { block: undefined }, { dormant: undefined }]) {
+    sender = { ...baseSender, ...patch };
+    await assert.rejects(provider.existingProfile(binding));
+  }
 });

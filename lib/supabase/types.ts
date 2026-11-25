@@ -1698,7 +1698,7 @@ export type Database = {
           actor_id: string
           channel_id: string
           category_code: string
-          masked_phone: string
+          masked_phone: string | null
           state: string
           challenge_id: string
           requested_at: string
@@ -1709,13 +1709,14 @@ export type Database = {
           sender_key: string | null
           verified_at: string | null
           sending_enabled: boolean
+          verification_method: string
         }
         Insert: {
           menu_site_id: string
           actor_id: string
           channel_id: string
           category_code: string
-          masked_phone: string
+          masked_phone?: string | null
           state: string
           challenge_id?: string
           requested_at?: string
@@ -1726,6 +1727,7 @@ export type Database = {
           sender_key?: string | null
           verified_at?: string | null
           sending_enabled?: boolean
+          verification_method?: string
         }
         Update: {
           state?: string
@@ -3724,6 +3726,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      link_existing_menu_alimtalk_channel: {
+        Args: { p_menu_id: string; p_actor_id: string; p_channel_id: string; p_category_code: string; p_sender_key: string }
+        Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]
+      }
       reserve_menu_alimtalk_request: {
         Args: { p_menu_id: string; p_actor_id: string; p_channel_id: string; p_category_code: string; p_masked_phone: string }
         Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]

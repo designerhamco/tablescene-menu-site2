@@ -3,24 +3,27 @@ export type MerchantChannelView = {
   challengeId: string;
   channelId: string;
   categoryCode: string;
-  maskedPhone: string;
+  maskedPhone: string | null;
   state: "requesting" | "pending" | "verifying" | "connected" | "failed";
   requestedAt: string;
   expiresAt: string;
   verifiedAt: string | null;
   attemptsRemaining: number;
   sendingEnabled: false;
+  verificationMethod?: "kakao_token" | "operator_binding";
 };
 export type MerchantChannelPage = {
   available: boolean;
   connection: MerchantChannelView | null;
   categories: AlimtalkCategory[];
   message?: string;
+  existingChannelId?: string;
 };
 export type MerchantChannelInput =
   | { intent: "request"; channelId: string; adminPhone: string; categoryCode: string }
   | { intent: "verify"; challengeId: string; token: string }
-  | { intent: "cancel"; challengeId: string };
+  | { intent: "cancel"; challengeId: string }
+  | { intent: "connect-existing" };
 export type MerchantChannelResult = {
   connection?: MerchantChannelView;
   notice?: string;

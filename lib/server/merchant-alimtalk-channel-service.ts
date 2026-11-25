@@ -6,10 +6,10 @@ import { MerchantChannelInputError, findAlimtalkCategory, normalizeMerchantAdmin
 import { requireMenuSitePermission, requireMenuSiteWriteAccess } from "./menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/types";
-import { createMerchantChannelProvider, getMerchantChannelCredentials, MerchantChannelProviderError } from "./merchant-alimtalk-channel-provider";
+import { createMerchantChannelProvider, getApprovedExistingChannel, getMerchantChannelCredentials, MerchantChannelProviderError } from "./merchant-alimtalk-channel-provider";
 
 type Row = Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"];
-const columns = "menu_site_id,actor_id,channel_id,category_code,masked_phone,state,challenge_id,requested_at,expires_at,verify_attempts,request_window_started_at,request_count,sender_key,verified_at,sending_enabled";
+const columns = "menu_site_id,actor_id,channel_id,category_code,masked_phone,state,challenge_id,requested_at,expires_at,verify_attempts,request_window_started_at,request_count,sender_key,verified_at,sending_enabled,verification_method";
 export class MerchantChannelError extends Error {}
 function view(row: Row): MerchantChannelView {
   return {
@@ -17,6 +17,7 @@ function view(row: Row): MerchantChannelView {
     maskedPhone: row.masked_phone, state: row.state as MerchantChannelView["state"],
     requestedAt: row.requested_at, expiresAt: row.expires_at, verifiedAt: row.verified_at,
     attemptsRemaining: Math.max(0, 5 - row.verify_attempts), sendingEnabled: false,
+    verificationMethod: row.verification_method as MerchantChannelView["verificationMethod"],
   };
 }
 const dbMessages: Record<string, string> = {
@@ -30,6 +31,7 @@ const dbMessages: Record<string, string> = {
   CHANNEL_VERIFY_LIMIT: "인증번호 입력 횟수를 초과했습니다. 새 인증번호를 요청해 주세요.",
   CHANNEL_NOT_PENDING: "진행 중인 인증 요청을 확인해 주세요.",
   CHANNEL_OWNER_REQUIRED: "채널 연결은 사장님만 변경할 수 있습니다.",
+  CHANNEL_PENDING: "진행 중인 인증에서 ‘입력 변경’을 누른 뒤 기존 채널을 연결해 주세요.",
 };
 function databaseError(error: { message: string }) {
   const key = Object.keys(dbMessages).find(key => error.message.includes(key));
@@ -56,7 +58,9 @@ export async function loadMerchantChannelPage(menuIdInput: string): Promise<Merc
     // A transferred menu must never inherit the former owner's channel proof.
     if (data && data.actor_id !== context.actorUserId) throw new MerchantChannelError("채널 연결의 소유자를 확인해야 합니다. 고객지원에 문의해 주세요.");
     const connection = data ? view(data) : null;
-    return { available: true, connection, categories: connection?.state === "connected" ? [] : await provider().categories() };
+    const existing = connection?.state !== "connected" ? getApprovedExistingChannel(menuId, context.actorUserId) : null;
+    return { available: true, connection, categories: connection?.state === "connected" ? [] : await provider().categories(),
+      ...(existing ? { existingChannelId: existing.channelId } : {}) };
   } catch (error) {
     return { available: false, connection: null, categories: [],
       message: error instanceof MerchantChannelError ? error.message : "채널 연결을 불러오지 못했습니다. 잠시 뒤 다시 시도해 주세요." };
@@ -68,8 +72,20 @@ export async function handleMerchantChannel(menuIdInput: string, input: Merchant
   await owner(menuId);
   const { context, supabase } = await requireMenuSiteWriteAccess(menuId, "menu.edit", "menu_order_settings");
   if (!context.isOwner) throw new MerchantChannelError("채널 연결은 사장님만 변경할 수 있습니다.");
-  if (!input || !["request", "verify", "cancel"].includes(input.intent)) throw new MerchantChannelError("진행할 채널 인증을 확인해 주세요.");
+  if (!input || !["request", "verify", "cancel", "connect-existing"].includes(input.intent)) throw new MerchantChannelError("진행할 채널 인증을 확인해 주세요.");
   const nhn = provider();
+  if (input.intent === "connect-existing") {
+    const binding = getApprovedExistingChannel(menuId, context.actorUserId);
+    if (!binding) throw new MerchantChannelError("이 매장에 승인된 기존 채널 연결이 없습니다. 인증번호로 채널을 연결해 주세요.");
+    const profile = await nhn.existingProfile(binding);
+    const result = await supabase.rpc("link_existing_menu_alimtalk_channel", {
+      p_menu_id: menuId, p_actor_id: context.actorUserId, p_channel_id: profile.channelId,
+      p_category_code: profile.categoryCode, p_sender_key: profile.senderKey,
+    }).single();
+    if (result.error) throw databaseError(result.error);
+    if (!result.data) throw new MerchantChannelError("기존 채널 연결을 저장하지 못했습니다.");
+    return { connection: view(result.data), notice: "인증된 기존 매장 채널을 연결했습니다." };
+  }
   if (input.intent === "request") {
     const channelId = normalizeMerchantChannelId(input.channelId);
     const adminPhone = normalizeMerchantAdminPhone(input.adminPhone);
