@@ -1,3 +1,4 @@
+import { isActiveBusinessFreeTrial } from "@/lib/business-free-trial";
 import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
@@ -634,15 +635,6 @@ function getSubscriptionStatusLabel(status: string | null | undefined) {
   return status ? labels[status] ?? status : "상태 확인 필요";
 }
 
-function isActiveBusinessFreeTrial(subscription: BusinessSubscription | null | undefined) {
-  return Boolean(
-    subscription?.status === "active"
-      && subscription.product_key === "business_basic_single_monthly"
-      && !subscription.last_paid_at
-      && !subscription.portone_payment_id
-      && subscription.next_billing_at,
-  );
-}
 
 function getBusinessSubscriptionCardStatusLabel(subscription: BusinessSubscription | null | undefined, fallbackStatus: string | null | undefined) {
   if (isActiveCancelScheduledSubscription(subscription)) return "해지 예약";
@@ -2227,8 +2219,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         label: archivedDisplayState.label,
 
       };
-    } else if (activeBusinessSubscription && isActiveBusinessFreeTrial(activeBusinessSubscription)) {
-      accessBadge = { key: "subscription:free-trial", label: "무료체험 중" };
     } else if (isPersonalTrial && !isTrialExpired) {
       accessBadge = { key: "plan:trial-active", label: "체험 중" };
     }
@@ -2237,11 +2227,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       ...(visibilityBadge ? [visibilityBadge] : []),
       serviceTypeBadge,
       ...(accessBadge ? [accessBadge] : []),
+      ...(section === "active" && isActiveBusinessFreeTrial(activeBusinessSubscription) ? [{ key: "subscription:free-trial", label: "30일 무료 체험" }] : []),
     ]);
     const periodEnd = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
-    const activeBusinessProfile = activeBusinessSubscription?.business_profile_id
-      ? businessProfileById.get(activeBusinessSubscription.business_profile_id) ?? businessProfile
-      : businessProfile;
     const metaItems: Array<{ label: string; value: string }> = [];
     let primaryMessage = "";
 
@@ -2270,6 +2258,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
+      metaItems.push({ label: "최근 결제일", value: isFreeTrial ? "첫 결제 전" : formatDate(activeBusinessSubscription.last_paid_at) });
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
         : isFreeTrial
@@ -2288,8 +2277,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       } else {
         metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
-      metaItems.push({ label: "결제수단", value: "NHN KCP 카드 정기결제" });
-      metaItems.push({ label: "인증 사업자", value: activeBusinessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (isPersonalTrial && !isTrialExpired) {
       primaryMessage = "무료 체험으로 이용 중입니다.";
       metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt || null) });
@@ -2468,14 +2455,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       return <button type="button" disabled title={reason} aria-label={`${label} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
     }
     const supportingLabels = new Set(["결제수단", "결제방식", "인증 사업자"]);
-    const details = [{ label: "템플릿", value: card.templateLabel }, ...card.metaItems.filter(item => !supportingLabels.has(item.label))];
+    const details = card.metaItems.filter(item => !supportingLabels.has(item.label));
     const showStatus = card.section !== "active" || !card.actions.canViewPublic || card.badges.some(badge => badge.key.startsWith("subscription:") || badge.key.startsWith("plan:"));
     return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle={card.section}
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
       badges={card.badges.map(badge => <Badge key={badge.key}>{badge.label}</Badge>)}
-      details={details} supportingDetails={card.metaItems.filter(item => supportingLabels.has(item.label))}
+      details={details}
       status={showStatus ? card.primaryMessage : undefined}
-      billingHref={menuBillingHref(card.publicPath, card.title)}
+      billingHref={card.section === "active" ? undefined : menuBillingHref(card.publicPath, card.title)}
       billingLabel={card.section === "holding" ? "재구독·복구 안내" : card.section === "deleted" ? "결제내역" : "구독 정보"}
       actions={card.section === "deleted" ? undefined : <>
         {card.section === "active" ? renderActionButton({ label: "편집하기", href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null, enabled: card.actions.canEdit, disabledReason: card.actions.editDisabledReason, primary: true, icon: <EditIcon /> }) : null}
@@ -2541,7 +2528,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <MenuCardList
                   tabs={<NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" items={[
                     { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
-                    { label: "보관 중", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
+                    { label: "이용 만료·보관", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
                     { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
                   ]} />}
                   cards={[
