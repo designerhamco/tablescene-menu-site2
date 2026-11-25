@@ -1,7 +1,7 @@
 export const ACCOUNT_AVATAR_BUCKET = "menu-images";
 export const ACCOUNT_AVATAR_MAX_BYTES = 3 * 1024 * 1024;
 export const ACCOUNT_PROFILE_UPDATED_EVENT = "artimenu:account-profile-updated";
-export const ACCOUNT_AVATAR_COLORS = ["blue", "violet", "pink", "cyan", "green", "orange"] as const;
+export const ACCOUNT_AVATAR_COLORS = ["orange", "terracotta", "rose", "amber", "coral", "wine"] as const;
 
 export function getAccountInitial(name?: string | null, email?: string | null) {
   const source = name?.trim() || email?.trim() || "회원";

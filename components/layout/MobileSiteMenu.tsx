@@ -16,6 +16,7 @@ import styles from "@/app/components/layout/Navbar.module.css";
 import ServiceHomeLink from "./ServiceHomeLink";
 import HomeStartLink from "./HomeStartLink";
 import ProfileAvatar from "@/components/account/ProfileAvatar";
+import SiteNavigationLabel from "./SiteNavigationLabel";
 
 export default function MobileSiteMenu({ pathname, activeSection = null, authenticated, loading, account, userId, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
   pathname: string; activeSection?: string | null; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
@@ -27,7 +28,6 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
     <div className={`site-container ${styles.drawerHeader}`}>
       <HomeStartLink onClick={close} className={styles.wordmark}>ArtiMenu</HomeStartLink>
       <div className={styles.drawerHeaderActions}>
-        <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
         {authenticated && !loading ? <button type="button" onClick={onNotifications} aria-haspopup="dialog" data-site-menu-notification-trigger className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><NotificationBellIcon unreadCount={unreadCount} indicator="dot" /></button> : null}
         {closeButton}
       </div>
@@ -45,8 +45,8 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
           {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-outline">로그아웃</button></form>}</div>
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
           <div className={styles.drawerAccountLinks}>
-            <Link href="/mypage" onClick={close}>마이 메뉴</Link>
-            {showOperations ? <><span aria-hidden="true">/</span><Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close}>매장 운영 <NewWindowIndicator /></Link></> : null}
+            <Link href="/mypage" onClick={close} className="site-button site-button-secondary">내 메뉴판</Link>
+            {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-primary">매장 운영 <NewWindowIndicator /></Link> : null}
           </div>
         </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerAccountLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
       </section>
@@ -54,7 +54,7 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
         {SITE_NAV_ITEMS.map(item => item.path === "/faq" ? <Collapsible key={item.path} open={supportOpen} onOpenChange={setSupportOpen}>
           <CollapsibleTrigger asChild><button type="button" className={styles.drawerNavLink} data-active={isSiteNavItemActive(item, pathname) || undefined} aria-controls={supportId}>고객센터{supportOpen ? <Minus size={20} aria-hidden="true" /> : <Plus size={20} aria-hidden="true" />}</button></CollapsibleTrigger>
           <CollapsibleContent id={supportId}><div className={styles.drawerSupportNavigation}>{SITE_SUPPORT_LINKS.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={isSupportLinkActive(link.href, pathname) ? "page" : undefined} className={styles.drawerSupportLink}>{link.label}</Link>)}</div></CollapsibleContent>
-        </Collapsible> : <ServiceHomeLink key={item.path} href={item.path} instant onClick={close} className={styles.drawerNavLink} aria-current={isSiteNavItemActive(item, pathname, activeSection) ? item.sectionId ? "location" : "page" : undefined} data-active={isSiteNavItemActive(item, pathname, activeSection) || undefined}>{item.label}</ServiceHomeLink>)}
+        </Collapsible> : <ServiceHomeLink key={item.path} href={item.path} instant onClick={close} className={styles.drawerNavLink} aria-current={isSiteNavItemActive(item, pathname, activeSection) ? item.sectionId ? "location" : "page" : undefined} data-active={isSiteNavItemActive(item, pathname, activeSection) || undefined}><SiteNavigationLabel item={item} /></ServiceHomeLink>)}
       </nav>
       <div className={styles.drawerFooter}>
         <div className={styles.drawerSupportLinks}><Link href="/mypage/inquiries" onClick={close}>1:1 문의</Link><Link href="/support/chat" onClick={close}>채팅상담</Link></div>

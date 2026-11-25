@@ -26,6 +26,12 @@
   --ui-control-height-header: 2.75rem;
   --ui-header-action-height: 2.25rem;
   --ui-header-action-gap: .75rem;
+  --ui-profile-orange: #c54f0a;
+  --ui-profile-terracotta: #b64c36;
+  --ui-profile-rose: #be365b;
+  --ui-profile-amber: #a76306;
+  --ui-profile-coral: #bb443e;
+  --ui-profile-wine: #983e4e;
   --ui-control-height-lg: 3rem;
   --ui-button-height: var(--ui-control-height-md);
   --ui-button-group-divider-height: 1.5rem;
@@ -107,6 +113,7 @@
   --ui-action-soft-pressed: #e2e5e9;
   --ui-notice-surface: #fff8d6;
   --ui-chip-neutral: #45484e;
+  --ui-chip-create: #c54f0a;
   --ui-chip-draft: #626b7a;
   --ui-chip-private: #626b7a;
   --ui-chip-active: #198047;
@@ -255,6 +262,7 @@
 .site-chip-dining,
 .site-chip-display,
 .site-chip-role { --ui-chip-fill: var(--ui-chip-neutral); }
+.site-chip-create { --ui-chip-fill: var(--ui-chip-create); }
 .site-chip-draft { --ui-chip-fill: var(--ui-chip-draft); }
 .site-chip-private { --ui-chip-fill: var(--ui-chip-private); }
 .site-chip-active { --ui-chip-fill: var(--ui-chip-active); }

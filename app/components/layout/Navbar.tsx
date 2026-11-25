@@ -25,6 +25,7 @@ import HomeStartLink from '@/components/layout/HomeStartLink';
 import { NotificationBellIcon } from '@/app/components/ui/notification-bell-icon';
 import AccountMenuPanel from '@/components/account/AccountMenuPanel';
 import ProfileAvatar from '@/components/account/ProfileAvatar';
+import SiteNavigationLabel from '@/components/layout/SiteNavigationLabel';
 import { ACCOUNT_PROFILE_UPDATED_EVENT, getAccountAvatarUrl } from '@/lib/account-profile';
 
 function DisabledChip() {
@@ -271,7 +272,8 @@ const Navbar = () => {
   const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
-  const accountCtaLabel = authState.isAuthenticated ? '마이 메뉴' : '로그인·회원가입';
+  const accountCtaLabel = authState.isAuthenticated ? '내 메뉴판' : '로그인·회원가입';
+  const inverseHeader = homeHeroHeader || (getSiteHeaderSurface(pathname) === 'dark' && !isScrolled);
   const showStoreOperations = authState.isAuthenticated && isStoreOperationsAvailable();
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
@@ -349,7 +351,7 @@ const Navbar = () => {
                         : navTextClass
                     }`}
                   >
-                    <span>{item.label}</span>
+                    <SiteNavigationLabel item={item} />
                     {item.disabled ? <DisabledChip /> : null}
                   </ServiceHomeLink>}
 
@@ -359,31 +361,31 @@ const Navbar = () => {
           </div>
 
           <div className={`z-50 flex shrink-0 items-center ${styles.actions}`} data-site-header-actions>
-            {!authState.loading ? (
-              <Link
-                href={accountCtaHref}
-                className={`type-nav ${styles.accountLink}`}
-                data-site-header-account
-              >
-                {accountCtaLabel}
-              </Link>
-            ) : null}
-            {showStoreOperations ? (
-              <Link
-                href="/mypage/operations"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
-                className={`type-nav gap-1 ${styles.accountLink}`}
-                data-site-header-operations
-              >
-                매장 운영 <NewWindowIndicator />
-              </Link>
-            ) : null}
             <div className={styles.accountTools} data-site-header-account-tools>
+              {!authState.loading ? (
+                <Link
+                  href={accountCtaHref}
+                  className="site-button site-button-secondary site-button-header"
+                  data-site-header-account
+                >
+                  {accountCtaLabel}
+                </Link>
+              ) : null}
+              {showStoreOperations ? (
+                <Link
+                  href="/mypage/operations"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
+                  className={`site-button ${inverseHeader ? 'site-button-secondary' : 'site-button-primary'} site-button-header`}
+                  data-site-header-operations
+                >
+                  매장 운영 <NewWindowIndicator />
+                </Link>
+              ) : null}
+              {authState.isAuthenticated ? <span className={styles.accountDivider} data-site-header-divider aria-hidden="true" /> : null}
               {authState.isAuthenticated ? (
                 <div className={styles.notificationGroup}>
-                  <span className={styles.accountDivider} aria-hidden="true" />
                   <Popover open={!isMobile && isNotificationOpen} onOpenChange={open => { setIsNotificationOpen(open); if (open) setIsAccountMenuOpen(false); }}>
                     <PopoverTrigger asChild>
                     <button
@@ -413,12 +415,6 @@ const Navbar = () => {
                     failed={Boolean(currentAccount?.failed)} retry={() => { setNavigationAccount(null); setAccountLoadVersion(version => version + 1); }} close={() => setIsAccountMenuOpen(false)} />
                 </PopoverContent>
               </Popover> : null}
-              <Link
-                href="/apply"
-                className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
-              >
-                만들기
-              </Link>
             </div>
             {authState.isAuthenticated ? (
               <button
