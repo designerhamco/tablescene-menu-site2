@@ -9,6 +9,7 @@ import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan
 import { FloorPlanViewport } from "@/app/components/ui/floor-plan-viewport";
 import { RoomLabel } from "@/app/components/ui/room-label";
 import { FilterFill, Grid2X2, Link2, List, PrinterFill } from "@/app/components/ui/site-icon";
+import HelpTooltip from "@/components/ui/HelpTooltip";
 import { Switch } from "@/app/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -218,10 +219,13 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           </Tabs>
           <div className="site-action-row site-order-table-switches">
             {receptionControl}
-            <label className="site-action-row type-label" data-wrap="nowrap">
-              알림톡 <Switch size="sm" disabled checked={false} aria-label="알림톡" aria-describedby={receptionHelp} />
+            <div className="site-action-row" data-wrap="nowrap">
+              <label className="site-action-row type-label" data-wrap="nowrap">
+                알림톡 <Switch size="sm" disabled checked={false} aria-label="알림톡" aria-describedby={receptionHelp} />
+              </label>
               <span id={receptionHelp} className="sr-only">알림톡 연동 준비 중</span>
-            </label>
+              <HelpTooltip label="알림톡 도움말" side="bottom" align="end" hover><p>알림톡은 연동 준비 중입니다.</p></HelpTooltip>
+            </div>
           </div>
         </div>
         {view === "map" ? (

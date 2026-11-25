@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, useTransition } from "react";
+import HelpTooltip from "@/components/ui/HelpTooltip";
 import { Switch } from "@/app/components/ui/switch";
 import { orderPointPolicyKey, type OrderPointChannel, type OrderPointFeature, type OrderPointPolicy, type OrderPointFeatureUpdate } from "@/lib/order-point-policy";
 import OperationActionFeedback from "./OperationActionFeedback";
@@ -17,8 +18,9 @@ export default function OrderPointFeatureControl({ menuSiteId, tableId, label, c
   const enabled = pointStatus === "active" && storedEnabled;
   const featureLabel = feature === "orders" ? "주문" : "호출";
   const accessibleChannelLabel = channel === "terminal" ? "매장 기기" : "손님 휴대폰·QR";
+  const reason = disabledReason ?? connectionRequired?.reason ?? (readOnly ? "허용 설정은 사장님만 변경할 수 있습니다." : null);
   const toggle = <Switch size={inline ? "sm" : "md"} ref={ref} id={id} checked={!disabledReason && !connectionRequired && enabled} disabled={readOnly || Boolean(disabledReason)} loading={pending}
-    aria-label={`${label} ${accessibleChannelLabel} ${featureLabel} 허용`} aria-describedby={disabledReason || connectionRequired ? `${id}-reason` : undefined}
+    aria-label={`${label} ${accessibleChannelLabel} ${featureLabel} 허용`} aria-describedby={reason ? `${id}-reason` : undefined}
     onCheckedChange={next => {
       if (next && connectionRequired) { setResult(null); connectionRequired.onConnect(); return; }
       startTransition(async () => {
@@ -28,9 +30,15 @@ export default function OrderPointFeatureControl({ menuSiteId, tableId, label, c
       });
     }} />;
   return <div className="site-stack-copy">
-    {inline ? <div className="site-order-point-toggle"><label htmlFor={id} className="type-label">{channelLabel ?? (channel === "terminal" ? "태블릿" : "모바일")}</label>{toggle}</div> : <div className="site-action-row" data-distribution="between"><label htmlFor={id} className="type-label">{featureLabel} 허용</label><div className="site-action-row">{toggle}</div></div>}
-    {readOnly && !disabledReason && !inline ? <p className="type-footnote site-copy-muted">허용 설정은 사장님만 변경할 수 있습니다.</p> : null}
-    {disabledReason || connectionRequired ? <p id={`${id}-reason`} className={inline ? "sr-only" : "type-footnote site-copy-muted"}>{`확인 필요: ${disabledReason ?? connectionRequired?.reason}`}</p> : null}
+    {inline ? <div className="site-order-point-toggle"><label htmlFor={id} className="type-label">{channelLabel ?? (channel === "terminal" ? "태블릿" : "모바일")}</label>{toggle}</div>
+      : <div className="site-action-row" data-distribution="between">
+        <label htmlFor={id} className="type-label">{featureLabel} 허용</label>
+        <div className="site-action-row" data-wrap="nowrap">
+          {toggle}
+          {reason && <HelpTooltip label={`${label} ${accessibleChannelLabel} ${featureLabel} 허용 도움말`} side="bottom" align="end" hover><p>{reason}</p></HelpTooltip>}
+        </div>
+      </div>}
+    {reason && <span id={`${id}-reason`} className="sr-only">{disabledReason || connectionRequired ? `확인 필요: ${reason}` : reason}</span>}
     <OperationActionFeedback result={pending ? null : result} title={`${featureLabel} 허용 설정 저장 실패`} triggerRef={ref} onClose={() => setResult(null)} />
   </div>;
 }

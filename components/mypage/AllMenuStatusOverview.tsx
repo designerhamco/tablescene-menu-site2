@@ -24,7 +24,7 @@ function Reception({ overview, feature }: { overview: OperationSiteOverview; fea
       <InfoTooltip label={`${site.name || "이름 없는 메뉴판"} ${label} 상태 안내`}>{state.detail}</InfoTooltip>
       {status.canConfigure && typeof flag === "boolean" ? <OperationFeatureToggle menuId={site.menuSiteId} menuName={site.name || "이름 없는 메뉴판"} feature={feature} enabled={flag}
         published={status.published} canEnable={status.runtime[feature]} activeTablesReady={status.activeTablesReady}
-        blockedReason={state.next !== "manage" ? state.detail : null} reasonVisible={false}/> : null}
+        blockedReason={state.next !== "manage" ? state.detail : null} showReasonHelp={false}/> : null}
     </div>
     {settings ? <div className="site-action-row"><Button variant="outline" size="compact" asChild><Link href={settings.href} aria-label={`${site.name || "이름 없는 메뉴판"} ${label} 설정`}>{label} 설정<ArrowRight aria-hidden="true"/></Link></Button></div> : null}
   </div>;
