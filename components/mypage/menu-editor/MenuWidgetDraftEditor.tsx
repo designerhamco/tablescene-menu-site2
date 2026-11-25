@@ -131,7 +131,7 @@ export default function MenuWidgetDraftEditor({
   const selectedPosition = usesPositionGrid || !positionAxis
     ? draft.settings.objectPosition ?? "center"
     : getWidgetImagePositionOnAxis(draft.settings.objectPosition ?? "center", positionAxis);
-  const positionField = positionOptions.length > 0 && <div className="site-field-stack">
+  const positionField = positionOptions.length > 0 && <div className="site-field-stack" data-editor-span="full">
     <div className="site-action-row"><span className="type-label">{draft.settings.objectFit === "cover" ? "잘림 기준 위치" : "이미지 정렬 위치"}</span>
       <HelpTooltip label="이미지 기준 위치 도움말" hover>
         {draft.settings.objectFit === "cover" ? "이미지와 위젯 비율에 따라 잘리는 방향이 자동으로 정해집니다. 남길 부분의 기준 위치를 선택하세요." : "이미지 전체를 표시한 뒤 여백 안의 위치를 선택하세요. 여백이 없는 방향은 선택해도 위치가 달라지지 않을 수 있습니다."}
@@ -235,7 +235,8 @@ export default function MenuWidgetDraftEditor({
             imagePath={draft.imagePath} persistedImagePath={persistedImagePath} editorLayout
             onPendingChange={setImagePending} onChange={image => patchDraft(image)} />
           <div className="site-basic-editor-fields">
-            {positionField ? <>{positionField}<div className="site-stack-group">{imageSettingFields}</div></> : imageSettingFields}
+            {imageSettingFields}
+            {positionField}
           </div>
         </>}
         {usesText && <>
