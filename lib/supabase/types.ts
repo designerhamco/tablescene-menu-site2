@@ -1692,6 +1692,53 @@ export type Database = {
           },
         ]
       }
+      menu_order_alimtalk_attempts: {
+        Row: {
+          id: string
+          menu_site_id: string
+          order_id: string
+          attempt_no: number
+          status: string
+          provider_message_id: string | null
+          submission_started_at: string | null
+          created_by: string | null
+          created_at: string
+          resolved_at: string | null
+        }
+        Insert: {
+          id?: string
+          menu_site_id: string
+          order_id: string
+          attempt_no: number
+          status?: string
+          provider_message_id?: string | null
+          submission_started_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Update: {
+          id?: string
+          menu_site_id?: string
+          order_id?: string
+          attempt_no?: number
+          status?: string
+          provider_message_id?: string | null
+          submission_started_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_order_alimtalk_attempts_order_fkey"
+            columns: ["menu_site_id", "order_id"]
+            isOneToOne: false
+            referencedRelation: "menu_customer_orders"
+            referencedColumns: ["menu_site_id", "id"]
+          },
+        ]
+      }
       menu_order_settlement_groups: {
         Row: {
           id: string

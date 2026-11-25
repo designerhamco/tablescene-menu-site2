@@ -9,6 +9,8 @@ import { SearchField } from "@/app/components/ui/search-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { FilterFill, Link2, PrinterFill } from "@/app/components/ui/site-icon";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
+import OrderAlimtalkCell from "./OrderAlimtalkCell";
+import type { OrderAlimtalkAction } from "@/lib/order-ready-alimtalk";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
 import { formatAmount, PAYMENT_LABELS } from "@/components/mypage/OrderReceipt";
 import OrderStage from "@/components/mypage/OrderStage";
@@ -66,12 +68,13 @@ function ColumnFilter({ label, options, selected, change }: {
   );
 }
 
-export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder, moveSources, openMoveOrder, settlementNumbers, settlementIntent, openSettlement }: {
+export default function OrderManagementList({ orders, roomNames, menuSiteId, permissions, now, pending, refreshControl, transitionAction, onPrint, openDetail, openOperation, manualPoints, openManualOrder, moveSources, openMoveOrder, settlementNumbers, settlementIntent, openSettlement, alimtalkAction }: {
   orders: Order[];
   roomNames: ReadonlyMap<string, string>;
   menuSiteId: string;
   permissions: OrderDashboardPageData["permissions"];
   now: number | null;
+  alimtalkAction?: OrderAlimtalkAction;
   pending: boolean;
   refreshControl: ReactNode;
   transitionAction: (form: FormData) => void;
@@ -186,7 +189,7 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
                 </DropdownMenu>
               </div>
             </TableHead>
-            <TableHead><div className="site-action-row" data-wrap="nowrap"><span className="whitespace-nowrap">알림톡</span> <InfoTooltip label="알림톡 안내"><p>알림톡은 연동 준비 중입니다.</p></InfoTooltip></div></TableHead>
+            <TableHead><div className="site-action-row" data-wrap="nowrap"><span className="whitespace-nowrap">알림톡</span> <InfoTooltip label="알림톡 안내"><p>연락처가 있는 조리완료 주문에 발송할 수 있어요. 음식을 건넨 뒤 픽업·서빙 완료를 따로 눌러 주세요.</p></InfoTooltip></div></TableHead>
             <TableHead><div className="site-action-row" data-wrap="nowrap">결제여부 <ColumnFilter label="결제 필터" options={paymentOptions} selected={payments}
               change={next => { setPayments(next); clearSelection(); }} /></div></TableHead>
           </TableRow>
@@ -274,7 +277,10 @@ export default function OrderManagementList({ orders, roomNames, menuSiteId, per
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell rowSpan={span}><span className="site-copy-muted">사용 불가</span></TableCell>
+                            <TableCell rowSpan={span}>
+                              <OrderAlimtalkCell orderId={order.id} orderNumber={order.orderNumber}
+                                orderStatus={order.status} details={order.alimtalk} action={alimtalkAction} />
+                            </TableCell>
                             <TableCell rowSpan={span}>
                               <div className="site-stack-copy">
                                 <span>{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>

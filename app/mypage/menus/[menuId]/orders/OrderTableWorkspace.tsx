@@ -1,5 +1,6 @@
 "use client";
 
+import type { OrderAlimtalkAction } from "@/lib/order-ready-alimtalk";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Checkbox } from "@/app/components/ui/checkbox";
@@ -32,7 +33,7 @@ type Point = { id: string; label: string };
 type TableSelection = { kind: "single"; id: string } | { kind: "checked"; ids: ReadonlySet<string> };
 type Order = OrderDashboardOrder;
 
-export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions, moveAction, settlementGroups, settlementAction }: {
+export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, orders, permissions, receptionControl, refreshControl, mutateAction, transitionAction, pending, onPrint, manualOrderActions, moveAction, settlementGroups, settlementAction, alimtalkAction }: {
   menuSiteId: string;
   floorPlan: OperationsFloorPlan;
   records: OperationHistoryRecord[];
@@ -45,6 +46,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   settlementAction?: PointOrderMutation;
   moveAction?: PointOrderMutation;
   manualOrderActions?: ManualOrderActions;
+  alimtalkAction?: OrderAlimtalkAction;
   onPrint: (orders: Order[]) => void;
   transitionAction: (form: FormData) => void;
   pending: boolean;
@@ -219,13 +221,13 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           </Tabs>
           <div className="site-action-row site-order-table-switches">
             {receptionControl}
-            <div className="site-action-row" data-wrap="nowrap">
+            {!alimtalkAction && !orders.some(order => order.alimtalk) && <div className="site-action-row" data-wrap="nowrap">
               <label className="site-action-row type-label" data-wrap="nowrap">
                 알림톡 <Switch size="sm" disabled checked={false} aria-label="알림톡" aria-describedby={receptionHelp} />
               </label>
               <span id={receptionHelp} className="sr-only">알림톡 연동 준비 중</span>
               <HelpTooltip label="알림톡 도움말" side="bottom" align="end" hover><p>알림톡은 연동 준비 중입니다.</p></HelpTooltip>
-            </div>
+            </div>}
           </div>
         </div>
         {view === "map" ? (
@@ -261,7 +263,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
       <div id={panelId}>
         {view === "list" ? (
           <OrderManagementList key={activeListRoom} orders={listOrders} roomNames={listRoomNames} menuSiteId={menuSiteId}
-            permissions={permissions} now={now} pending={pending} refreshControl={refreshControl} transitionAction={transitionAction}
+            permissions={permissions} now={now} pending={pending} alimtalkAction={alimtalkAction} refreshControl={refreshControl} transitionAction={transitionAction}
             onPrint={onPrint} manualPoints={manualPoints} openManualOrder={openManualOrder}
             moveSources={moveSources} openMoveOrder={openMoveOrder}
             settlementNumbers={settlementNumbers} settlementIntent={settlementIntent} openSettlement={openSettlement}
@@ -422,7 +424,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
             orders={detail.groupId ? activeOrders.filter(order => order.settlementGroupId === detail.groupId)
               : detail.orderId ? orders.filter(order => order.id === detail.orderId)
                 : activeOrders.filter(order => order.tableId === detail.id && !order.settlementGroupId)}
-            permissions={permissions} onPrint={onPrint} mutateAction={mutateAction} />}
+            permissions={permissions} onPrint={onPrint} mutateAction={mutateAction}
+            alimtalkAction={alimtalkAction} autoCheckAlimtalk={view !== "list"} />}
         </DialogContent>
       </Dialog>
       {settlement && settlementAction && <OrderSettlementDialog intent={settlement} menuSiteId={menuSiteId}

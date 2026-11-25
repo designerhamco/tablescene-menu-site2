@@ -17,6 +17,7 @@ import {
   type ManualPaymentMethod,
   type OrderStatus,
 } from "@/lib/order-management";
+import type { OrderAlimtalkDetails } from "@/lib/order-ready-alimtalk";
 import type { OrderSettlementGroup } from "@/lib/order-settlement";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
 import { KITCHEN_ACTIVE_STATUSES, KITCHEN_ORDER_STATUSES, KITCHEN_SELECTION_LIMIT, type KitchenMenuSource, type KitchenOrder, type KitchenOrderOption } from "@/lib/kitchen-order";
@@ -113,6 +114,7 @@ export type OrderDashboardOrder = {
   status: string;
   nextStatus: OrderStatus | null;
   paymentStatus: string;
+  alimtalk?: OrderAlimtalkDetails;
   paymentMethod: string | null;
   requestText: string | null;
   totalAmount: number;
@@ -196,7 +198,7 @@ function normalizedPaymentMethod(value: unknown) {
   }
 }
 
-async function assertDashboardEnabled(menuSiteId: string) {
+export async function assertDashboardEnabled(menuSiteId: string) {
   if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) {
     throw new OrderManagementError(
       "DASHBOARD_UNAVAILABLE",
