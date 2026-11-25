@@ -310,8 +310,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="site-action-row">
             <Link href="/admin/announcements" className="site-button site-button-secondary">공지사항 관리</Link>
+            <Link href="/admin/alimtalk-refunds" className="site-button site-button-secondary">알림톡 환불 관리</Link>
             <Link
               href="/mypage"
               className="site-button site-button-outline"
