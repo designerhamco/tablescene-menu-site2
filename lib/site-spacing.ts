@@ -27,6 +27,8 @@ export const SITE_CONTENT_COMPOSITION = [
 
 /** Compact control internals; never reuse content-panel gaps for menu rows. */
 export const SITE_CONTROL_DENSITY = [
+  { role: "헤더 만들기·프로필", value: "버튼36px / 프로필32px", token: "--ui-header-action-height / --ui-control-height-compact", rule: "계정 아이콘 클릭 영역40px 유지. 본문 실행·입력44px와 별도 역할" },
+  { role: "계정 레이어", value: "너비320px / 항목40px / 항목 간 gap0", token: "--ui-control-height-md / --site-panel-inset-compact / --site-space-title-copy", rule: "안쪽16px, 그룹 경계 양쪽12px, 계정 소개 프로필44px. 행 바깥에 폼용16px 간격을 추가하지 않음" },
   { role: "푸터 메뉴 글자", value: "PC·태블릿 제목16px / 메뉴·연락처14px", token: "--type-body-size / --type-body-sm-size / --type-label-size", rule: "모바일 서비스·이용 안내 제목과 메뉴·연락처는14px. 기존 조작 높이 유지" },
   { role: "모바일 푸터 목록·링크", value: "44px / 펼친 메뉴1열", token: "--ui-control-height-header", rule: "서비스·이용 안내·사업자 정보3개 기본 접힘. 별도 고객지원 묶음 없이 문의는 이용 안내, 연락처는 사업자 정보에 보존. 모바일 이용 안내의 마이 메뉴 제외" },
   { role: "모바일 푸터 묶음 간격", value: "안쪽·소개→메뉴24px / 메뉴 위4·아래12px", token: "--site-space-group / --site-space-detail / --site-space-title-copy", rule: "링크 사이 세로 gap0. 요약·링크44px 복구. 사업자 정보 행8px·연락처 앞8px, 하단 정책 앞16px" },

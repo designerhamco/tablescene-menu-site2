@@ -24,6 +24,7 @@
   --ui-control-height-compact: 2rem;
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
+  --ui-header-action-height: 2.25rem;
   --ui-control-height-lg: 3rem;
   --ui-button-height: var(--ui-control-height-md);
   --ui-button-group-divider-height: 1.5rem;
@@ -1265,7 +1266,7 @@ textarea.site-field,
 .site-filter-inverse:hover:not(:disabled) { background: #4b515b; color: #fff; }
 .site-filter-inverse[aria-pressed="true"]:hover:not(:disabled) { background: var(--ui-surface-soft); color: var(--ui-text); }
 
-.site-button-header { min-height: var(--ui-control-height-header); padding-inline: var(--ui-control-padding-inline-lg); border-radius: var(--ui-radius-control); }
+.site-button-header { --ui-button-height: var(--ui-header-action-height); min-height: var(--ui-header-action-height); padding-block: var(--ui-menu-section-gap); padding-inline: var(--ui-control-padding-inline); border-radius: var(--ui-radius-control); }
 /* Provider identity is explicit; it shares action geometry and disabled behavior. */
 .site-button-kakao { border-color: #fee500; background: #fee500; color: #15181e; }
 .site-button-kakao:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { border-color: #f5dc00; background: #f5dc00; }
