@@ -6046,6 +6046,7 @@ export default function MenuManagementSection({
   const isWidgetSelected = hasWidgetSelection;
   const hasActiveWidgetEditorChanges = Boolean(activeWidgetEditor && hasWidgetEditorChanges(activeWidgetEditor));
   const isCategorySelected = Boolean(selectedCategory && !isItemSelected && !isWidgetSelected);
+  const showCategorySettings = basicEditor ? isCategorySelected : Boolean(editingCategoryId && selectedCategory);
   const isPageSelectedOnly = Boolean(selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected);
   const hasNoSelection = !selectedPage && !visibleCategoryId && !isItemSelected && !isWidgetSelected;
   const shouldShowPageCreateButton = canManagePages && !isItemSelected && (hasNoSelection || isPageSelectedOnly || isCategorySelected);
@@ -9783,7 +9784,7 @@ export default function MenuManagementSection({
                   onCancel={resetModes}
                 />
               </div>
-            ) : editingCategoryId && selectedCategory ? (
+            ) : showCategorySettings && selectedCategory ? (
               <div data-basic-category-pane={basicEditor ? "" : undefined}>
                 {(() => {
                   const isCopiedCategory = selectedCategory.id.startsWith("temp-category-copy-") || selectedCategory.id.startsWith("temp-category-page-copy-");
@@ -9976,7 +9977,7 @@ export default function MenuManagementSection({
                   </p>
                 )}
               </div>
-            ) : selectedCategory ? (
+            ) : !basicEditor && selectedCategory ? (
               <div>
                 <PanelHeader
                   title={selectedCategory.name}
@@ -10263,7 +10264,7 @@ export default function MenuManagementSection({
                 {timeSaleLimitMessage}
               </p>
             ) : null}
-            {(!basicEditor || (!editingCategoryId && !editingItemId && !isCreatingCategory && !isCreatingItem)) && <FinalActionRow>
+            {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem)) && <FinalActionRow>
               <button
                 type="button"
                 onClick={() => setIsSampleResetConfirming(true)}
@@ -10292,7 +10293,7 @@ export default function MenuManagementSection({
                 </p>
               )}
             </FinalActionRow>}
-            {basicEditor && (editingCategoryId || editingItemId) && menuFinalSaveError && <p role="alert" className="type-body-sm text-red-600">{menuFinalSaveError}</p>}
+            {basicEditor && (showCategorySettings || editingItemId) && menuFinalSaveError && <p role="alert" className="type-body-sm text-red-600">{menuFinalSaveError}</p>}
           </form>
         </div>
         {isMenuCleanupOpen && (
