@@ -1,4 +1,4 @@
-import { getMenuPlanSelection, getNewMenuPlanSelection } from "@/lib/menu-plan-contract";
+import { getMenuPlanSelection, getNewMenuPlanSelection, getRecoveredMenuPlanSnapshot } from "@/lib/menu-plan-contract";
 import { initializePurchasedMenuDesign } from "@/lib/server/menu-plan-design-service";
 import { NextResponse } from "next/server";
 
@@ -34,6 +34,7 @@ import { getTemplateCategoryFromKey, getTemplateCategoryLabel, isTemplateCategor
 import { isTemplateSupportedForCheckout } from "@/lib/server/mocha-forest-checkout-qa";
 import {
   getBusinessProvisioningAction,
+  getBusinessProvisioningAmount,
   getInitialSubscriptionPaymentId,
   normalizePurchaseAttemptId,
 } from "@/lib/payment-provisioning-idempotency";
@@ -448,7 +449,7 @@ function normalizeBusinessOrder(value: unknown, recoveryContract?: { amount: num
     ? templateCategoryInput
     : getTemplateCategoryFromKey(templateKey);
   const desiredSlug = normalizeMenuSlug(getString(payload.desiredSlug));
-  const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
+  const amount = getBusinessProvisioningAmount(payload.amount, recoveryContract);
   const planKey = getString(payload.plan_key) || "basic";
   const restaurantType = getString(payload.restaurantType);
   const menuDesignId = recoveryContract ? recoveryContract.designId ?? undefined : product && ["business_basic_single_monthly", "business_basic_multi_monthly"].includes(product.productKey) ? getString(payload.menuDesignId) || templateKey : undefined;
@@ -2148,6 +2149,7 @@ export async function POST(request: Request) {
   }
 
   let order: NormalizedBusinessOrder | null = null;
+  let recoveredMenuPlanContract: ReturnType<typeof getRecoveredMenuPlanSnapshot> = null;
   let existingMenuSite: ExistingMenuSite | null = null;
   let recoveredSubscriptionMenuSite: MenuSiteResult | null = null;
 
@@ -2172,13 +2174,14 @@ export async function POST(request: Request) {
       let recoveryContract: { amount: number; designId: string | null } | undefined;
       if (isPaymentRecovery) {
         const { data: saved, error: savedError } = await adminSupabase.from("business_subscriptions")
-          .select("amount,initial_design_id,product_key,business_profile_id")
+          .select("amount,initial_design_id,product_key,business_profile_id,menu_design_access,menu_plan_version")
           .eq("id", recoverSubscriptionId).eq("user_id", user.id).maybeSingle();
-        const contract = saved as unknown as {amount: number;initial_design_id:string|null;product_key:string;business_profile_id:string} | null;
+        const contract = saved as unknown as {amount: number;initial_design_id:string|null;product_key:string;business_profile_id:string;menu_design_access:string|null;menu_plan_version:string|null} | null;
         if (savedError || !contract || contract.product_key !== product.productKey || contract.business_profile_id !== businessProfile.id) {
           throw new BusinessSubscriptionRouteError("business_subscription_insert", "RECOVERY_CONTRACT_MISSING", "기존 구독 계약을 확인할 수 없습니다.", 409);
         }
         recoveryContract = { amount: contract.amount, designId: contract.initial_design_id };
+        recoveredMenuPlanContract = getRecoveredMenuPlanSnapshot(contract);
       }
       order = normalizeBusinessOrder(body.order, recoveryContract);
 
@@ -2636,6 +2639,9 @@ export async function POST(request: Request) {
     }
 
     const requestConsentSnapshot = body.consentSnapshot && typeof body.consentSnapshot === "object" ? body.consentSnapshot : null;
+    const menuPlanContract = order?.menuDesignId
+      ? isPaymentRecovery ? recoveredMenuPlanContract : getMenuPlanSelection(product.productKey, order.menuDesignId)
+      : null;
 
     if (!startsWithFreeTrial) {
       const paymentRecords = await createOrderAndPaymentRecords({
@@ -2655,7 +2661,7 @@ export async function POST(request: Request) {
           marketingAccepted: order.marketingAccepted,
           consentAgreedAt: order.consentAgreedAt,
           consentContext: order.consentContext,
-          ...(order.menuDesignId ? { menuPlanContract: getMenuPlanSelection(product.productKey, order.menuDesignId) } : {}),
+          ...(menuPlanContract ? { menuPlanContract } : {}),
         } : requestConsentSnapshot ?? {
           consentContext: "personal_trial_convert",
           capturedFromRequest: true,
