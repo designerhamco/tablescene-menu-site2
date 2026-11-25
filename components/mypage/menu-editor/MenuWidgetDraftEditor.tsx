@@ -72,6 +72,18 @@ const OBJECT_POSITION_LABELS: Partial<Record<MenuWidgetDraft["settings"]["object
   "bottom-center": "아래",
 };
 
+const GRID_POSITION_LABELS: Record<NonNullable<MenuWidgetDraft["settings"]["objectPosition"]>, string> = {
+  "top-left": "상단 왼쪽",
+  "top-center": "상단 가운데",
+  "top-right": "상단 오른쪽",
+  "center-left": "가운데 왼쪽",
+  center: "정중앙",
+  "center-right": "가운데 오른쪽",
+  "bottom-left": "하단 왼쪽",
+  "bottom-center": "하단 가운데",
+  "bottom-right": "하단 오른쪽",
+};
+
 const TEXT_ALIGN_LABELS: Record<string, string> = {
   left: "왼쪽",
   center: "가운데",
@@ -114,16 +126,26 @@ export default function MenuWidgetDraftEditor({
   const positionAxis = imageSize?.url === draft.imageUrl
     ? getWidgetImagePositionAxis(imageSize.width, imageSize.height, draft.settings.aspectRatio, draft.settings.objectFit)
     : null;
-  const positionField = positionAxis && <div className="site-field-stack">
+  const usesPositionGrid = draft.settings.objectFit === "contain";
+  const positionOptions = getWidgetImagePositionOptions(positionAxis, draft.settings.objectFit);
+  const selectedPosition = usesPositionGrid || !positionAxis
+    ? draft.settings.objectPosition ?? "center"
+    : getWidgetImagePositionOnAxis(draft.settings.objectPosition ?? "center", positionAxis);
+  const positionField = positionOptions.length > 0 && <div className="site-field-stack">
     <div className="site-action-row"><span className="type-label">{draft.settings.objectFit === "cover" ? "잘림 기준 위치" : "이미지 정렬 위치"}</span>
       <HelpTooltip label="이미지 기준 위치 도움말" hover>
-        {draft.settings.objectFit === "cover" ? "이미지와 위젯 비율에 따라 잘리는 방향이 자동으로 정해집니다. 남길 부분의 기준 위치를 선택하세요." : "이미지 전체를 표시한 뒤 남는 여백 안에서의 위치를 선택하세요."}
+        {draft.settings.objectFit === "cover" ? "이미지와 위젯 비율에 따라 잘리는 방향이 자동으로 정해집니다. 남길 부분의 기준 위치를 선택하세요." : "이미지 전체를 표시한 뒤 여백 안의 위치를 선택하세요. 여백이 없는 방향은 선택해도 위치가 달라지지 않을 수 있습니다."}
       </HelpTooltip>
     </div>
-    <div className="site-action-row" role="group" aria-label="이미지 기준 위치">
-      {getWidgetImagePositionOptions(positionAxis).map(position => <button key={position} type="button"
-        className="site-choice site-choice-control" aria-pressed={getWidgetImagePositionOnAxis(draft.settings.objectPosition ?? "center", positionAxis) === position}
-        onClick={() => patchSettings({ objectPosition: position })}>{OBJECT_POSITION_LABELS[position]}</button>)}
+    <div className={usesPositionGrid ? "site-editor-image-position" : "site-action-row"} role="group" aria-label="이미지 기준 위치">
+      {positionOptions.map(position => <button key={position} type="button"
+        className={usesPositionGrid ? undefined : "site-choice site-choice-control"}
+        aria-label={usesPositionGrid ? GRID_POSITION_LABELS[position] : undefined}
+        title={usesPositionGrid ? GRID_POSITION_LABELS[position] : undefined}
+        aria-pressed={selectedPosition === position}
+        onClick={() => patchSettings({ objectPosition: position })}>
+        {usesPositionGrid ? <span aria-hidden="true" /> : OBJECT_POSITION_LABELS[position]}
+      </button>)}
     </div>
   </div>;
 
