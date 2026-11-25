@@ -19,7 +19,7 @@
 | 페이지 표시 설정 | `updatePageSettingsAction` | 지원되는 인트로/커버/소개 섹션 사용 여부 등 해당 폼 값. 메뉴 콘텐츠 페이지 CRUD와 별도 |
 | 광고 팝업 | `MenuPopupSettingsForm`, `updateMenuPopupSettingsAction` | 지원되는 텍스트/이미지 광고·기간·버튼 등 광고 폼 저장. Display 및 미지원 탭에 일반화하지 않음 |
 | 시작/소개 영역 | `updateIntroAction` | 지원되는 소개 내용/이미지 초안. 업로드 완료와 이 폼의 저장을 구분 |
-| 커버/대표영역 | `updateMenuCoverAction`, `CoverSampleResetButton` | 제목/설명·이미지·대표상품/슬라이드·지원되는 기기별 표시 설정. 표시 OFF가 파일 영구 삭제를 의미하지 않음 |
+| 커버/대표영역 | `updateMenuCoverAction`, `CoverSampleResetButton` | 제목/설명·이미지·대표상품/슬라이드·지원되는 기기별 표시 설정. 베이직 대표 이미지는 각 이미지의 ‘이미지만’ 또는 ‘이미지 + 대표 상품’ 선택을 최종 저장하며, 대표 상품 전체 표시 스위치는 없다. 대표 영역 OFF 중에도 이미지별 선택을 보관한다. 표시 OFF가 파일 영구 삭제를 의미하지 않음 |
 | 메뉴 구성 | `MenuManagementSection`, `saveMenuManagementBasicDraftAction` | 페이지/카테고리/아이템 초안·삭제 목록, 지원되는 가격 옵션/칩/기간할인/위젯 혼합 순서·배치 방식 등을 최종 저장. Basic의 페이지 관리 제한 등은 서버에서도 검사 |
 | 소개/이벤트 | `updateAboutAction`, `updateEventsAction` | 해당 탭의 초안. 이벤트 이미지 등은 기존 업로드 정책이 남아 있으므로 모든 탭 이미지가 같은 저장/취소 방식이라고 일반화하지 않음 |
 | 디자인 | `updateDesignSettingsAction` | 폰트·지원 역할 크기/색상·배경/표면·이미지 모양 등 해당 디자인 폼의 값 |
