@@ -71,7 +71,8 @@ async function render(c, [device, width, height], index) {
     const heading = p.locator(".cafe-a-category-heading").filter({ visible: true }).first();
     await expect(heading).toHaveCSS("border-bottom-width", `${strokeWidth}px`);
     await expect(heading).toHaveCSS("border-bottom-style", style);
-    await expect(heading).toHaveCSS("border-bottom-color", rgb(colors[0]));
+    if (style === "dotted") assert.ok((await heading.evaluate(e => getComputedStyle(e).backgroundImage)).includes(rgb(colors[0])));
+    else await expect(heading).toHaveCSS("border-bottom-color", rgb(colors[0]));
     const album = c.design?.endsWith("album"), center = c.design === "basic-center-column" || c.key === "cafe_round_focus_a";
     const dividers = p.locator("[data-menu-column-divider]").filter({ visible: true });
     if (device === "mobile" || album || center) assert.equal(await dividers.count(), 0);
@@ -107,7 +108,8 @@ async function render(c, [device, width, height], index) {
     const categoryRules = p.locator(".cafe-a-menu-category-top-divider").filter({ visible: true });
     assert.ok(await categoryRules.count());
     await expect(categoryRules.first()).toHaveCSS("border-top-width", `${strokeWidth}px`);
-    await expect(categoryRules.first()).toHaveCSS("border-top-color", rgb(colors[2]));
+    if (style === "dotted") assert.ok((await categoryRules.first().evaluate(e => getComputedStyle(e).backgroundImage)).includes(rgb(colors[2])));
+    else await expect(categoryRules.first()).toHaveCSS("border-top-color", rgb(colors[2]));
     assert.equal(await p.locator("[data-menu-column-start] .cafe-a-menu-category-top-divider").filter({ visible: true }).count(), 0);
     await expect.poll(() => p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), { timeout: 5000 }).toBe(true);
     if (c.design === "basic-top-row" || (c.key === "cafe_van_gogh_a" && !c.design)) await p.screenshot({ path: `${output}/${c.design || c.key}-${device}.png` });
@@ -141,7 +143,7 @@ async function toolbar() {
     const picker = p.locator("[data-preview-color-picker]");
     await picker.getByRole("textbox").fill("#356B8F");
     await picker.getByRole("button", { name: "적용", exact: true }).click();
-    await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("border-bottom-color", "rgb(53, 107, 143)");
+    await expect(p.frameLocator("iframe").locator(".cafe-a-category-heading").first()).toHaveCSS("background-image", /rgb\(53, 107, 143\)/);
     await p.getByRole("button", { name: "카테고리명 아래 선 색상 기본색 복원", exact: true }).click();
     await p.locator("[data-preview-color-reset]").getByRole("button", { name: "되돌리기", exact: true }).click();
     await p.waitForURL(u => !JSON.parse(u.searchParams.get("designPreview") || "{}").decorations?.categoryUnderline?.color);
@@ -174,7 +176,11 @@ async function strokeDetails() {
     for (const width of [1, 2, 3]) for (const style of ["solid", "dashed", "dotted"]) {
       const decorations = Object.fromEntries(lineKeys.map(key => [key, { visible: true, width, style }]));
       await p.goto(url(base, c, "pc", { decorations }), { waitUntil: "networkidle" }); await settle(p);
-      await expect(p.locator(".cafe-a-category-heading").filter({ visible: true }).first()).toHaveCSS("border-bottom", `${width}px ${style} rgb(25, 28, 27)`);
+      const heading = p.locator(".cafe-a-category-heading").filter({ visible: true }).first();
+      await expect(heading).toHaveCSS("border-bottom-width", `${width}px`);
+      await expect(heading).toHaveCSS("border-bottom-style", style);
+      if (style === "dotted") assert.ok((await heading.evaluate(e => getComputedStyle(e).backgroundImage)).includes("rgb(25, 28, 27)"));
+      else await expect(heading).toHaveCSS("border-bottom-color", "rgb(25, 28, 27)");
       await expect(p.locator(".cafe-a-round-focus-price-leader").filter({ visible: true }).first()).toHaveCSS("border-top-width", `${width}px`);
     }
     for (const [device, width, height] of [["pc", 1440, 900], ["tablet", 1180, 820], ["mobile", 390, 844]]) {

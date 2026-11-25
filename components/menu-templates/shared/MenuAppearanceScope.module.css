@@ -151,6 +151,7 @@
 .scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] .cafe-a-menu-title-row) { flex-wrap: nowrap; }
 .scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] [data-cafe-a-menu-name]) { min-width: 0; }
 .scope.scope[data-decoration-leader-stroke] :global([data-menu-leader-eligible] .cafe-a-round-focus-price-leader) { display: block !important; align-self: start; flex: 1 1 0; min-width: .75em; max-width: none; margin: .65em 0 0; height: 0; background: none; border: 0; border-top: var(--decoration-leader-width, 1px) var(--decoration-leader-style, dotted) currentColor; }
+.scope.scope[data-decoration-leader-ink="supporting"] :global(.cafe-a-round-focus-price-leader) { color: var(--menu-text-supporting, var(--menu-role-supporting-color, #3f4945)); opacity: 1; }
 .scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-item:not([data-menu-leader-eligible]) .cafe-a-round-focus-price-leader) { display: none !important; }
 .scope.scope:is([data-decoration-leader="on"], [data-decoration-leader-color]) :global(.cafe-a-menu-item:not([data-menu-leader-eligible]) .cafe-a-round-focus-price-leader) { display: none !important; }
 .scope.scope[data-decoration-leader-color] :global(.cafe-a-round-focus-price-leader) { color: var(--decoration-leader-color); opacity: 1; }
@@ -158,3 +159,17 @@
 .scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"]:has(> :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader))) { grid-template-columns: minmax(0, max-content) minmax(.75em, 1fr) auto; }
 .scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > .cafe-a-round-focus-price-leader) { grid-column: 2; grid-row: 1; width: 100%; }
 .scope.scope[data-decoration-leader-stroke] :global(.cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader)) { grid-column: 3; }
+
+/* Opt-in dotted strokes: diameter = width, clear gap = 2 × width.
+   Transparent borders keep the original stroke geometry and measured gutters. */
+.scope.scope[data-decoration-underline-dots] :global(.cafe-a-category-heading) { --menu-dot-width: var(--decoration-underline-width, var(--cafe-a-native-underline-width, 1px)); --menu-dot-ink: var(--decoration-underline-color, currentColor); border-bottom-color: transparent !important; }
+.scope.scope[data-decoration-neutral][data-decoration-underline-dots] :global(.cafe-a-category-heading) { --menu-dot-width: var(--decoration-underline-width, 1px); }
+.scope.scope[data-decoration-column-dots] :global([data-menu-column-divider]) { --menu-dot-width: var(--decoration-column-width, 1px); --menu-dot-ink: var(--decoration-column-color, currentColor); border-inline-start-color: transparent !important; }
+.scope.scope[data-decoration-category-dots] :global(.cafe-a-menu-category-top-divider) { --menu-dot-width: var(--decoration-category-width, 1px); --menu-dot-ink: var(--decoration-category-color, currentColor); border-top-color: transparent !important; }
+.scope.scope[data-decoration-item-dots] :global([data-menu-item-separator])::after { --menu-dot-width: var(--decoration-item-width, 1px); --menu-dot-ink: var(--decoration-item-color, currentColor); border-top-color: transparent !important; }
+.scope.scope[data-decoration-leader-dots] :global(.cafe-a-round-focus-price-leader) { --menu-dot-width: var(--decoration-leader-width, 1px); --menu-dot-ink: currentColor; border-top-color: transparent !important; }
+.scope.scope[data-decoration-underline-dots] :global(.cafe-a-category-heading),
+.scope.scope[data-decoration-category-dots] :global(.cafe-a-menu-category-top-divider),
+.scope.scope[data-decoration-item-dots] :global([data-menu-item-separator])::after,
+.scope.scope[data-decoration-leader-dots] :global([data-menu-leader-eligible] .cafe-a-round-focus-price-leader) { background-image: radial-gradient(circle at calc(var(--menu-dot-width) / 2) 50%, var(--menu-dot-ink) calc(var(--menu-dot-width) / 2 - .05px), transparent calc(var(--menu-dot-width) / 2)); background-size: calc(var(--menu-dot-width) * 3) var(--menu-dot-width); background-repeat: repeat-x; background-position: left bottom; background-origin: border-box; background-clip: border-box; }
+.scope.scope[data-decoration-column-dots] :global([data-menu-column-divider]) { background-image: radial-gradient(circle at 50% calc(var(--menu-dot-width) / 2), var(--menu-dot-ink) calc(var(--menu-dot-width) / 2 - .05px), transparent calc(var(--menu-dot-width) / 2)); background-size: var(--menu-dot-width) calc(var(--menu-dot-width) * 3); background-repeat: repeat-y; background-position: left top; background-origin: border-box; background-clip: border-box; }
