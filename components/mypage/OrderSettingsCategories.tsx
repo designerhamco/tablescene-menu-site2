@@ -11,12 +11,14 @@ export default function OrderSettingsCategories({
   payment,
   notifications,
   ready,
+  initialCategory = "payment",
 }: {
   payment: ReactNode;
   notifications: ReactNode;
   ready: ReactNode;
+  initialCategory?: "payment" | "notifications" | "ready";
 }) {
-  const [category, setCategory] = useState("payment");
+  const [category, setCategory] = useState<string>(initialCategory);
   return (
     <Tabs purpose="state" value={category} onValueChange={setCategory}>
       <TabsList aria-label="주문 설정 분류">
