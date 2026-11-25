@@ -23,6 +23,9 @@ import { SITE_NAV_ITEMS as NAV_ITEMS, isSiteNavItemActive as isNavItemActive, ty
 import MobileSiteMenu from '@/components/layout/MobileSiteMenu';
 import HomeStartLink from '@/components/layout/HomeStartLink';
 import { NotificationBellIcon } from '@/app/components/ui/notification-bell-icon';
+import AccountMenuPanel from '@/components/account/AccountMenuPanel';
+import ProfileAvatar from '@/components/account/ProfileAvatar';
+import { ACCOUNT_PROFILE_UPDATED_EVENT, getAccountAvatarUrl } from '@/lib/account-profile';
 
 function DisabledChip() {
   return (
@@ -37,6 +40,7 @@ type AuthState = {
   userId: string | null;
   email: string | null;
   name: string | null;
+  avatarUrl: string | null;
   loading: boolean;
 };
 
@@ -53,6 +57,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
+  const [accountLoadVersion, setAccountLoadVersion] = useState(0);
   const isMobile = useIsMobile();
   const mobileNotificationTrigger = useRef<HTMLButtonElement>(null);
   const desktopNotificationTrigger = useRef<HTMLButtonElement>(null);
@@ -64,9 +70,10 @@ const Navbar = () => {
     userId: null,
     email: null,
     name: null,
+    avatarUrl: null,
     loading: true,
   });
-  const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null } | null>(null);
+  const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null; failed?: boolean } | null>(null);
   const scrolledRef = useRef(false);
   const pathname = usePathname();
   const homeHeaderSurface = useHomeHeaderSurface(pathname);
@@ -76,18 +83,22 @@ const Navbar = () => {
   const closeMobileMenu = () => {
     setIsOpen(false);
     setIsNotificationOpen(false);
+    setIsAccountMenuOpen(false);
   };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Close transient navigation when Next Link changes the route.
     setIsOpen(false);
     setIsNotificationOpen(false);
+    setIsAccountMenuOpen(false);
   }, [pathname]);
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1280) {
         setIsOpen(false);
+      } else {
+        setIsAccountMenuOpen(false);
       }
     };
 
@@ -124,21 +135,26 @@ const Navbar = () => {
           && currentState.userId === nextState.userId
           && currentState.email === nextState.email
           && currentState.name === nextState.name
+          && currentState.avatarUrl === nextState.avatarUrl
           && currentState.loading === nextState.loading
           ? currentState
           : nextState,
       );
     };
 
-    supabase.auth.getUser().then(({ data }) => {
+    const loadAuth = () => supabase.auth.getUser().then(({ data }) => {
       updateAuthState({
         isAuthenticated: Boolean(data.user),
         userId: data.user?.id ?? null,
         email: data.user?.email ?? null,
         name: typeof data.user?.user_metadata?.display_name === "string" ? data.user.user_metadata.display_name : null,
+        avatarUrl: data.user ? getAccountAvatarUrl(data.user.id, data.user.user_metadata) : null,
         loading: false,
       });
     });
+    void loadAuth();
+    const profileUpdated = () => { void loadAuth(); setNavigationAccount(null); setAccountLoadVersion(version => version + 1); };
+    window.addEventListener(ACCOUNT_PROFILE_UPDATED_EVENT, profileUpdated);
 
     const {
       data: { subscription },
@@ -148,6 +164,7 @@ const Navbar = () => {
         userId: session?.user.id ?? null,
         email: session?.user.email ?? null,
         name: typeof session?.user.user_metadata?.display_name === "string" ? session.user.user_metadata.display_name : null,
+        avatarUrl: session?.user ? getAccountAvatarUrl(session.user.id, session.user.user_metadata) : null,
         loading: false,
       });
     });
@@ -155,6 +172,7 @@ const Navbar = () => {
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      window.removeEventListener(ACCOUNT_PROFILE_UPDATED_EVENT, profileUpdated);
     };
   }, []);
 
@@ -164,6 +182,7 @@ const Navbar = () => {
       setNotificationEvents([]);
       setUnreadCount(0);
       setIsNotificationOpen(false);
+      setIsAccountMenuOpen(false);
       return;
     }
 
@@ -226,20 +245,25 @@ const Navbar = () => {
   }, [authState.userId]);
 
   useEffect(() => {
-    if (!isOpen || !authState.userId) return;
+    if ((!isOpen && !isAccountMenuOpen) || !authState.userId) return;
     const userId = authState.userId;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
         const response = await fetch('/api/account/navigation', { signal: controller.signal, cache: 'no-store' });
         const result = response.ok ? await response.json() as { account: NavigationAccount | null } : { account: null };
-        if (!controller.signal.aborted) setNavigationAccount({ userId, account: result.account });
+        if (!controller.signal.aborted) setNavigationAccount({ userId, account: result.account, failed: !response.ok });
       } catch {
-        if (!controller.signal.aborted) setNavigationAccount({ userId, account: null });
+        if (!controller.signal.aborted) setNavigationAccount({ userId, account: null, failed: true });
       }
     }, 0);
     return () => { controller.abort(); window.clearTimeout(timer); };
-  }, [isOpen, authState.userId]);
+  }, [isOpen, isAccountMenuOpen, authState.userId, accountLoadVersion]);
+
+  const currentAccount = navigationAccount?.userId === authState.userId ? navigationAccount : null;
+  const accountIdentity: NavigationAccount = currentAccount?.account
+    ? { ...currentAccount.account, avatarUrl: authState.avatarUrl }
+    : { name: authState.name, email: authState.email ?? '', role: null, avatarUrl: authState.avatarUrl };
 
   const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
@@ -356,7 +380,7 @@ const Navbar = () => {
             {authState.isAuthenticated ? (
               <div className={styles.notificationGroup}>
                 <span className={styles.accountDivider} aria-hidden="true" />
-                <Popover open={!isMobile && isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+                <Popover open={!isMobile && isNotificationOpen} onOpenChange={open => { setIsNotificationOpen(open); if (open) setIsAccountMenuOpen(false); }}>
                   <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -382,6 +406,15 @@ const Navbar = () => {
             >
               만들기
             </Link>
+            {authState.isAuthenticated && authState.userId ? <Popover open={isAccountMenuOpen} onOpenChange={open => { setIsAccountMenuOpen(open); if (open) setIsNotificationOpen(false); }}>
+              <PopoverTrigger asChild><button type="button" aria-label="프로필 · 계정 메뉴" className={`site-icon-control ${styles.profileTrigger}`} data-site-profile-trigger>
+                <ProfileAvatar userId={authState.userId} imageUrl={authState.avatarUrl} />
+              </button></PopoverTrigger>
+              <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-account-popover" aria-label="계정 메뉴">
+                <AccountMenuPanel userId={authState.userId} account={accountIdentity} loading={!currentAccount}
+                  failed={Boolean(currentAccount?.failed)} retry={() => { setNavigationAccount(null); setAccountLoadVersion(version => version + 1); }} close={() => setIsAccountMenuOpen(false)} />
+              </PopoverContent>
+            </Popover> : null}
             {authState.isAuthenticated ? (
               <button
                 type="button"
@@ -414,7 +447,7 @@ const Navbar = () => {
             <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
             <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
             <MobileSiteMenu pathname={pathname} activeSection={activeHomeService} authenticated={authState.isAuthenticated} loading={authState.loading}
-              account={navigationAccount?.userId === authState.userId && navigationAccount.account ? navigationAccount.account : { name: authState.name, email: authState.email ?? '', role: null }}
+              account={accountIdentity} userId={authState.userId}
               accountLoading={Boolean(authState.userId && navigationAccount?.userId !== authState.userId)}
               showOperations={showStoreOperations} unreadCount={unreadCount} close={closeMobileMenu} onNotifications={openNotificationsFromMenu}
               closeButton={<Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} aria-hidden="true" /></Dialog.Close>} />

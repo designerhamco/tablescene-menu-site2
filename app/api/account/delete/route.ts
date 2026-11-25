@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ACCOUNT_AVATAR_BUCKET, getAccountAvatarPath } from "@/lib/account-profile";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { buildAccountDeletionRequestedEmail } from "@/lib/notification-email-templates";
@@ -178,6 +179,7 @@ export async function POST(request: NextRequest) {
     await createAccountDeletionNotification({ adminSupabase, userId: user.id, nowIso });
 
     const { error: userUpdateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
+      user_metadata: { ...normalizeMetadata(user.user_metadata), profile_avatar_path: null },
       app_metadata: {
         ...normalizeMetadata(user.app_metadata),
         account_status: "deletion_requested",
@@ -188,6 +190,14 @@ export async function POST(request: NextRequest) {
 
     if (userUpdateError) {
       throw new Error(`계정 상태 업데이트 실패: ${userUpdateError.message}`);
+    }
+
+    const avatarPath = getAccountAvatarPath(user.id, user.user_metadata);
+    if (avatarPath) {
+      try {
+        const { error } = await adminSupabase.storage.from(ACCOUNT_AVATAR_BUCKET).remove([avatarPath]);
+        if (error) console.warn("[account-delete] avatar cleanup pending");
+      } catch { console.warn("[account-delete] avatar cleanup pending"); }
     }
 
     await supabase.auth.signOut();

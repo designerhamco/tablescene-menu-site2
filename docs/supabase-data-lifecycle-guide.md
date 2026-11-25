@@ -57,3 +57,7 @@ SQL/migration 파일의 존재, 로컬/격리 검증, Production 적용 이력·
 현재 저장소의 예약 작업은 [vercel.json](../vercel.json)의 체험 만료·구독 처리·알림 생성·알림 정리 4개다. 실행 인증·execute/dry-run·환경별 스위치와 실제 실행 로그는 별도 확인이 필요하다. [과거 운영 감사](runbooks/vercel-production-runtime-audit.md)의 당시 값/개수는 현재 Production 활성화 증거가 아니다.
 
 공식 문서는 2026-11-11에 확인했으며 서비스 설정을 변경할 때 다시 확인한다. 비밀키·세션·토큰·고객 식별자/원문 데이터를 문서나 검수 결과에 넣지 않는다.
+
+## 계정 프로필 사진 (2026-11-25)
+
+프로필 사진은 기존 menu-images의 account-avatars/<user-id>/<uuid>.webp와 Auth user metadata의 profile_avatar_path로 연결한다. 사진 교체·기본 이미지 복원·회원탈퇴 신청 시 해당 사용자 경로의 참조와 파일 정리를 함께 처리한다. 파일 정리 실패는 경고로 남고 별도 자동 재정리 보장은 없다. 이미지 URL은 공개이며 프로필 메타데이터는 권한 판정에 사용하지 않는다. [프로필 저장과 검증 경계](account-profile-menu.md) 참조.

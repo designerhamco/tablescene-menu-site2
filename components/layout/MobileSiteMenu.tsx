@@ -15,10 +15,11 @@ import { formatNotificationBadgeCount } from "@/lib/notification-display-policy"
 import styles from "@/app/components/layout/Navbar.module.css";
 import ServiceHomeLink from "./ServiceHomeLink";
 import HomeStartLink from "./HomeStartLink";
+import ProfileAvatar from "@/components/account/ProfileAvatar";
 
-export default function MobileSiteMenu({ pathname, activeSection = null, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
+export default function MobileSiteMenu({ pathname, activeSection = null, authenticated, loading, account, userId, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
   pathname: string; activeSection?: string | null; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
-  accountLoading?: boolean; showOperations: boolean; unreadCount: number; close: () => void; onNotifications: () => void; closeButton: ReactNode; signOutControl?: ReactNode;
+  userId?: string | null; accountLoading?: boolean; showOperations: boolean; unreadCount: number; close: () => void; onNotifications: () => void; closeButton: ReactNode; signOutControl?: ReactNode;
 }) {
   const [supportOpen, setSupportOpen] = useState(false);
   const supportId = useId();
@@ -34,7 +35,7 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
     <div className={styles.drawerBody}>
       <section className={styles.drawerAccount} aria-label="계정 정보">
         {loading ? <LoadingState label="계정 확인 중입니다." inline /> : authenticated ? <>
-          <div className={styles.drawerAccountHeading}><Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
+          <div className={styles.drawerAccountHeading}>{userId ? <Link href="/mypage?tab=account" onClick={close} className="site-profile-link" aria-label="프로필 · 회원정보 수정"><ProfileAvatar userId={userId} imageUrl={account?.avatarUrl} size="identity" /></Link> : null}<Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
             <span className="type-content-title">{account?.name || "내 계정"}</span>
             {account?.role ? <Badge>{account.role}</Badge> : null}
             <span className={styles.drawerEmail}>{account?.email}</span>

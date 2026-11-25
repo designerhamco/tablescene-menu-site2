@@ -15,7 +15,15 @@ export function isSiteNavItemActive(item: SiteNavItem, pathname: string, activeS
   return (item.activePaths ?? [item.path]).some(path => pathname === path || pathname.startsWith(`${path}/`));
 }
 
-export type NavigationAccount = { name: string | null; email: string; role: "사장" | "직원" | null };
+export type NavigationAccount = {
+  name: string | null;
+  email: string;
+  role: "사장" | "직원" | null;
+  avatarUrl?: string | null;
+  menuCount?: number | null;
+  aiCredits?: number | null;
+  staffCount?: number | null;
+};
 
 /** Display label only; access enforcement stays in the existing server services. */
 export function getNavigationRole(sites: readonly { isOwner: boolean; memberRole?: string | null }[]): NavigationAccount["role"] {

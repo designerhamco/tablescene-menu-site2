@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --import ./scripts/register-test-css.mjs --import tsx --test lib/*.test.ts",
+    "test:account-profile": "node --experimental-test-module-mocks --import tsx --test lib/account-profile.test.ts scripts/tests/account-avatar-route.test.ts",
     "qa:site-design-system": "node scripts/qa-site-design-system.mjs",
     "qa:shaped-tabs": "node scripts/qa-shaped-tabs.mjs",
     "qa:site-type-scale": "node scripts/qa-site-type-scale.mjs",
