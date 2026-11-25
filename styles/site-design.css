@@ -1534,8 +1534,8 @@ html[data-home-service-cover]::view-transition-new(root) {
 
 /* Account identity: shared header, mobile navigation and profile editor. */
 .site-profile-avatar {
-  width: var(--ui-control-height-header);
-  height: var(--ui-control-height-header);
+  width: var(--ui-control-height-compact);
+  height: var(--ui-control-height-compact);
   flex: none;
   --profile-avatar-color: #2563eb;
 }
@@ -1545,24 +1545,24 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-profile-avatar[data-color="cyan"] { --profile-avatar-color: #007a9f; }
 .site-profile-avatar[data-color="green"] { --profile-avatar-color: #00845a; }
 .site-profile-avatar[data-color="orange"] { --profile-avatar-color: #c54f0a; }
-.site-profile-avatar[data-size="identity"] { width: 3.5rem; height: 3.5rem; }
+.site-profile-avatar[data-size="identity"] { width: var(--ui-control-height-header); height: var(--ui-control-height-header); }
 .site-profile-avatar[data-size="editor"] { width: 5rem; height: 5rem; }
-.site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); color: #fff; font-size: var(--type-content-title-size); font-weight: var(--font-weight-semibold); }
-.site-profile-avatar[data-size="identity"] [data-slot="avatar-fallback"] { font-size: var(--type-subsection-title-size); }
+.site-profile-avatar [data-slot="avatar-fallback"] { background: var(--profile-avatar-color); color: #fff; font-size: var(--type-label-size); font-weight: var(--font-weight-semibold); }
+.site-profile-avatar[data-size="identity"] [data-slot="avatar-fallback"] { font-size: var(--type-content-title-size); }
 .site-profile-avatar[data-size="editor"] [data-slot="avatar-fallback"] { font-size: var(--type-section-title-size); }
 .site-profile-link { display: inline-flex; flex: none; align-self: start; border-radius: 50%; }
 .site-profile-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
 .site-profile-editor-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--site-space-block); }
 .site-profile-editor-row > .site-stack-block { min-width: 0; flex: 1 1 16rem; }
-[data-slot="popover-content"].site-account-popover { width: min(23rem, calc(100vw - 2rem)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: 0; border-radius: var(--ui-radius-panel); }
-.site-account-menu { padding: var(--site-panel-inset-wide); }
-.site-account-menu-identity { display: flex; min-width: 0; align-items: center; gap: var(--site-space-block); padding-bottom: var(--site-space-block); color: var(--ui-text); }
+[data-slot="popover-content"].site-account-popover { width: min(20rem, calc(100vw - 2rem)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: 0; border-radius: var(--ui-radius-panel); }
+.site-account-menu { padding: var(--site-panel-inset-compact); }
+.site-account-menu-identity { display: flex; min-width: 0; align-items: center; gap: var(--site-space-title-copy); padding-bottom: var(--site-space-title-copy); color: var(--ui-text); }
 .site-account-menu-identity > div { min-width: 0; }
 .site-account-menu-identity strong, .site-account-menu-identity span { overflow-wrap: anywhere; }
 .site-account-menu-identity:hover strong { text-decoration: underline; text-underline-offset: .2em; }
-.site-account-menu-section { display: grid; gap: var(--site-space-block); padding-top: var(--site-space-block); border-top: 1px solid var(--ui-border); }
-.site-account-menu-section + .site-account-menu-section { margin-top: var(--site-space-block); }
-.site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height-header); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-body-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
+.site-account-menu-section { display: grid; gap: 0; padding-top: var(--site-space-title-copy); border-top: 1px solid var(--ui-border); }
+.site-account-menu-section + .site-account-menu-section { margin-top: var(--site-space-title-copy); }
+.site-account-menu-row { display: flex; width: 100%; min-height: var(--ui-control-height-md); align-items: center; justify-content: space-between; gap: var(--site-space-block); color: var(--ui-text); font-size: var(--type-body-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); text-align: start; }
 .site-account-menu-row strong { flex: none; color: var(--ui-text-muted); font-weight: var(--font-weight-semibold); }
 .site-account-menu-row:is(a,button):hover, .site-account-menu-row > a:hover { color: var(--ui-text-muted); }
 .site-account-menu-row:is(a,button):focus-visible, .site-account-menu-row > a:focus-visible, .site-account-menu-identity:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; }
