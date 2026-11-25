@@ -13,6 +13,8 @@ export function floorRectsOverlap(a:Pick<FloorPlacement,"x"|"y"|"width"|"height"
 
 export const FLOOR_RECEPTION_LOCK = "배치를 편집하려면 주문 설정에서 주문 접수를 꺼 주세요.";
 export const FLOOR_GRID = { min: 1, initial: 5, max: 10 } as const;
+const FLOOR_POINT_LIMIT = 200;
+const LEGACY_GRID_LIMIT = Math.ceil(Math.sqrt(FLOOR_POINT_LIMIT));
 
 export type FloorRoom = { id: string; name: string; emoji?: string; aspectRatio: number; gridSize?: number };
 export type FloorPlacement = { pointId: string; roomId: string; x: number; y: number; width: number; height: number };
@@ -38,7 +40,7 @@ const number = (value: unknown, min: number, max: number) => {
   return Math.round(value * 100) / 100;
 };
 function validGridSize(size: unknown): size is number {
-  return typeof size === "number" && Number.isInteger(size) && size >= FLOOR_GRID.min && size <= FLOOR_GRID.max;
+  return typeof size === "number" && Number.isInteger(size) && size >= FLOOR_GRID.min && size <= LEGACY_GRID_LIMIT;
 }
 
 function gridAxis(coordinate: number, gridSize: number) {
@@ -72,9 +74,16 @@ function openGridRects(gridSize: number, occupied: FloorPlacement[]) {
 }
 
 export function setFloorRoomGrid(document: FloorDocument, roomId: string, gridSize: number): FloorDocument {
-  if (!validGridSize(gridSize)) throw new FloorPlanError("격자 크기를 확인해 주세요.");
   const room = document.rooms.find(room => room.id === roomId);
   if (!room) throw new FloorPlanError("룸을 선택해 주세요.");
+  if (!validGridSize(gridSize) || gridSize > Math.max(FLOOR_GRID.max, room.gridSize ?? 0)) {
+    throw new FloorPlanError("격자 크기를 확인해 주세요.");
+  }
+  return layoutRoomGrid(document, room, gridSize);
+}
+
+function layoutRoomGrid(document: FloorDocument, room: FloorRoom, gridSize: number): FloorDocument {
+  const roomId = room.id;
   if (room.gridSize === gridSize) return document;
   const occupied: FloorPlacement[] = [];
   const placements = readableFloorDocument(document).placements.map(placement => {
@@ -183,6 +192,37 @@ export function readableFloorDocument(document:FloorDocument):FloorDocument{
   }
   return {...document,layoutVersion:3,placements};
 }
+/** Show existing registrations on the grid without writing position or room changes on read. */
+export function gridFloorDocument(document: FloorDocument, points: Pick<FloorPoint, "id">[]): FloorDocument {
+  const firstRoom = document.rooms[0];
+  if (!firstRoom) return document;
+
+  const registrations = retainRegisteredFloorPoints(document, points);
+  const roomByPoint = new Map(floorMemberships(registrations).map(member => [member.pointId, member.roomId]));
+  const placed = new Set(registrations.placements.map(placement => placement.pointId));
+  const missingByRoom = new Map<string, string[]>();
+  for (const { id } of points) {
+    if (placed.has(id)) continue;
+    if (placed.size >= FLOOR_POINT_LIMIT) break;
+    const roomId = roomByPoint.get(id) ?? firstRoom.id;
+    const missing = missingByRoom.get(roomId) ?? [];
+    missing.push(id);
+    missingByRoom.set(roomId, missing);
+    placed.add(id);
+  }
+
+  // Use the saved centers for legacy layouts, and keep already-gridded placements unchanged.
+  let grid: FloorDocument = { ...registrations, layoutVersion: 3 };
+  for (const room of registrations.rooms) {
+    const missing = missingByRoom.get(room.id) ?? [];
+    const existing = grid.placements.filter(placement => placement.roomId === room.id).length;
+    const size = Math.max(room.gridSize ?? FLOOR_GRID.initial, Math.ceil(Math.sqrt(existing + missing.length)));
+    if (room.gridSize !== size) grid = layoutRoomGrid(grid, room, size);
+    if (missing.length) grid = placeNewFloorPoints(grid, missing, room.id);
+  }
+  return grid;
+}
+
 function nextAvailableFloorRect(document: FloorDocument, roomId: string, placements: FloorPlacement[]) {
   const gridSize = document.rooms.find(room => room.id === roomId)?.gridSize;
   const occupied = placements.filter(placement => placement.roomId === roomId);

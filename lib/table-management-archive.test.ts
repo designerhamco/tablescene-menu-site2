@@ -78,7 +78,7 @@ test("복원은 대상 매장·보관 상태로 제한하고 주문·호출을 O
   const f = fixture();
   await f.service.restoreMenuTable({ menuSiteId: siteId, tableId, roomId:siteId, label: " 창가 2 " });
   assert.deepEqual(f.writes, [{ label: "창가 2", status: "active", archived_at: null, terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false, updated_by: "owner" }]);
-  assert.deepEqual(f.filters, [["menu_site_id", siteId], ["id", tableId], ["status", "archived"]]);
+  assert.deepEqual(f.filters, [["menu_site_id", siteId], ["menu_site_id", siteId], ["id", tableId], ["status", "archived"]]);
   assert.deepEqual(f.permissions, [[siteId, "table.manage"], [siteId, "table.manage", "menu_table_management"]]);
 });
 

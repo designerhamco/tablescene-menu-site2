@@ -29,7 +29,7 @@ test("미등록 항목을 제외하고 빈 룸은 선택 정보를 만들지 않
   assert.doesNotMatch(render([]), /data-selected-details=/);
 });
 
-test("배치도 도구에서 다른 룸의 미배치 항목과 과거 미지정 항목도 열 수 있다", () => {
+test("기존 룸과 룸 미지정 항목이 전환 버튼 없이 바로 격자에 보인다", () => {
   const terrace = "44444444-4444-4444-8444-444444444444";
   const unplaced = "55555555-5555-4555-8555-555555555555";
   const legacy = "66666666-6666-4666-8666-666666666666";
@@ -43,7 +43,9 @@ test("배치도 도구에서 다른 룸의 미배치 항목과 과거 미지정 
     points: [first,second,unplaced,legacy].map(id=>({id,label:id,status:"active"})),
     onSave: async()=>({status:"error" as const,message:"저장하지 않습니다."}),
   })));
-  assert.match(html, /미배치 항목.*2/);
+  assert.match(html, /5×5/);
+  assert.match(html, new RegExp(`aria-label="테이블 · ${legacy}"`));
+  assert.doesNotMatch(html, /격자형으로 바꾸기|미배치 항목|배치 해제|저장하지 않은 변경사항/);
   assert.match(html, /테이블 · 22222222-2222-4222-8222-222222222222/);
   assert.doesNotMatch(html, /보기 유형|aria-pressed="true"/);
 });

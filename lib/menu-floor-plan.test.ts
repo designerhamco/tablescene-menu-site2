@@ -173,3 +173,24 @@ test("가득 찬 격자의 배치·축소와 중복 칸·격자 밖 입력을 �
   assert.throws(() => floor.normalizeFloorDocument({ ...full, placements: [full.placements[0], { ...full.placements[0], pointId: ids[1] }] }), /한 칸/);
   assert.throws(() => floor.resolveFloorRoomRemoval(full, { mode: "archive", roomId: room, pointIds: ids.slice(0, 4) }, ids.slice(0, 4)), /룸을 비운/);
 });
+
+test("기존 룸의 배치와 미지정 항목을 격자에 표시하고 원본은 그대로 유지한다", () => {
+  const terrace = "00000000-0000-4000-8000-000000000300";
+  const legacyPoints = Array.from({ length: 103 }, (_, index) => ({
+    id: `00000000-0000-4000-8000-${String(index + 200).padStart(12, "0")}`,
+  }));
+  const original: floor.FloorDocument = {
+    rooms: [{ id: room, name: "홀", aspectRatio: 16 / 9 }, { id: terrace, name: "테라스", aspectRatio: 16 / 9, gridSize: 2 }],
+    placements: legacyPoints.slice(0, 101).map(({ id: pointId }) => ({ pointId, roomId: room, x: 5, y: 5, width: 20, height: 20 })),
+    memberships: [{ pointId: legacyPoints[101].id, roomId: terrace }],
+  };
+  const snapshot = structuredClone(original);
+  const updated = floor.gridFloorDocument(original, legacyPoints);
+  assert.deepEqual(original, snapshot);
+  assert.deepEqual(updated.rooms.map(item => item.gridSize), [11, 2]);
+  assert.equal(updated.placements.length, legacyPoints.length);
+  assert.equal(updated.placements.find(item => item.pointId === legacyPoints[101].id)?.roomId, terrace);
+  assert.equal(updated.placements.find(item => item.pointId === legacyPoints[102].id)?.roomId, room);
+  assert.ok(floor.sameFloorDocument(updated, floor.normalizeFloorDocument(updated)));
+  assert.ok(floor.sameFloorDocument(updated, floor.gridFloorDocument(updated, legacyPoints)));
+});

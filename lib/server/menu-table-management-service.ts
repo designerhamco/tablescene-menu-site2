@@ -1,6 +1,6 @@
 import "server-only";
 import { readMenuOrderSettings } from "@/lib/menu-order-settings";
-import { canPlaceFloorPoint, FLOOR_RECEPTION_LOCK, normalizeFloorDocument, retainRegisteredFloorPoints } from "@/lib/menu-floor-plan";
+import { canPlaceFloorPoint, FLOOR_RECEPTION_LOCK, normalizeFloorDocument, gridFloorDocument } from "@/lib/menu-floor-plan";
 import { canRotateTableQr, QR_ROTATION_BLOCKED_MESSAGE } from "@/lib/qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "@/lib/order-point-deletion";
 import type { Database } from "@/lib/supabase/types";
@@ -198,13 +198,11 @@ export async function restoreMenuTable({ menuSiteId, tableId, label, roomId }: {
   } catch {
     throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 배치도 정보를 확인하지 못했습니다.", 409);
   }
-  if (layout.rooms.find(item => item.id === normalizedRoomId)?.gridSize) {
-    const points = await supabase.from("menu_tables").select("id").eq("menu_site_id", normalizedMenuSiteId).in("status", ["active", "disabled"]);
-    if (points.error) throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸을 확인하지 못했습니다.", 409);
-    const occupied = retainRegisteredFloorPoints(layout, points.data ?? []);
-    if (!canPlaceFloorPoint(occupied, normalizedRoomId) || occupied.placements.length >= 200) {
-      throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸이 부족합니다. 다른 룸을 선택해 주세요.", 409);
-    }
+  const points = await supabase.from("menu_tables").select("id").eq("menu_site_id", normalizedMenuSiteId).in("status", ["active", "disabled"]);
+  if (points.error) throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸을 확인하지 못했습니다.", 409);
+  const occupied = gridFloorDocument(layout, points.data ?? []);
+  if (!canPlaceFloorPoint(occupied, normalizedRoomId) || occupied.placements.length >= 200) {
+    throw new MenuTableManagementError("ROOM_REQUIRED", "복원할 룸의 빈 칸이 부족합니다. 다른 룸을 선택해 주세요.", 409);
   }
   // Return to the operating list with all order/call channels off; old visits stay revoked.
   const { data, error } = await supabase.from("menu_tables")
