@@ -26,7 +26,6 @@ import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { FloorRoom,FloorRoomRemoval,FloorRoomRemovalResult } from "@/lib/menu-floor-plan";
 import { initialMenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction, updateOrderPointFeature } from "./actions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { Badge } from "@/app/components/ui/badge";
 import {SectionHeader} from "@/app/components/ui/section-header";
 import type { OrderPointKind } from "@/lib/order-point-policy";
@@ -126,22 +125,6 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
 
   const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm embedded floorToolbar={floorPlan.available} menuSiteId={menuSiteId} kind={registrationKind} suggestedName={nextPointName(registrationKind)} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={false} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
 
-  const archivedItems = <Dialog onOpenChange={open => { if (!open) setExpandedPointId(null); }}>
-    <DialogTrigger asChild><Button type="button" variant="outline" size="compact">보관 항목 {archivedTables.length}</Button></DialogTrigger>
-    <DialogContent scrollable aria-describedby={undefined}>
-      <DialogHeader reserveCloseButton><DialogTitle>보관된 테이블·키오스크</DialogTitle></DialogHeader>
-      {!archivedTables.length ? <p className="type-body-sm site-copy-muted">보관된 테이블·키오스크가 없습니다.</p> : <EditableList label="보관된 테이블·키오스크 목록">
-        {archivedTables.map((point, index) => <EditableListItem key={point.id} label={point.label} title={<PointTitle point={point} />}
-          meta={`보관일 ${formatKoreanDateTime(point.archivedAt)}`} status={<Badge tone="neutral">미사용(보관)</Badge>}
-          divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => { if (open) setExpanded(point.id, true); else void confirmUnsavedChanges().then(allowed => { if (allowed) setExpanded(point.id, false); }); }} disabled={mutationPending}>
-          <p className="type-body-sm site-copy-muted">복원하면 운영 목록으로 돌아오며 주문·호출은 모두 꺼진 상태로 시작합니다. 필요한 기기의 주문·호출 스위치만 켜 주세요.</p>
-          <OrderPointRestoreForm roomId={selectedRoomId} rooms={restoreRooms} point={point} menuSiteId={menuSiteId} operatingPoints={tables} action={mutationAction} pending={mutationPending} disabled={orderEnabled} serverError={mutationState.tableId === point.id ? mutationState.labelError : undefined} />
-          {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></div> : null}
-        </EditableListItem>)}
-      </EditableList>}
-    </DialogContent>
-  </Dialog>;
-
   return <div className="site-stack-content">
     <OrderPointConnectionDialog menuSiteId={menuSiteId} mutateAction={mutatePointAction} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} enableRequest={enableRequest} onClose={() => { setConnectionPointId(null); setEnableRequest(undefined); }} />
     <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
@@ -152,7 +135,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
         <SectionHeader id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<div className="site-action-row" data-wrap="nowrap">
           {orderEnabled && <Button variant="link" size="compact" asChild><Link href={`/mypage/menus/${menuSiteId}/order-settings`}>주문 설정</Link></Button>}
         </div>}/>
-          <FloorPlanEditor requireEdit pointTools={archivedItems} layoutLock={orderEnabled ? FLOOR_RECEPTION_LOCK : undefined}
+          <FloorPlanEditor requireEdit layoutLock={orderEnabled ? FLOOR_RECEPTION_LOCK : undefined}
             onArchivePoints={archivePointsAction} canArchivePoints={ids => ids.every(id => tables.some(point => point.id === id))}
             onRoomChange={roomChanged} onRemoveRoom={removeFloorRoomAction} restoredPoint={recentRestore} externalDirty={editsDirty} onSaveEdits={saveEdits} onDiscardEdits={discardEdits} createdPoint={createState.status === "success" && createState.tableId && createState.registrationRoomId ? { pointId: createState.tableId, roomId: createState.registrationRoomId } : undefined} registration={registration} initial={floorPlan} points={draftTables}
             renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId={menuSiteId} point={draftTables.find(item => item.id === point.id)!} connectionState={connectionState} disabled={pending || mutationPending} hideName readOnly={!canConfigure || Boolean(draftTables.find(item => item.id === point.id)?.draft)} onUpdate={updateFeatureAction} onConnect={openConnection} />}
@@ -168,5 +151,17 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
       {mutationPending ? <LoadingState inline label="테이블·키오스크 작업을 처리하고 있습니다." /> : null}
     </section>
 
+    <section className="site-stack-block" aria-labelledby={`${usageId}-archived-title`}>
+      <h2 className="type-subsection-title" id={`${usageId}-archived-title`}>보관된 테이블·키오스크 · {archivedTables.length.toLocaleString("ko-KR")}개</h2>
+      {!archivedTables.length ? <p className="type-body-sm site-copy-muted">보관된 테이블·키오스크가 없습니다.</p> : <EditableList label="보관된 테이블·키오스크 목록">
+        {archivedTables.map((point, index) => <EditableListItem key={point.id} label={point.label} title={<PointTitle point={point} />}
+          meta={`보관일 ${formatKoreanDateTime(point.archivedAt)}`} status={<Badge tone="neutral">미사용(보관)</Badge>}
+          divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => { if (open) setExpanded(point.id, true); else void confirmUnsavedChanges().then(allowed => { if (allowed) setExpanded(point.id, false); }); }} disabled={mutationPending}>
+          <p className="type-body-sm site-copy-muted">복원하면 운영 목록으로 돌아오며 주문·호출은 모두 꺼진 상태로 시작합니다. 필요한 기기의 주문·호출 스위치만 켜 주세요.</p>
+          <OrderPointRestoreForm roomId={selectedRoomId} rooms={restoreRooms} point={point} menuSiteId={menuSiteId} operatingPoints={tables} action={mutationAction} pending={mutationPending} disabled={orderEnabled} serverError={mutationState.tableId === point.id ? mutationState.labelError : undefined} />
+          {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></div> : null}
+        </EditableListItem>)}
+      </EditableList>}
+    </section>
   </div>;
 }
