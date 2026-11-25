@@ -1,4 +1,6 @@
-import { applyPreviewDesign } from "@/lib/menu-preview-design";
+import { applyPreviewDesign, previewDesignDefaults, readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
+import { applyBasicEditorPreviewDesign } from "@/lib/basic-editor-preview-design";
+import { isTemplateSupportedForService } from "@/lib/template-types";
 import { resolveMenuPatternBands } from "@/lib/menu-pattern-bands";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { buildSavedMenuPreview } from "@/lib/saved-menu-preview";
@@ -22,7 +24,7 @@ import {
   type MenuPreviewQuery,
   type TemplatePreviewQuery,
 } from "@/lib/menu-preview-devices";
-import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
+import { hasMenuSitePermission, MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
 import { sortMenuPages } from "@/types/menu";
@@ -128,6 +130,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const debugCafeA = process.env.NODE_ENV !== "production" && getSearchParamValue(query.debugCafeA) === "1";
   const locale = normalizeLocale(getSearchParamValue(query.lang));
   const requestedPageIndex = getPreviewPageIndex(query.page);
+  const isDesignEditor = getSearchParamValue(query.editDesign) === "1";
   const isActualView = getSearchParamValue(query.view) === "actual";
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const isDetachedView = isActualView && getSearchParamValue(query.detached) === "1";
@@ -141,7 +144,8 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/sign-in?next=/mypage/menus/${menuId}/preview`);
+    const previewPath = buildMenuPreviewUrl(menuId, {}, { designEditor: isDesignEditor });
+    redirect(`/sign-in?next=${encodeURIComponent(previewPath)}`);
   }
 
   let preview: Awaited<ReturnType<typeof getAuthorizedPreviewMenuPageData>>;
@@ -165,6 +169,19 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   }
 
   const { data, design, features } = buildSavedMenuPreview(savedData);
+  const editHref = `/mypage/menus/${menuId}/edit?tab=design`;
+  const templateKey = data.menuSite.template_key;
+  if (isDesignEditor && (!templateKey || !isTemplateSupportedForService(templateKey, "basic")
+      || !accessState.canEdit || !accessState.canUseWriteActions || !hasMenuSitePermission(accessContext, "menu.edit"))) {
+    redirect(editHref);
+  }
+  const editorDraft = isDesignEditor ? readPreviewDesign(getSearchParamValue(query.designPreview)) : undefined;
+  if (isActualView && templateKey && editorDraft && Object.keys(editorDraft).length) {
+    const pageSettings = applyBasicEditorPreviewDesign(
+      data.menuSite.page_settings, data.menuSite.settings, templateKey, editorDraft, design?.itemLayout === "album",
+    );
+    data.menuSite.page_settings = pageSettings as typeof data.menuSite.page_settings;
+  }
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
   const device = normalizeMenuPreviewDevice(requestedDevice, usesDevicePreviewFrame ? "tablet" : "pc");
 
@@ -176,16 +193,22 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         menuTemplateKey={data.menuSite.template_key ?? undefined}
         menuDesignId={design?.id}
-        savedPatternBandsAvailable={Boolean(resolveMenuPatternBands(data.menuSite.template_key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation))}
+        savedPatternBandsAvailable={!isDesignEditor && Boolean(resolveMenuPatternBands(data.menuSite.template_key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation))}
+        previewDesignDefaults={isDesignEditor ? previewDesignDefaults(data) : undefined}
+        designEditor={editorDraft ? {
+          initialDraft: editorDraft,
+          backHref: editHref,
+          returnDraft: serializePreviewDesign(readPreviewDesign(getSearchParamValue(query.designReturnDraft))),
+        } : undefined}
         query={previewQuery}
       /><MobilePreviewEntryNotice /></>
     );
   }
 
-  const orderCustomization = features.order
+  const orderCustomization = !isDesignEditor && features.order
     ? await getAuthorizedPreviewOrderCustomization(accessContext)
     : undefined;
-  const previewOrderCallConfig = buildInteractivePreviewConfig(data, features.call, features.order, orderCustomization);
+  const previewOrderCallConfig = buildInteractivePreviewConfig(data, !isDesignEditor && features.call, !isDesignEditor && features.order, orderCustomization);
 
   return (
     <>
@@ -204,7 +227,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       />
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
-          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
+          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation, designEditor: isDesignEditor, designPreview: getSearchParamValue(query.designPreview) })}
           className="site-button site-button-primary fixed bottom-4 right-4 z-[1000] backdrop-blur"
         >
           기기 프레임으로 돌아가기

@@ -79,7 +79,8 @@ export function previewDesignDefaults(data: MenuPageData) {
   const neutral = data.menuSite.id.startsWith("default-design-preview-") || Boolean(getDefaultDesignReview(typeof savedDesignId === "string" ? savedDesignId : undefined, key ?? ""));
   const page = backgrounds.page ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : !neutral && key === "dining_aube_table_b" ? "#F7F2EA" : getResolvedBackgroundColor(key, data.menuSite.page_settings));
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
-  const saleBackground = data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
+  const savedChips = readPreviewChipColors(record(record(data.menuSite.page_settings).design).chipColors);
+  const saleBackground = savedChips.saleBackground ?? data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
   return {
     textColors: resolvedMenuTextColors(data.menuSite.page_settings, key?.startsWith("dining_aube_table_") === true),
     textColorDefaults: {
@@ -94,7 +95,7 @@ export function previewDesignDefaults(data: MenuPageData) {
       information: typography.typography_roles.supporting.color ?? "#191C1B",
     },
     fontFamily: { ko: typography.korean_font_key, en: typography.english_font_key },
-    chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getTemplateTimeSaleBadgeTextColor(key, saleBackground) },
+    chipColors: { generalBackground: savedChips.generalBackground ?? badge.background_color, generalText: savedChips.generalText ?? badge.text_color, saleBackground, saleText: savedChips.saleText ?? getTemplateTimeSaleBadgeTextColor(key, saleBackground) },
     fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
       const role = typography.typography_roles[group === "other" ? "supporting" : group];
       return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key,

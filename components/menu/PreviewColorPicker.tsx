@@ -8,7 +8,7 @@ import { RotateCcw } from "@/app/components/ui/site-arrow";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
 
-export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled, loading = false }: {
+export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled, loading = false, savedFallback = false }: {
   label: string;
   accessibleLabel?: string;
   value?: string;
@@ -16,6 +16,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
   onChange: (value?: string) => void;
   disabled: boolean;
   loading?: boolean;
+  savedFallback?: boolean;
 }) {
   const id = useId(), current = value ?? defaultColor;
   const [draftEmpty, setDraftEmpty] = useState(current === null);
@@ -63,6 +64,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     const rect = event.currentTarget.getBoundingClientRect();
     update({ ...colorRef.current, s: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), v: 1 - Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) });
   };
+  const resetTarget = savedFallback ? "저장된 색상" : "템플릿 기본색";
   return <div className={styles.field} data-preview-color-field aria-busy={loading || undefined}>
     <span className={styles.fieldLabel}>{label}</span>
     <Popover.Root open={open} onOpenChange={next => {
@@ -103,11 +105,11 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
       </Popover.Content></Popover.Portal>
     </Popover.Root>
     <AlertDialog>
-      <AlertDialogTrigger asChild><button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || loading || !value}><RotateCcw size={15} aria-hidden="true" /></button></AlertDialogTrigger>
+      <AlertDialogTrigger asChild><button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} ${savedFallback ? "저장된 색상" : "기본색"} 복원`} title={`${resetTarget} 복원`} disabled={disabled || loading || !value}><RotateCcw size={15} aria-hidden="true" /></button></AlertDialogTrigger>
       <AlertDialogContent layer="preview" data-preview-color-reset>
         <AlertDialogHeader>
-          <AlertDialogTitle>기본색으로 되돌릴까요?</AlertDialogTitle>
-          <AlertDialogDescription>{accessibleLabel}을 템플릿의 기본색으로 되돌립니다.</AlertDialogDescription>
+          <AlertDialogTitle>{resetTarget}으로 되돌릴까요?</AlertDialogTitle>
+          <AlertDialogDescription>{accessibleLabel}을 {resetTarget}으로 되돌립니다.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>취소</AlertDialogCancel>

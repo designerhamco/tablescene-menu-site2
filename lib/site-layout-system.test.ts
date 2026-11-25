@@ -81,7 +81,8 @@ test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사
 
   assert.match(source, /site-gutter site-page-spacing-compact/);
   assert.match(source, /function SectionCard[\s\S]*?<section className="site-card site-editor-panel p-5 sm:p-6">/);
-  assert.match(source, /<header className="site-card site-editor-panel mb-6 p-5 sm:p-6"(?=\s|>)/);
+  assert.match(source, /<header className=\{useBasicEditorLayout \? "site-basic-editor-header site-stack-copy" : "site-card site-editor-panel mb-6 p-5 sm:p-6"\}/);
+  assert.match(readSource("../styles/site-design.css"), /\.site-basic-editor-summary \{[^}]*padding: var\(--site-panel-inset\);[^}]*background: var\(--ui-surface-muted\);/);
   assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
 });
 

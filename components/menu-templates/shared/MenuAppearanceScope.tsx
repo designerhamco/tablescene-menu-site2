@@ -25,7 +25,11 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
   const appearance = resolveMenuAppearance(pageSettings, templateKey, designId);
   const surfaces = readMenuSurfaceSettings(pageSettings);
   const alignment = basic ? surfaces.representativeAlignment ?? getDefaultRepresentativeAlignment(templateKey, { menu_design_id: designId }) : undefined;
-  const previewChipColors = resolvePreviewChipColors(readPreviewChipColors(menuSurfaceRecord(menuSurfaceRecord(pageSettings).design).previewChipColors));
+  const design = menuSurfaceRecord(menuSurfaceRecord(pageSettings).design);
+  const previewChipColors = resolvePreviewChipColors({
+    ...readPreviewChipColors(design.chipColors),
+    ...readPreviewChipColors(design.previewChipColors),
+  });
   const chipColorStyle = {
     ...(previewChipColors.generalBackground ? { "--menu-preview-chip-bg": previewChipColors.generalBackground } : {}),
     ...(previewChipColors.generalText ? { "--menu-preview-chip-text": previewChipColors.generalText } : {}),

@@ -14,6 +14,7 @@ type ResetKind = "cover" | "menu" | "design";
 type ResetTabActionButtonProps = {
   menuId: string;
   kind: ResetKind;
+  disabled?: boolean;
 };
 
 const resetCopy: Record<
@@ -40,11 +41,11 @@ const resetCopy: Record<
     submitLabel: "초기화하기",
   },
   design: {
-    buttonLabel: "기본 디자인으로 되돌리기",
+    buttonLabel: "템플릿 샘플로 되돌리기",
     title: "디자인 설정을 기본값으로 되돌릴까요?",
     description:
       "배지 색상, 한글 폰트, 배경색 등 디자인 설정이 현재 템플릿의 기본값으로 돌아갑니다. 메뉴 내용과 기본 정보는 변경되지 않습니다.",
-    submitLabel: "기본 디자인으로 되돌리기",
+    submitLabel: "템플릿 샘플로 되돌리기",
   },
 };
 
@@ -54,12 +55,12 @@ const resetActions = {
   design: resetDesignSettingsToTemplateDefaultAction,
 } satisfies Record<ResetKind, (formData: FormData) => void | Promise<void>>;
 
-export default function ResetTabActionButton({ menuId, kind }: ResetTabActionButtonProps) {
+export default function ResetTabActionButton({ menuId, kind, disabled: readOnly = false }: ResetTabActionButtonProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const copy = resetCopy[kind];
   const action = resetActions[kind];
-  const disabled = kind === "menu";
+  const disabled = readOnly || kind === "menu";
 
   function closeDialog() {
     if (isPending) return;
@@ -84,7 +85,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
           if (!disabled) setOpen(true);
         }}
         disabled={disabled}
-        title={disabled ? "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다." : undefined}
+        title={kind === "menu" ? "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다." : undefined}
         className="site-button site-button-secondary"
       >
         {copy.buttonLabel}

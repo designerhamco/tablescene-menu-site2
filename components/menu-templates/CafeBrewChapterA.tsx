@@ -98,11 +98,11 @@ function getTimeSaleForItem(timeSales: PublicMenuTimeSale[], itemId: string) {
   return null;
 }
 
-function getTimeSaleBadgeStyle(backgroundColor: string): CSSProperties {
+function getTimeSaleBadgeStyle(backgroundColor: string, textColor?: string): CSSProperties {
   const normalizedBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(backgroundColor);
   return {
     backgroundColor: normalizedBackgroundColor,
-    color: getReadableTextColorForTimeSaleBadge(normalizedBackgroundColor),
+    color: textColor ?? getReadableTextColorForTimeSaleBadge(normalizedBackgroundColor),
   };
 }
 
@@ -301,7 +301,7 @@ function MenuItemRow({
           <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge" style={getBadgeStyleCss(badgeStyle)}><ScriptAwareText text={getMenuItemBadgeLabel(item, locale)} /></span>
         ) : null}
         {showTimeSale && timeSale ? (
-          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge cafe-a-time-sale-badge" style={getTimeSaleBadgeStyle(timeSale.promotion.badgeBackgroundColor)}>
+          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge cafe-a-time-sale-badge" style={getTimeSaleBadgeStyle(timeSale.promotion.badgeBackgroundColor, timeSale.promotion.badgeTextColor)}>
             <ScriptAwareText text={translateMenuText(timeSale.promotion.badgeText, locale)} />
           </span>
         ) : null}

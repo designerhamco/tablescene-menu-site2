@@ -1,5 +1,8 @@
 "use server";
 
+import { applyBasicEditorPreviewDesign } from "@/lib/basic-editor-preview-design";
+import { readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
+import { mergeMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { parseMenuOrderCustomization, type MenuOrderCustomization } from "@/lib/menu-order-customization";
 
@@ -133,7 +136,7 @@ import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
-import { getTemplateType } from "@/lib/template-types";
+import { getTemplateType, isTemplateSupportedForService } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import {
   TYPOGRAPHY_ROLE_KEYS,
@@ -2934,12 +2937,24 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
+  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
+  const previewDraft = serializePreviewDesign(readPreviewDesign(getString(formData, "basic_design_draft")));
+  const isBasicEditor = formData.get("basic_design_editor") === "1";
+  if ((previewDraft || isBasicEditor) && !isTemplateSupportedForService(menuSite.template_key, "basic")) {
+    redirectToTabEditWithError(menuId, "design", "이 메뉴판은 베이직 디자인 편집을 지원하지 않습니다.");
+  }
+  const fail = (message: string): never => {
+    if (!previewDraft) redirectToTabEditWithError(menuId, "design", message);
+    const query = new URLSearchParams({ tab: "design", error: message, designDraft: previewDraft });
+    redirect(`/mypage/menus/${encodeURIComponent(menuId)}/edit?${query}`);
+  };
+
   const backgroundColor = normalizeBackgroundColor(getString(formData, "background_color"));
   const koreanFontKey = getString(formData, "korean_font_key");
   const englishFontKey = getString(formData, "english_font_key");
   const rawFontSizeScaleKey = getString(formData, "font_size_scale_key") || "m";
 
-  if (!backgroundColor) {
+  if (!isBasicEditor && !backgroundColor) {
     redirectToTabEditWithError(menuId, "design", "배경색은 #RRGGBB 형식으로 입력해주세요.");
   }
 
@@ -2951,10 +2966,12 @@ export async function updateDesignSettingsAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "design", "영문/숫자 폰트 선택값이 올바르지 않습니다.");
   }
 
-  const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
-  let pageSettings = getJsonObject(menuSite.page_settings);
+  const savedDesign = getSavedMenuDesign(menuSite.template_key, menuSite.settings);
+  let pageSettings = previewDraft && isBasicEditor
+    ? applyBasicEditorPreviewDesign(menuSite.page_settings, menuSite.settings, menuSite.template_key, previewDraft, savedDesign?.itemLayout === "album") as ReturnType<typeof getJsonObject>
+    : getJsonObject(menuSite.page_settings);
   try {
     const surfaces = menuSurfaceSettingsFromForm(formData, menuSite.template_key);
     if (surfaces) pageSettings = withMenuSurfaceSettings(pageSettings, menuSite.settings, menuSite.template_key, surfaces) as typeof pageSettings;
@@ -2970,7 +2987,6 @@ export async function updateDesignSettingsAction(formData: FormData) {
     redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "이미지 모양 설정을 확인해주세요.");
   }
   if (formData.get("pattern_bands_present") === "1" && supportsMenuPatternBands(menuSite.template_key, menuSite.settings)) {
-    const fail = (message: string) => redirectToTabEditWithError(menuId, "design", message);
     if (formData.get("pattern_bands_upload_pending") === "1") fail("패턴 이미지 업로드가 끝난 뒤 저장해주세요.");
     const enabled = formData.get("pattern_bands_enabled") === "1";
     const thicknessField = getString(formData, "pattern_bands_thickness");
@@ -2989,46 +3005,48 @@ export async function updateDesignSettingsAction(formData: FormData) {
     if (enabled && !image && menuSite.template_key !== "fast_food_loop_bagel_a") fail("패턴 띠를 사용하려면 정사각형 이미지를 등록해주세요.");
     designSettings.patternBands = { enabled, ...(thickness === undefined ? {} : { thickness }), ...(image ? { image } : {}) };
   }
-  if (formData.get("menu_surfaces_present") !== "1") designSettings.backgroundColor = backgroundColor;
+  if (!isBasicEditor) {
+    if (formData.get("menu_surfaces_present") !== "1" && backgroundColor) designSettings.backgroundColor = backgroundColor;
 
-  if (koreanFontKey) {
-    designSettings.koreanFont = koreanFontKey;
-  } else {
-    delete designSettings.koreanFont;
+    if (koreanFontKey) {
+      designSettings.koreanFont = koreanFontKey;
+    } else {
+      delete designSettings.koreanFont;
+    }
+
+    if (englishFontKey) {
+      designSettings.englishFont = englishFontKey;
+    } else {
+      delete designSettings.englishFont;
+    }
+
+    if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
+      designSettings.fontSizeScale = fontSizeScaleKey;
+    }
+    setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
+    if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
+    try { setMenuTextColorsFromForm(designSettings, formData); }
+    catch (error) { redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "글자색을 확인해주세요."); }
+    delete designSettings.onePageLayoutShell;
+    delete designSettings.one_page_layout_shell;
+
+    delete pageSettings.backgroundColor;
+    delete pageSettings.koreanFont;
+    delete pageSettings.englishFont;
+    delete pageSettings.fontSizeScale;
+    delete pageSettings.typographyRoles;
+    delete pageSettings.typography_roles;
+    delete pageSettings.onePageLayoutShell;
+    delete pageSettings.one_page_layout_shell;
   }
-
-  if (englishFontKey) {
-    designSettings.englishFont = englishFontKey;
-  } else {
-    delete designSettings.englishFont;
-  }
-
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
-    designSettings.fontSizeScale = fontSizeScaleKey;
-  }
-  setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
-  if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
-  try { setMenuTextColorsFromForm(designSettings, formData); }
-  catch (error) { redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "글자색을 확인해주세요."); }
-  delete designSettings.onePageLayoutShell;
-  delete designSettings.one_page_layout_shell;
-
   pageSettings.design = designSettings;
-  delete pageSettings.backgroundColor;
-  delete pageSettings.koreanFont;
-  delete pageSettings.englishFont;
-  delete pageSettings.fontSizeScale;
-  delete pageSettings.typographyRoles;
-  delete pageSettings.typography_roles;
-  delete pageSettings.onePageLayoutShell;
-  delete pageSettings.one_page_layout_shell;
 
   const { error } = await supabase
     .from("menu_sites")
     .update({ page_settings: pageSettings, updated_at: new Date().toISOString() })
     .eq("id", menuId);
 
-  if (error) redirectToTabEditWithError(menuId, "design", `디자인 설정 저장에 실패했습니다: ${error.message}`);
+  if (error) fail(`디자인 설정 저장에 실패했습니다: ${error.message}`);
 
   revalidateMenuPaths(menuId, menuSite.slug);
   redirectToTabEdit(menuId, "design", "디자인 설정이 저장되었습니다.");
@@ -3175,6 +3193,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete pageSettings.typography;
   const designSettings = getJsonObject(pageSettings.design);
   delete designSettings.appearance;
+  delete designSettings.chipColors;
   delete designSettings.patternBands;
   delete designSettings.backgroundColor;
   delete designSettings.koreanFont;
@@ -5268,6 +5287,7 @@ type MenuManagementBasicCategoryDraft = {
 };
 
 type MenuManagementBasicItemDraft = {
+  imageEnabled?: boolean;
   orderCustomization?: MenuOrderCustomization;
   id: string;
   categoryId?: string;
@@ -5563,6 +5583,7 @@ type NormalizedTimeSaleDraft = {
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   active: boolean;
 };
 
@@ -5580,12 +5601,14 @@ function getTimeSaleSettingsJson({
   displayText,
   badgeText,
   badgeBackgroundColor,
+  badgeTextColor,
   existingSettings,
 }: {
   timeDisplayMode: TimeSaleDisplayMode;
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   existingSettings?: Json | null;
 }): Json {
   const settings =
@@ -5595,6 +5618,7 @@ function getTimeSaleSettingsJson({
   settings.time_display_mode = timeDisplayMode;
   settings.badge_text = badgeText;
   settings.badge_background_color = badgeBackgroundColor;
+  if (badgeTextColor) settings.badge_text_color = badgeTextColor;
   if (displayText) {
     settings.time_display_text = displayText;
   } else {
@@ -6106,6 +6130,10 @@ function normalizeMenuTimeSaleDraft(menuId: string, draft: MenuTimeSaleManagemen
   });
   const badgeText = normalizeTimeSaleBadgeText(draft.badgeText);
   const badgeBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(draft.badgeBackgroundColor);
+  const badgeTextColor = draft.badgeTextColor;
+  if (badgeTextColor !== undefined && (typeof badgeTextColor !== "string" || !isHexColor(badgeTextColor))) {
+    redirectToMenuEditWithError(menuId, "타임세일 배지 글자색을 확인해 주세요.");
+  }
 
   validateRequiredText(menuId, name, "타임세일 이름", 40);
   validateRequiredText(menuId, badgeText, "타임세일 배지 문구", TIME_SALE_BADGE_TEXT_MAX_LENGTH);
@@ -6129,6 +6157,7 @@ function normalizeMenuTimeSaleDraft(menuId: string, draft: MenuTimeSaleManagemen
     displayText,
     badgeText,
     badgeBackgroundColor,
+    badgeTextColor,
     active: draft.enabled === false ? false : draft.active !== false,
   };
 }
@@ -6462,6 +6491,7 @@ async function prepareMenuTimeSaleForSave({
       displayText: draft.displayText,
       badgeText: draft.badgeText,
       badgeBackgroundColor: draft.badgeBackgroundColor,
+      badgeTextColor: draft.badgeTextColor,
     }),
   };
 
@@ -7936,6 +7966,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "단독 메뉴를 추가할 메뉴 페이지를 선택해주세요.");
     }
 
+    if (item.imageEnabled !== undefined && typeof item.imageEnabled !== "boolean") {
+      redirectToMenuEditWithError(menuId, "상품 이미지 사용 여부가 올바르지 않습니다.");
+    }
     if (item.isSoldOut !== undefined && typeof item.isSoldOut !== "boolean") {
       redirectToMenuEditWithError(menuId, "품절 상태 값이 올바르지 않습니다.");
     }
@@ -8029,29 +8062,6 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         isHexColor(draft.textColor)
     );
 
-  if (badgeStyleDrafts.length > 0 || nextPriceDisplayMode) {
-    const settings = getJsonObject(menuSite.settings);
-    if (badgeStyleDrafts.length > 0) {
-      const badgeStyles = getJsonObject(settings.badge_styles);
-      badgeStyleDrafts.forEach((draft) => {
-        badgeStyles[draft.styleKey] = {
-          background_color: draft.backgroundColor.toUpperCase(),
-          text_color: draft.textColor.toUpperCase(),
-        };
-      });
-      settings.badge_styles = badgeStyles;
-    }
-    if (nextPriceDisplayMode) {
-      settings.price_display_mode = nextPriceDisplayMode;
-    }
-
-    const { error } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: now })
-      .eq("id", menuId);
-
-    if (error) redirectToMenuEditWithError(menuId, `메뉴판 설정 저장에 실패했습니다: ${error.message}`);
-  }
 
   if (shouldSavePcTabletLayoutMode) {
     const nextPcTabletLayoutMode = normalizePcTabletLayoutMode(pcTabletLayoutModeInput);
@@ -8766,6 +8776,31 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       await syncMenuItemTraitSlots(supabase, menuId, itemId, traitSlots);
     }
   }
+  if (badgeStyleDrafts.length > 0 || nextPriceDisplayMode || itemDrafts.some(item => item.imageEnabled !== undefined)) {
+    const settings = getJsonObject(menuSite.settings);
+    if (badgeStyleDrafts.length > 0) {
+      const badgeStyles = getJsonObject(settings.badge_styles);
+      badgeStyleDrafts.forEach((draft) => {
+        badgeStyles[draft.styleKey] = {
+          background_color: draft.backgroundColor.toUpperCase(),
+          text_color: draft.textColor.toUpperCase(),
+        };
+      });
+      settings.badge_styles = badgeStyles;
+    }
+    if (nextPriceDisplayMode) {
+      settings.price_display_mode = nextPriceDisplayMode;
+    }
+
+    settings.item_image_visibility = mergeMenuItemImageVisibility(menuSite.settings, itemDrafts, itemIdMap);
+    const { error } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: now })
+      .eq("id", menuId);
+
+    if (error) redirectToMenuEditWithError(menuId, `메뉴판 설정 저장에 실패했습니다: ${error.message}`);
+  }
+
   itemSaveEnd("success", { mappedItemCount: itemIdMap.size });
 
   await syncBasicItemPriceColumnValuesFromDrafts({

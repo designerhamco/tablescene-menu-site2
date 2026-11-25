@@ -8,6 +8,7 @@ type SwitchFieldProps = {
   label: ReactNode;
   defaultChecked?: boolean;
   description?: ReactNode;
+  compact?: boolean;
   disabled?: boolean;
   form?: string;
   onText?: string;
@@ -22,6 +23,7 @@ export default function SwitchField({
   label,
   defaultChecked = false,
   description,
+  compact = false,
   disabled = false,
   form,
   onText = "표시 중",
@@ -39,16 +41,18 @@ export default function SwitchField({
   return (
     <label
       htmlFor={id}
-      className={`flex items-start justify-between gap-4 rounded-lg border border-zinc-100 bg-white p-4 text-copy transition-colors ${
+      className={compact ? "site-editor-switch-row" : `flex items-start justify-between gap-4 rounded-lg border border-zinc-100 bg-white p-4 text-copy transition-colors ${
         disabled ? "cursor-not-allowed" : "cursor-pointer"
       }`}
     >
       <span className="min-w-0">
-        <span id={`${id}-label`} className="block break-keep font-bold leading-relaxed text-zinc-700">{label}</span>
+        <span id={`${id}-label`} className={compact ? "type-label" : "block break-keep font-bold leading-relaxed text-zinc-700"}>{label}</span>
         {description && <span id={`${id}-description`} className="mt-1 block break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</span>}
-        <span className={`mt-2 block text-support font-medium ${effectiveChecked ? "text-emerald-700" : "text-zinc-600"}`}>
-          {effectiveChecked ? onText : offText}
-        </span>
+        {!compact && (
+          <span className={`mt-2 block text-support font-medium ${effectiveChecked ? "text-emerald-700" : "text-zinc-600"}`}>
+            {effectiveChecked ? onText : offText}
+          </span>
+        )}
         {showBlockedMessage && (
           <span id={`${id}-blocked`} className="mt-2 block break-keep text-support font-medium leading-relaxed text-amber-700" aria-live="polite">
             {blockedMessage}
@@ -57,6 +61,7 @@ export default function SwitchField({
       </span>
       <Switch
         surface="light"
+        size={compact ? "sm" : "md"}
         id={id}
         name={name}
         form={form}

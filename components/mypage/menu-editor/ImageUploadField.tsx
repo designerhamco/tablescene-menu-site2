@@ -1,15 +1,24 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { X } from "@/app/components/ui/site-icon";
 
 import { saveMenuEditorScrollPosition } from "@/components/mypage/menu-editor/MenuEditorScrollRestoration";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { getImageUploadPolicy, validateImageUploadFile, type ImageUploadTarget } from "@/lib/image-upload-policy";
 
+import HelpTooltip from "@/components/ui/HelpTooltip";
+
 type ImageUploadFieldProps = {
   label: string;
+  editorLayout?: boolean;
+  labelAction?: ReactNode;
+  hidePreview?: boolean;
+  disabled?: boolean;
+  hideDelete?: boolean;
+  barePicker?: boolean;
   menuId: string;
   target: ImageUploadTarget;
   recordId?: string;
@@ -49,6 +58,12 @@ function getStateClassName(type: UploadState["type"]) {
 
 export default function ImageUploadField({
   label,
+  editorLayout = false,
+  labelAction,
+  hidePreview = false,
+  disabled = false,
+  hideDelete = false,
+  barePicker = false,
   menuId,
   target,
   recordId,
@@ -69,6 +84,8 @@ export default function ImageUploadField({
 }: ImageUploadFieldProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileNameId = useId();
+  const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState(currentUrl ?? "");
   const [state, setState] = useState<UploadState>({ type: "idle", message: null });
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
@@ -100,6 +117,7 @@ export default function ImageUploadField({
         return;
       }
 
+      setFileName("");
       setPreviewUrl(detail.imageUrl ?? "");
       setDraftImageUrl(detail.imageUrl ?? "");
       setDraftImagePath(detail.imagePath ?? "");
@@ -140,6 +158,7 @@ export default function ImageUploadField({
         throw new Error(result.message ?? "이미지 업로드에 실패했습니다.");
       }
 
+      setFileName(file.name);
       setPreviewUrl(result.imageUrl ?? "");
       setDraftImageUrl(result.imageUrl ?? "");
       setDraftImagePath(result.imagePath ?? "");
@@ -206,78 +225,121 @@ export default function ImageUploadField({
     }
   }
 
+  const uploadButton = (
+    <button type="button" disabled={isLoading || disabled} onClick={() => inputRef.current?.click()}
+      className="site-button site-button-primary">
+      {isLoading && <LoadingSpinner className="h-3 w-3" />}
+      {isLoading ? "업로드 중..." : editorLayout ? "파일 선택" : "이미지 등록"}
+    </button>
+  );
+  const status = state.message && (
+    <div className={`mt-4 rounded-lg border p-3 text-support font-medium leading-relaxed ${getStateClassName(state.type)}`} role="status">
+      {state.message}
+    </div>
+  );
+
   return (
-    <div className="site-section site-editor-subpanel p-4">
+    <div className={editorLayout ? "site-stack-copy" : "site-section site-editor-subpanel p-4"}>
       {deferredDeleteName && isMarkedForDeferredDelete && <input type="hidden" name={deferredDeleteName} value="on" />}
       {draftImageUrlInputName && draftImageUrl && <input type="hidden" name={draftImageUrlInputName} value={draftImageUrl} />}
       {draftImagePathInputName && draftImagePath && <input type="hidden" name={draftImagePathInputName} value={draftImagePath} />}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40">
-          {previewUrl ? (
-            // TODO: 이미지 업로드 시 WebP 변환/압축을 서버 또는 브라우저에서 추가할 수 있습니다.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload || target === "menu-pattern-band-draft" ? "object-contain p-3" : "object-cover"}`} />
-          ) : (
-            emptyPreview ?? <span className="text-support font-medium text-zinc-600">이미지 없음</span>
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
-          {description && <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</p>}
-          <div className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{fileGuidance ?? uploadPolicy.label}</div>
-          {optimizationGuidance ? (
-            <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">{optimizationGuidance}</p>
-          ) : null}
-          <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
-            본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
-          </p>
-
-          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void uploadFile(file);
-              }}
-            />
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={() => inputRef.current?.click()}
-              className="site-button site-button-primary inline-flex items-center justify-center"
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner className="h-3 w-3" />
-                  업로드 중...
-                </>
-              ) : (
-                "이미지 등록"
-              )}
-            </button>
-            {previewUrl && !isConfirmingDelete && (
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={() => setIsConfirmingDelete(true)}
-                className="site-button site-button-outline-danger inline-flex items-center justify-center"
-              >
-                이미지 삭제
-              </button>
-            )}
-          </div>
-
-          {state.message && (
-            <div className={`mt-4 rounded-lg border p-3 text-support font-medium leading-relaxed ${getStateClassName(state.type)}`}>
-              {state.message}
+      <input
+        ref={inputRef}
+        type="file"
+        disabled={disabled}
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void uploadFile(file);
+        }}
+      />
+      {editorLayout ? (
+        <>
+          {barePicker ? <label htmlFor={fileNameId} className="sr-only">{label}</label> : (
+            <div className="site-content-heading-row" data-layout={labelAction ? "toolbar" : undefined} data-editor-upload-heading={labelAction ? "" : undefined}>
+              <div className="site-action-row">
+                <label htmlFor={fileNameId} className="type-label">{label}</label>
+                <HelpTooltip label={`${label} 업로드 주의사항`} hover>
+                  본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해 주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+                </HelpTooltip>
+              </div>
+              {labelAction}
             </div>
           )}
+          <div className="site-editor-file-row">
+            <input id={fileNameId} className="site-field site-input" readOnly value={previewUrl ? fileName || "등록된 이미지" : ""} placeholder="선택한 파일 없음" />
+            {uploadButton}
+          </div>
+          {!hidePreview && (previewUrl || emptyPreview) && (
+            <div className="site-editor-image-preview">
+              {previewUrl ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl} alt="" />
+                  {!isConfirmingDelete && (
+                    <button type="button" className="site-button site-button-outline site-button-icon" data-icon-size="compact"
+                      aria-label={`${label} 삭제`} disabled={isLoading} onClick={() => setIsConfirmingDelete(true)}>
+                      <X aria-hidden="true" />
+                    </button>
+                  )}
+                </>
+              ) : emptyPreview}
+            </div>
+          )}
+          {hidePreview && !hideDelete && previewUrl && !isConfirmingDelete && (
+            <div className="site-action-row" data-distribution="end">
+              <button type="button" className="site-button site-button-outline-danger" disabled={isLoading} onClick={() => setIsConfirmingDelete(true)}>이미지 삭제</button>
+            </div>
+          )}
+          {!barePicker && <div className="site-stack-detail type-caption site-copy-muted">
+            {description && <p>{description}</p>}
+            <p>{fileGuidance ?? uploadPolicy.label}</p>
+            {optimizationGuidance && <p>{optimizationGuidance}</p>}
+          </div>}
+          {status}
+        </>
+      ) : (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          {!hidePreview && <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40">
+            {previewUrl ? (
+              // TODO: 이미지 업로드 시 WebP 변환/압축을 서버 또는 브라우저에서 추가할 수 있습니다.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload || target === "menu-pattern-band-draft" ? "object-contain p-3" : "object-cover"}`} />
+            ) : (
+              emptyPreview ?? <span className="text-support font-medium text-zinc-600">이미지 없음</span>
+            )}
+          </div>}
+
+          <div className="min-w-0 flex-1">
+            <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
+            {description && <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</p>}
+            <div className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{fileGuidance ?? uploadPolicy.label}</div>
+            {optimizationGuidance ? (
+              <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">{optimizationGuidance}</p>
+            ) : null}
+            <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
+              본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
+              {uploadButton}
+              {previewUrl && !isConfirmingDelete && (
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => setIsConfirmingDelete(true)}
+                  className="site-button site-button-outline-danger inline-flex items-center justify-center"
+                >
+                  이미지 삭제
+                </button>
+              )}
+            </div>
+
+            {status}
+          </div>
         </div>
-      </div>
+      )}
       {previewUrl && isConfirmingDelete && (
         <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
           <div role="dialog" aria-modal="true" aria-label={deleteConfirmTitle} className="site-dialog site-dialog-panel w-full max-w-sm p-6">
