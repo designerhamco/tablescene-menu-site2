@@ -802,12 +802,12 @@ function getCafeATimeSaleAccentColor(backgroundColor: PublicTimeSale["badgeBackg
 }
 
 
-function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"], templateKey?: string | null): CSSProperties {
+function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"], templateKey?: string | null, textColor?: string): CSSProperties {
   const normalizedBackgroundColor = getCafeATimeSaleAccentColor(backgroundColor);
   return {
     backgroundColor: normalizedBackgroundColor,
     borderColor: normalizedBackgroundColor,
-    color: getTemplateTimeSaleBadgeTextColor(templateKey, normalizedBackgroundColor),
+    color: textColor ?? getTemplateTimeSaleBadgeTextColor(templateKey, normalizedBackgroundColor),
   };
 }
 
@@ -817,7 +817,7 @@ function TimeSaleBadge({ timeSale, templateKey, className = "" }: { timeSale: Pu
   return (
     <span
       className={`menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}
-      style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor, templateKey)}
+      style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor, templateKey, timeSale.badgeTextColor)}
     >
       <ScriptAwareText text={translateMenuText(timeSale.badgeText, locale)} />
     </span>

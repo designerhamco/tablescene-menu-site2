@@ -161,6 +161,7 @@ export type PublicMenuTimeSale = {
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   items: Array<{
     id: string;
     menuItemId: string;

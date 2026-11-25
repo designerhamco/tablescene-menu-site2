@@ -1,3 +1,4 @@
+import { getMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { translateMenuText } from "./menu-ui-copy";
 import "server-only";
 
@@ -10,6 +11,7 @@ import { parseMenuWidgetRows, type MenuWidgetRow } from "@/lib/menu-widget-db-ma
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
 import {
   getTimeSaleBadgeBackgroundColorFromSettings,
+  getTimeSaleBadgeTextColorFromSettings,
   getTimeSaleBadgeTextFromSettings,
   getTimeSaleDisplayModeFromSettings,
   getTimeSaleDisplayTextFromSettings,
@@ -326,6 +328,7 @@ async function loadPublicTimeSales({
         displayText: getTimeSaleDisplayTextFromSettings(promotion.settings),
         badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
         badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
+        badgeTextColor: getTimeSaleBadgeTextColorFromSettings(promotion.settings),
         items: promotionItems.map((item) => ({
           id: item.id,
           menuItemId: item.menu_item_id,
@@ -1161,6 +1164,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
   });
   const widgets = await loadPublicMenuWidgets({ supabase, menuSite });
 
+  const itemImageVisibility = getMenuItemImageVisibility(menuSite.settings);
   const data = {
     locale,
     enabledLocales,
@@ -1169,7 +1173,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
     pageSettings,
     pages,
     categories: categoriesWithPriceColumns,
-    items: itemsWithPriceColumnValues,
+    items: itemsWithPriceColumnValues.map(item => itemImageVisibility[item.id] === false ? { ...item, image_url: null, image_path: null } : item),
     featuredSlides,
     priceOptions,
     traits: (traitsData ?? []) as MenuItemTrait[],

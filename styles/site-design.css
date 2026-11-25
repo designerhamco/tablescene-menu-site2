@@ -1457,9 +1457,59 @@ html[data-home-service-cover]::view-transition-new(root) {
   [data-basic-sale-schedule] { grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1.35fr); }
 }
 
-.site-basic-category-form, .site-basic-item-form {
+.site-basic-item-form {
   display: grid;
   gap: var(--site-space-block);
 }
 .site-basic-editor-label-row, [data-editor-upload-heading] { min-block-size: var(--ui-control-height-header); }
 .site-basic-editor-label-row { display: flex; align-items: center; }
+
+/* Basic editor PDF composition: compact choice rows and inline badge controls. */
+.site-editor-choice-row {
+  display: flex;
+  align-items: center;
+  gap: var(--site-space-copy);
+  min-inline-size: 0;
+}
+.site-editor-choice-row > .site-choice { flex: 1; }
+.site-editor-badge-row, .site-editor-sale-badge-row {
+  display: grid;
+  align-items: center;
+  gap: var(--site-space-copy);
+  min-inline-size: 0;
+}
+.site-editor-badge-colors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--site-space-copy);
+  min-inline-size: 0;
+  padding: var(--site-space-copy);
+  border-radius: var(--ui-radius-control-rounded);
+  background: var(--ui-surface-muted);
+}
+.site-editor-badge-colors input[type="color"] {
+  inline-size: var(--ui-control-height-compact);
+  block-size: var(--ui-control-height-compact);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+[data-basic-category-form] > .site-editor-action-row {
+  margin-block-start: auto;
+}
+[data-basic-category-form] { min-block-size: 65vh; }
+[data-basic-category-form] .site-editor-action-row,
+[data-basic-item-form] > .site-editor-action-row {
+  justify-content: center;
+  border-block-start: 1px solid var(--ui-button-boundary);
+  padding-block-start: var(--site-space-block);
+}
+[data-basic-item-form] .site-editor-subpanel:has(> h5) { padding-inline: 0; background: transparent; }
+@container basic-editor-content (min-width: 60rem) {
+  .site-editor-badge-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr); }
+  .site-editor-sale-badge-row { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+}
+
+.site-basic-category-form { display: flex; flex-direction: column; gap: var(--site-space-block); }
+.site-editor-tree-row { padding-inline: var(--site-space-copy); }

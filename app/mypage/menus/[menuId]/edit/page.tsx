@@ -1,3 +1,4 @@
+import { getMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { Check } from "@/app/components/ui/site-icon";
 import { readMenuTextColors } from "@/lib/menu-text-colors";
@@ -77,6 +78,7 @@ import { getPublicMenuUrl } from "@/lib/menu-url";
 import { hasMenuSitePermission, MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   getTimeSaleBadgeBackgroundColorFromSettings,
+  getTimeSaleBadgeTextColorFromSettings,
   getTimeSaleBadgeTextFromSettings,
   getTimeSaleDisplayTextFromSettings,
   getTimeSaleDisplayModeFromSettings,
@@ -809,6 +811,7 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
       displayText: getTimeSaleDisplayTextFromSettings(promotion.settings),
       badgeText: getTimeSaleBadgeTextFromSettings(promotion.settings),
       badgeBackgroundColor: getTimeSaleBadgeBackgroundColorFromSettings(promotion.settings),
+        badgeTextColor: getTimeSaleBadgeTextColorFromSettings(promotion.settings),
       item: promotionItem
         ? {
             id: promotionItem.id,
@@ -2529,6 +2532,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     aiDescriptionUsage={aiUsage.ai_description}
                     aiMenuCleanupUsage={aiUsage.ai_menu_cleanup}
                     badgeStyles={badgeStyles}
+                    itemImageVisibility={getMenuItemImageVisibility(site.settings)}
                     editorLabels={templateEditorLabels}
                     starterPreset={menuManagementStarterPreset}
                     canConfigurePcTabletLayoutMode={canConfigurePcTabletLayoutMode}

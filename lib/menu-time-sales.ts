@@ -28,6 +28,7 @@ export type MenuEditorTimeSale = {
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   item: {
     id: string;
     menuItemId: string;
@@ -74,6 +75,7 @@ export type MenuTimeSaleManagementDraft = {
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   targets: MenuTimeSaleManagementTargetDraft[];
 };
 
@@ -239,4 +241,10 @@ export function toLocalDateTimeInputValue(value: string | null | undefined) {
   if (Number.isNaN(date.getTime())) return "";
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return localDate.toISOString().slice(0, 16);
+}
+
+export function getTimeSaleBadgeTextColorFromSettings(settings: Json | null | undefined): string | undefined {
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) return undefined;
+  const color = settings.badge_text_color;
+  return typeof color === "string" && /^#[0-9a-f]{6}$/i.test(color) ? color.toUpperCase() : undefined;
 }

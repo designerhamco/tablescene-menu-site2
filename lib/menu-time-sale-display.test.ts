@@ -15,3 +15,12 @@ test("digital time-sale countdown includes hours without losing fixed-width digi
   assert.equal(formatTimeSaleDigitalCountdownLabel(nowMs + (2 * 3600 + 3 * 60 + 4) * 1000, nowMs), "02:03:04");
   assert.equal(formatTimeSaleDigitalCountdownLabel(nowMs - 1_000, nowMs), "00:00:00");
 });
+
+test("saved optional time-sale badge ink is validated without changing automatic legacy colors", async () => {
+  const { getTimeSaleBadgeTextColorFromSettings, getTemplateTimeSaleBadgeTextColor } = await import("./menu-time-sales");
+  assert.equal(getTimeSaleBadgeTextColorFromSettings({ badge_text_color: "#aabbcc" }), "#AABBCC");
+  assert.equal(getTimeSaleBadgeTextColorFromSettings({ badge_text_color: "red" }), undefined);
+  assert.equal(getTimeSaleBadgeTextColorFromSettings(null), undefined);
+  assert.equal(getTimeSaleBadgeTextColorFromSettings({}), undefined);
+  assert.equal(getTemplateTimeSaleBadgeTextColor("cafe_design_a", "#ffffff"), "#191C1B");
+});

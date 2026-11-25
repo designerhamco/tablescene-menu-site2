@@ -1,5 +1,6 @@
 "use server";
 
+import { mergeMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { parseMenuOrderCustomization, type MenuOrderCustomization } from "@/lib/menu-order-customization";
 
@@ -5268,6 +5269,7 @@ type MenuManagementBasicCategoryDraft = {
 };
 
 type MenuManagementBasicItemDraft = {
+  imageEnabled?: boolean;
   orderCustomization?: MenuOrderCustomization;
   id: string;
   categoryId?: string;
@@ -5563,6 +5565,7 @@ type NormalizedTimeSaleDraft = {
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   active: boolean;
 };
 
@@ -5580,12 +5583,14 @@ function getTimeSaleSettingsJson({
   displayText,
   badgeText,
   badgeBackgroundColor,
+  badgeTextColor,
   existingSettings,
 }: {
   timeDisplayMode: TimeSaleDisplayMode;
   displayText: string | null;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   existingSettings?: Json | null;
 }): Json {
   const settings =
@@ -5595,6 +5600,7 @@ function getTimeSaleSettingsJson({
   settings.time_display_mode = timeDisplayMode;
   settings.badge_text = badgeText;
   settings.badge_background_color = badgeBackgroundColor;
+  if (badgeTextColor) settings.badge_text_color = badgeTextColor;
   if (displayText) {
     settings.time_display_text = displayText;
   } else {
@@ -6106,6 +6112,10 @@ function normalizeMenuTimeSaleDraft(menuId: string, draft: MenuTimeSaleManagemen
   });
   const badgeText = normalizeTimeSaleBadgeText(draft.badgeText);
   const badgeBackgroundColor = normalizeTimeSaleBadgeBackgroundColor(draft.badgeBackgroundColor);
+  const badgeTextColor = draft.badgeTextColor;
+  if (badgeTextColor !== undefined && (typeof badgeTextColor !== "string" || !isHexColor(badgeTextColor))) {
+    redirectToMenuEditWithError(menuId, "타임세일 배지 글자색을 확인해 주세요.");
+  }
 
   validateRequiredText(menuId, name, "타임세일 이름", 40);
   validateRequiredText(menuId, badgeText, "타임세일 배지 문구", TIME_SALE_BADGE_TEXT_MAX_LENGTH);
@@ -6129,6 +6139,7 @@ function normalizeMenuTimeSaleDraft(menuId: string, draft: MenuTimeSaleManagemen
     displayText,
     badgeText,
     badgeBackgroundColor,
+    badgeTextColor,
     active: draft.enabled === false ? false : draft.active !== false,
   };
 }
@@ -6462,6 +6473,7 @@ async function prepareMenuTimeSaleForSave({
       displayText: draft.displayText,
       badgeText: draft.badgeText,
       badgeBackgroundColor: draft.badgeBackgroundColor,
+      badgeTextColor: draft.badgeTextColor,
     }),
   };
 
@@ -7936,6 +7948,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "단독 메뉴를 추가할 메뉴 페이지를 선택해주세요.");
     }
 
+    if (item.imageEnabled !== undefined && typeof item.imageEnabled !== "boolean") {
+      redirectToMenuEditWithError(menuId, "상품 이미지 사용 여부가 올바르지 않습니다.");
+    }
     if (item.isSoldOut !== undefined && typeof item.isSoldOut !== "boolean") {
       redirectToMenuEditWithError(menuId, "품절 상태 값이 올바르지 않습니다.");
     }
@@ -8029,29 +8044,6 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         isHexColor(draft.textColor)
     );
 
-  if (badgeStyleDrafts.length > 0 || nextPriceDisplayMode) {
-    const settings = getJsonObject(menuSite.settings);
-    if (badgeStyleDrafts.length > 0) {
-      const badgeStyles = getJsonObject(settings.badge_styles);
-      badgeStyleDrafts.forEach((draft) => {
-        badgeStyles[draft.styleKey] = {
-          background_color: draft.backgroundColor.toUpperCase(),
-          text_color: draft.textColor.toUpperCase(),
-        };
-      });
-      settings.badge_styles = badgeStyles;
-    }
-    if (nextPriceDisplayMode) {
-      settings.price_display_mode = nextPriceDisplayMode;
-    }
-
-    const { error } = await supabase
-      .from("menu_sites")
-      .update({ settings, updated_at: now })
-      .eq("id", menuId);
-
-    if (error) redirectToMenuEditWithError(menuId, `메뉴판 설정 저장에 실패했습니다: ${error.message}`);
-  }
 
   if (shouldSavePcTabletLayoutMode) {
     const nextPcTabletLayoutMode = normalizePcTabletLayoutMode(pcTabletLayoutModeInput);
@@ -8766,6 +8758,31 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       await syncMenuItemTraitSlots(supabase, menuId, itemId, traitSlots);
     }
   }
+  if (badgeStyleDrafts.length > 0 || nextPriceDisplayMode || itemDrafts.some(item => item.imageEnabled !== undefined)) {
+    const settings = getJsonObject(menuSite.settings);
+    if (badgeStyleDrafts.length > 0) {
+      const badgeStyles = getJsonObject(settings.badge_styles);
+      badgeStyleDrafts.forEach((draft) => {
+        badgeStyles[draft.styleKey] = {
+          background_color: draft.backgroundColor.toUpperCase(),
+          text_color: draft.textColor.toUpperCase(),
+        };
+      });
+      settings.badge_styles = badgeStyles;
+    }
+    if (nextPriceDisplayMode) {
+      settings.price_display_mode = nextPriceDisplayMode;
+    }
+
+    settings.item_image_visibility = mergeMenuItemImageVisibility(menuSite.settings, itemDrafts, itemIdMap);
+    const { error } = await supabase
+      .from("menu_sites")
+      .update({ settings, updated_at: now })
+      .eq("id", menuId);
+
+    if (error) redirectToMenuEditWithError(menuId, `메뉴판 설정 저장에 실패했습니다: ${error.message}`);
+  }
+
   itemSaveEnd("success", { mappedItemCount: itemIdMap.size });
 
   await syncBasicItemPriceColumnValuesFromDrafts({

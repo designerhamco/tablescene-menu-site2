@@ -150,6 +150,7 @@ export type CafeAStarterResetTimeSaleDraft = {
   timezone: typeof TIME_SALE_TIMEZONE;
   badgeText: string;
   badgeBackgroundColor: string;
+  badgeTextColor?: string;
   timeDisplayMode: TimeSaleDisplayMode;
   timeDisplayText: string | null;
   targets: CafeAStarterResetTimeSaleTargetDraft[];
