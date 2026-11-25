@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { createAnnouncementClient } from "@/lib/server/announcement-service";
 import {
   formatAnnouncementDate,
@@ -53,6 +54,10 @@ export default async function AnnouncementAdmin({
   return (
     <>
       <OfficialSiteNavbar />
+      <ActionFeedbackToast
+        message={params.saved === "1" ? "공지사항을 저장했습니다." : undefined}
+        eventKey={{ id: params.id, saved: params.saved }}
+      />
       <main className="site-container">
         <div className={styles.admin}>
           <header className={styles.adminHeader}>
@@ -72,11 +77,6 @@ export default async function AnnouncementAdmin({
               </Link>
             </div>
           </header>
-          {params.saved === "1" ? (
-            <p role="status" className={`${styles.feedback} mb-6`}>
-              공지사항을 저장했습니다.
-            </p>
-          ) : null}
           {params.id && !selected.data && !unavailable ? (
             <p className={`${styles.feedback} mb-6`}>
               해당 공지사항을 찾을 수 없습니다. 새 글을 작성하거나 목록에서 다시

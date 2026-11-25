@@ -56,6 +56,10 @@ test("리다이렉트 후 단순 성공은 토스트로 표시하고 계속 읽�
     assert.doesNotMatch(source, new RegExp(`site-notice-success[^>]*>\\s*\\{${message}\\}`));
   }
 
+  const announcements = readSource("app/admin/announcements/page.tsx");
+  assert.match(announcements, /<ActionFeedbackToast\s+message=\{params.saved === "1" \? "공지사항을 저장했습니다\."/);
+  assert.doesNotMatch(announcements, /role="status"[^>]*>\s*공지사항을 저장했습니다/);
+
   const editor = readSource("app/mypage/menus/[menuId]/edit/page.tsx");
   assert.match(editor, /<MenuEditorToastBridge message=\{bannerMessage\}/);
   assert.doesNotMatch(editor, /<FinalSaveFeedback message=/);
