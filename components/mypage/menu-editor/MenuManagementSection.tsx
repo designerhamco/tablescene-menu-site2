@@ -7468,22 +7468,22 @@ export default function MenuManagementSection({
     createPendingWidgetDraft("copy", source.type, source);
   }
 
-  function commitActiveWidgetEditor() {
-    if (!activeWidgetEditor) return;
+  function commitActiveWidgetEditor(showFeedback = true) {
+    if (!activeWidgetEditor) return false;
 
     const draft = cloneMenuWidgetDraft(activeWidgetEditor.draft);
     draft.settings.placement = getEffectiveWidgetPlacement(templateKey, draft.settings.placement);
     const validation = validateMenuWidgetDraft(draft);
     if (!validation.valid) {
       toast.error(validation.errors[0]?.message ?? "위젯 내용을 확인해주세요.");
-      return;
+      return false;
     }
 
     const pageWidgetCount = getWidgetCountForPage(draft.menuPageId);
     const isNewWidget = !widgetDraftsById[draft.id];
     if (isNewWidget && pageWidgetCount >= maxMenuWidgetsPerPage) {
       toast.error(`한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.`);
-      return;
+      return false;
     }
 
     setWidgetDraftsById((currentDrafts) => ({
@@ -7520,7 +7520,8 @@ export default function MenuManagementSection({
       afterBlockId: null,
     });
     markMenuManagementDirty();
-    toast.success("위젯 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    if (showFeedback) toast.success("위젯 내용이 임시 반영되었습니다. 저장 후 공개 메뉴판에 반영됩니다.");
+    return true;
   }
 
   function cancelActiveWidgetEditor() {
@@ -9769,6 +9770,13 @@ export default function MenuManagementSection({
             ) : activeWidgetEditor ? (
               <MenuWidgetDraftEditor
                 mode={activeWidgetEditor.mode}
+                basicEditor={basicEditor}
+                finalSavePending={basicFinalSavePending}
+                finalSaveDisabled={timeSaleLimitExceeded || (!menuManagementDirty && !hasWidgetEditorChanges(activeWidgetEditor))}
+                finalSaveError={menuFinalSaveError}
+                onFinalSave={() => {
+                  if (!basicFinalSavePending && commitActiveWidgetEditor(false)) requestBasicFinalSave();
+                }}
                 menuSiteId={menuId}
                 draft={activeWidgetEditor.draft}
                 persistedImagePath={getPersistedWidgetImagePath(activeWidgetEditor.draft.id)}
@@ -9777,7 +9785,7 @@ export default function MenuManagementSection({
                 isConfirmingDelete={confirmingDeleteKey === `widget:${activeWidgetEditor.draft.id}`}
                 hasChanges={hasWidgetEditorChanges(activeWidgetEditor)}
                 onChange={updateActiveWidgetEditorDraft}
-                onSave={commitActiveWidgetEditor}
+                onSave={() => { commitActiveWidgetEditor(); }}
                 onCancel={cancelActiveWidgetEditor}
                 onCopy={activeWidgetEditor.mode === "edit" ? () => copyWidgetDraft(activeWidgetEditor.draft.id) : undefined}
                 onRequestDelete={activeWidgetEditor.mode === "edit" ? () => setConfirmingDeleteKey(`widget:${activeWidgetEditor.draft.id}`) : undefined}
@@ -10308,7 +10316,7 @@ export default function MenuManagementSection({
                 {timeSaleLimitMessage}
               </p>
             ) : null}
-            {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem)) && <FinalActionRow>
+            {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem && !activeWidgetEditor)) && <FinalActionRow>
               {sampleResetButton}
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 {finalSaveLabel}
