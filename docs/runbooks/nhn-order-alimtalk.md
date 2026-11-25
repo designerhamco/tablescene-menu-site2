@@ -4,7 +4,7 @@
 
 NHN Cloud KakaoTalk Bizmessage API v2.3용 구현이다. 미배포 SENS 초안의 주문 리스트·테이블 상세 발송 UI를 현재 주문 관리 화면에 연결했다. 기존 결제 단말 작업과는 별도 브랜치다.
 
-현재는 서버에서 지정한 메뉴판 하나와 발신 프로필 하나의 검수용 연결이다. 아티메뉴 공용 채널을 미설정 매장의 발신자로 사용하지 않는다. 점주가 자신의 채널을 직접 인증하고 매장별 템플릿을 등록하는 셀프 연결, 충전·과금 기능은 이 변경에 포함하지 않는다.
+발송은 서버에서 지정한 메뉴판 하나와 발신 프로필 하나의 검수용 연결이다. 아티메뉴 공용 채널을 미설정 매장의 발신자로 사용하지 않는다. 점주 채널 인증은 아래의 별도 기능으로 추가했으며, 인증만으로 운영 발송을 열지 않는다. 매장별 템플릿 자동 등록·충전·과금은 아직 포함하지 않는다.
 
 ## 서버 설정
 
@@ -65,3 +65,33 @@ NHN Cloud KakaoTalk Bizmessage API v2.3용 구현이다. 미배포 SENS 초안�
 실제 인증 키와 메뉴판 연결 값은 Git에서 제외된 `.env.development.local`에만 저장한다. `ORDER_ALIMTALK_ENABLED=false`를 유지했고 SELECT와 템플릿 GET 외 요청은 하지 않았다. 운영 DB 적용·실제 발송·운영 배포는 아직 하지 않았다.
 
 [NHN 알림톡 API](https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-api-guide/) · [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+
+## 점주 채널 직접 연결 (로컬 구현, 2026-11-25)
+
+위치: 매장 운영 → 주문 설정 → 조리완료 알림톡. 사장님이 검색용 채널 ID, 채널 관리자 휴대폰 번호, 업종 대·중·소분류를 입력하고 카카오톡 인증번호 6자리로 연결한다. 직원에게는 변경 권한을 주지 않는다. 모든 서버 액션은 세션·매장 소유권·쓰기 가능 상태를 다시 확인한다.
+
+사용하는 NHN API는 `GET /sender/categories`, `POST /senders`, `POST /sender/token`이다. 업종 응답의 중·소분류 `code`는 실제로 4자리 구간 값으로 내려와 부모 코드를 붙여 11자리로 만든다. OTP 검증은 요청한 채널과 `YSC03` 상태, 40자리 발신 키가 일치해야 성공으로 저장한다. 이미 등록된 프로필(-1004)을 ID만으로 가져오거나 인증을 우회하지 않는다. 기존에 콘솔에서 연결한 프로필의 인수·변경·연결 해제는 이번 범위에 없다.
+
+- 신규 SQL: `20261125045027_add_merchant_alimtalk_channels.sql`. **운영에는 미적용**. UI·서버 기능도 미배포다.
+- 테이블/RPC는 일반 비로그인·로그인 역할에 모두 비공개다. 서버만 발신 키를 읽고 저장하며, 클라이언트 응답은 채널·상태·마스킹 번호·일자·남은 횟수만 포함한다. 원문 휴대폰 번호와 인증번호는 저장하지 않는다.
+- 60초 재요청 간격, 점주 전체 메뉴판 합산 1시간당 최대 10회, 인증 유효시간 10분, 요청당 최대 5회 검증을 적용한다. DB 예약과 유일 인덱스로 동시 요청·다른 메뉴판의 활성 채널 중복을 차단한다. 이전 소유자의 인증은 새 소유자에게 승계하지 않는다.
+- 현재 연결 단위는 메뉴판당 채널 1개다. 동일 채널의 여러 메뉴판 공유나 채널 교체는 별도 흐름이 필요하다. 만료된 미인증 예약은 새 인증 요청으로 교체할 수 있다.
+- 연결 성공 후에도 `sending_enabled=false`이며 DB CHECK로 활성화를 막는다. 기존 발송 환경변수도 `ORDER_ALIMTALK_ENABLED=false`를 유지한다. 점주 채널 연결 데이터는 기존 테스트용 발송 설정을 자동 변경하지 않는다.
+- NHN 프로젝트 Appkey/Secret Key만으로 업종 조회·인증 연결을 준비할 수 있다. 실 발신 키·템플릿 승인·발송 활성화와 분리되어 있다.
+- 인증 요청 응답이 유실되면 새 요청을 자동 반복하지 않고 번호를 받은 점주가 인증을 이어갈 수 있게 한다. NHN 인증 후 DB 저장이 실패한 경우 임의로 기존 키를 붙이지 않고 고객지원 확인으로 중단한다.
+
+검수:
+
+```sh
+node --import tsx --test lib/merchant-alimtalk-channel.test.ts lib/merchant-alimtalk-channel-service.test.ts lib/order-ready-alimtalk-provider.test.ts
+# PGlite 0.6.0을 별도 임시 폴더에 설치한 경우; 운영 env를 읽지 않는 독립 Postgres 검사
+node scripts/qa-merchant-alimtalk-db.mjs /absolute/path/to/node_modules/@electric-sql/pglite
+npm run check:site-ui
+npx tsc --noEmit --incremental false
+```
+
+`http://127.0.0.1:3136/qa-merchant-alimtalk-local`은 개발 모드에서만 열리는 모의 화면이다. 조리완료 알림톡 탭에서 임의 정보와 인증번호 `123456`으로 확인할 수 있다. 틀린 번호, 남은 횟수, 새로고침 후 인증 대기 유지, 연결 완료, 체험 초기화를 검수한다. 쿠키에는 마스킹된 모의 연결 상태만 저장하며 실 인증·NHN 등록·고객 발송·운영 DB 쓰기는 전혀 호출하지 않는다. 운영 빌드에서는 페이지와 액션 모두 차단한다.
+
+로컬 DB 검사 20건은 RLS·실제 권한 차단·타 매장 거부·채널 중복·재요청 간격·만료·횟수 제한·키 저장 조건·발송 비활성·소유권 변경을 확인했다. 브라우저는 PC, 820px 태블릿, 390px 모바일에서 검수한다. 실제 채널 인증과 운영 DB 적용·배포는 별도 진행해야 한다.
+
+[NHN 발신 프로필 API v2.3](https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/sender-api-guide-v2.3/)

@@ -1692,6 +1692,49 @@ export type Database = {
           },
         ]
       }
+      menu_alimtalk_channels: {
+        Row: {
+          menu_site_id: string
+          actor_id: string
+          channel_id: string
+          category_code: string
+          masked_phone: string
+          state: string
+          challenge_id: string
+          requested_at: string
+          expires_at: string
+          verify_attempts: number
+          request_window_started_at: string
+          request_count: number
+          sender_key: string | null
+          verified_at: string | null
+          sending_enabled: boolean
+        }
+        Insert: {
+          menu_site_id: string
+          actor_id: string
+          channel_id: string
+          category_code: string
+          masked_phone: string
+          state: string
+          challenge_id?: string
+          requested_at?: string
+          expires_at?: string
+          verify_attempts?: number
+          request_window_started_at?: string
+          request_count?: number
+          sender_key?: string | null
+          verified_at?: string | null
+          sending_enabled?: boolean
+        }
+        Update: {
+          state?: string
+          sender_key?: string | null
+          verified_at?: string | null
+          sending_enabled?: boolean
+        }
+        Relationships: []
+      }
       menu_order_alimtalk_attempts: {
         Row: {
           id: string
@@ -3681,6 +3724,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      reserve_menu_alimtalk_request: {
+        Args: { p_menu_id: string; p_actor_id: string; p_channel_id: string; p_category_code: string; p_masked_phone: string }
+        Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]
+      }
+      reserve_menu_alimtalk_verification: {
+        Args: { p_menu_id: string; p_actor_id: string; p_challenge_id: string }
+        Returns: Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"][]
+      }
+
       preview_order_point_deletion: {
         Args: { p_menu_site_id: string; p_table_id: string }
         Returns: Json
