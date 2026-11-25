@@ -23,6 +23,8 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
+import MenuEditorActionBar, { MenuEditorDirtyContext } from "@/components/mypage/menu-editor/MenuEditorActionBar";
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import MenuEditorSaveFeedback from "@/components/mypage/menu-editor/MenuEditorSaveFeedback";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
@@ -1288,10 +1290,12 @@ function SubmitButton({
 
 function FinalActionRow({ children }: { children: ReactNode }) {
   return (
-    <div className="site-editor-action-row">
-      {children}
-    </div>
+    <MenuEditorActionBar>{children}</MenuEditorActionBar>
   );
+}
+
+function MenuEditorFormActions({ dock, pending, dirty, formId, children }: { dock: boolean; pending?: boolean; dirty?: boolean; formId?: string; children: ReactNode }) {
+  return dock ? <MenuEditorActionBar pending={pending} dirty={dirty} formId={formId}>{children}</MenuEditorActionBar> : <div className="site-action-row" data-distribution="end">{children}</div>;
 }
 
 function HiddenMenuId({ menuId, form }: { menuId: string; form?: string }) {
@@ -1565,10 +1569,10 @@ function PanelHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="mb-5 flex min-w-0 flex-col justify-between gap-4 border-b border-zinc-100 pb-5 md:flex-row md:items-end">
-      <div className="min-w-0">
-        <h3 className="type-subsection-title mt-1 line-clamp-2 break-words text-zinc-950">{title}</h3>
-        {description ? <p className="mt-2 break-words text-copy font-semibold leading-relaxed text-zinc-600">{description}</p> : null}
+    <div className="site-editor-panel-heading site-content-heading-row">
+      <div className="site-stack-title min-w-0">
+        <h3 className="type-subsection-title break-words">{title}</h3>
+        {description ? <p className="type-body-sm site-copy-muted">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
@@ -2672,32 +2676,23 @@ function MenuCategoryForm({
   }
 
   const nameField = (
-    <div>
-        <FieldLabel required>{labels.categoryLabel} 이름</FieldLabel>
-        <input
-          name="category_name"
-          value={nameValue}
-          maxLength={MENU_FIELD_LIMITS.menuCategories.name}
-          placeholder={labels.categoryNamePlaceholder}
-          required
-          onChange={(event) => {
-            setName(event.target.value);
-            if (!category || basicEditor) {
-              onDraftNameChange?.(event.target.value);
-              onDraftChange?.({ name: event.target.value });
-            }
-          }}
-          className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
-            nameInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
-          }`}
-        />
-        <div className="mt-2 flex items-center justify-between text-support font-medium">
-          <span className={nameInvalid ? "text-red-600" : "text-zinc-600"}>
-            {!nameValue.trim() ? "이름은 필수 입력입니다" : nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? `최대 ${MENU_FIELD_LIMITS.menuCategories.name}자까지 입력 가능합니다` : ""}
-          </span>
-          <span className={nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? "text-red-600" : "text-zinc-600"}>{nameValue.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
-        </div>
+    <div className="site-field-stack">
+      <label className="type-label" htmlFor={`${formId}-name`}>{labels.categoryLabel} 이름 <span className="text-red-600">*</span></label>
+      <input id={`${formId}-name`} name="category_name" value={nameValue}
+        maxLength={MENU_FIELD_LIMITS.menuCategories.name} placeholder={labels.categoryNamePlaceholder} required
+        aria-invalid={nameInvalid || undefined} aria-describedby={`${formId}-name-hint`}
+        onChange={(event) => {
+          setName(event.target.value);
+          if (!category || basicEditor) {
+            onDraftNameChange?.(event.target.value);
+            onDraftChange?.({ name: event.target.value });
+          }
+        }} className="site-field site-input" />
+      <div id={`${formId}-name-hint`} className="site-editor-field-hint type-caption site-copy-muted">
+        <span>{!nameValue.trim() ? "이름은 필수 입력입니다" : nameValue.length > MENU_FIELD_LIMITS.menuCategories.name ? `최대 ${MENU_FIELD_LIMITS.menuCategories.name}자까지 입력 가능합니다` : ""}</span>
+        <span>{nameValue.length} / {MENU_FIELD_LIMITS.menuCategories.name}</span>
       </div>
+    </div>
   );
   const descriptionField = supportsDescription && (
     <ValidatedTextArea
@@ -2770,9 +2765,9 @@ function MenuCategoryForm({
       <input type="hidden" name="category_menu_page_id" value={category?.menu_page_id ?? pageId} />
       {basicEditor ? (
         <>
-          <div className="site-basic-category-name-order">{nameField}{sortOrderField}</div>
+          <ContentPanel surface="muted"><div className="site-basic-category-name-order">{nameField}{sortOrderField}</div></ContentPanel>
           {supportsDescription && (
-            <section className="site-stack-copy" aria-label={`${labels.categoryLabel} 설명`}>
+            <ContentPanel surface="muted" aria-label={`${labels.categoryLabel} 설명`}>
               <div className="site-content-heading-row" data-layout="toolbar">
                 <label className="type-label" htmlFor={`${formId}-description`}>{labels.categoryLabel} 설명</label>
                 {descriptionToggle}
@@ -2784,7 +2779,7 @@ function MenuCategoryForm({
                   if (!category || basicEditor) onDraftChange?.({ description: event.target.value });
                 }} />
               <p className="type-caption site-copy-muted" data-editor-count>{description.length} / {MENU_FIELD_LIMITS.menuCategories.description}</p>
-            </section>
+            </ContentPanel>
           )}
         </>
       ) : (
@@ -2909,7 +2904,7 @@ function MenuCategoryForm({
         </section>
       )}
       {basicEditor && supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
-        <section className="site-stack-block">
+        <ContentPanel surface="muted">
           <div className="site-content-heading-row" data-layout="toolbar">
             <div className="site-action-row">
               <h4 className="type-label">가격 옵션 컬럼</h4>
@@ -2974,7 +2969,7 @@ function MenuCategoryForm({
               })}
             </ol>
           )}
-        </section>
+        </ContentPanel>
       )}
       {!basicEditor && supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
         <section className="site-section site-editor-subpanel p-4">
@@ -3068,11 +3063,15 @@ function MenuCategoryForm({
         />
       </div>}
       {beforeActions}
-      <div className={basicEditor ? "site-editor-action-row" : "flex flex-wrap items-center justify-end gap-3"}>
+      {basicEditor && (deleteAction || resetAction) && <ContentPanel surface="muted" aria-label="카테고리 관리">
+        <h3 className="type-content-title">카테고리 관리</h3>
+        <div className="site-action-row">{resetAction}{deleteAction}</div>
+      </ContentPanel>}
+      <MenuEditorFormActions dock={basicEditor} pending={finalSavePending} formId={formId}>
         {draftOnly ? (
           <SubmitButton
             type="button"
-            tone="final"
+            tone="final" data-editor-save-action
             disabled={finalSavePending || nameInvalid || Boolean(editingPriceColumn) || Boolean(categoryPriceColumnValidationMessage) || (!basicEditor && Boolean(category) && !categoryFormDirty)}
             onClick={() => { handleDraftCommit(); if (basicEditor) onFinalSave?.(); }}
           >
@@ -3089,14 +3088,14 @@ function MenuCategoryForm({
           </button>
         )}
         {copyAction}
-        {deleteAction}
-        {resetAction}
+        {!basicEditor && deleteAction}
+        {!basicEditor && resetAction}
       <MenuEditorSaveFeedback error={finalSaveError} issues={[
         ...(nameInvalid ? [{ message: `${labels.categoryLabel} 이름을 입력해 주세요.`, fieldName: "category_name" }] : []),
         ...(editingPriceColumn ? [{ message: "수정 중인 가격 옵션을 먼저 등록해 주세요." }] : []),
         ...(categoryPriceColumnValidationMessage ? [{ message: categoryPriceColumnValidationMessage }] : []),
       ]} />
-      </div>
+      </MenuEditorFormActions>
 
       {!basicEditor && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {draftOnly && !basicEditor && (
@@ -5211,12 +5210,12 @@ function MenuItemForm({
       {!basicEditor && itemImageSection}
       {basicEditor && visibilitySection}
 
-      <div className={basicEditor ? "site-editor-action-row" : "flex flex-wrap items-center justify-end gap-3"}>
+      <MenuEditorFormActions dock={basicEditor} pending={finalSavePending} dirty={itemFormDirty || hasPendingItemChanges} formId={formId}>
         {draftOnly ? (
           <>
             <SubmitButton
               type="button"
-              tone="final"
+              tone="final" data-editor-save-action
               disabled={finalSavePending || (basicEditor ? itemDraftSaveDisabled : itemApplyDisabled)}
               onClick={() => {
                 setAttemptedItemSubmit(true);
@@ -5256,7 +5255,7 @@ function MenuItemForm({
         message: itemSaveDisabledReason,
         fieldName: nameInvalid ? "item_name" : categoryInvalid ? "item_category_id" : singlePriceInvalid ? isDirectPriceTextMode ? "item_price_label" : "item_price" : undefined,
       }] : []} />
-      </div>
+      </MenuEditorFormActions>
 
       {draftOnly && !basicEditor && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {descriptionOverwritePending ? (
@@ -9239,32 +9238,27 @@ export default function MenuManagementSection({
     </section>
   ));
   const pcTabletLayoutSettings = canConfigurePcTabletLayoutMode && (
-    <div className={basicEditor ? "site-stack-block" : "site-section site-editor-subpanel p-4"}>
+    <ContentPanel surface="muted">
       <div className="site-action-row">
-        <h4 className="type-label">PC/태블릿 배치 방식</h4>
-        {!basicEditor && <p className="type-body-sm site-copy-muted">모바일은 등록 순서대로 표시됩니다.</p>}
+        <h4 className="type-content-title">PC/태블릿 배치 방식</h4>
+        <HelpTooltip label="PC/태블릿 배치 방식 도움말">모바일은 등록 순서대로 표시됩니다.</HelpTooltip>
       </div>
       <div className="site-stack-copy">
         {PC_TABLET_LAYOUT_MODE_OPTIONS.map((option) => (
-          <div key={option.value} className={basicEditor ? "site-editor-choice-row" : undefined}>
-          <button
-            type="button"
-            onClick={() => updatePcTabletLayoutModeDraft(option.value)}
-            className="site-choice site-choice-control"
-            aria-pressed={pcTabletLayoutModeDraft === option.value}
-          >
-            <span className="block type-label">{option.title}</span>
-            {!basicEditor && <span className="block type-body-sm site-copy-muted">{option.description}</span>}
+          <button key={option.value} type="button" onClick={() => updatePcTabletLayoutModeDraft(option.value)}
+            className="site-choice site-choice-control" aria-pressed={pcTabletLayoutModeDraft === option.value}>
+            <span className="site-stack-copy">
+              <span className="type-label">{option.title}</span>
+              <span className="type-body-sm site-copy-muted">{option.description}</span>
+            </span>
           </button>
-          {basicEditor && <HelpTooltip label={`${option.title} 도움말`}>{option.description} 모바일은 등록 순서대로 표시됩니다.</HelpTooltip>}
-          </div>
         ))}
       </div>
-      {!basicEditor && <p className="type-body-sm site-copy-muted">기본 추천은 묶음형 자동 배치입니다.</p>}
-    </div>
+    </ContentPanel>
   );
 
   return (
+    <MenuEditorDirtyContext.Provider value={menuManagementDirty || Object.keys(pendingItemDrafts).length > 0}>
     <div
       className="space-y-6"
       data-menu-widgets-enabled={menuWidgetCapability.enabled ? "true" : "false"}
@@ -9274,6 +9268,7 @@ export default function MenuManagementSection({
       data-rendered-widget-row-count={renderedWidgetRowCount}
       data-rendered-content-block-count={renderedContentBlockCount}
       data-basic-editor-management={basicEditor ? "" : undefined}
+      data-editor-dirty={menuManagementDirty || Object.keys(pendingItemDrafts).length > 0 ? "true" : "false"}
     >
       <section className="site-card site-editor-panel p-5 sm:p-6">
         <div className="mb-6 border-b border-zinc-100 pb-5 sm:mb-8 sm:pb-6" data-editor-legacy-heading={basicEditor ? "" : undefined}>
@@ -10337,11 +10332,6 @@ export default function MenuManagementSection({
                 {finalSaveLabel}
               </SubmitButton>
               <MenuEditorSaveFeedback error={menuFinalSaveError} issues={timeSaleLimitExceeded ? [{ message: timeSaleLimitMessage }] : []} />
-              {menuManagementDirty && (
-                <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
-                  아직 저장되지 않은 변경사항이 있습니다. {finalSaveLabel}을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
-                </p>
-              )}
             </FinalActionRow>}
           </form>
         </div>
@@ -10603,6 +10593,7 @@ export default function MenuManagementSection({
         )}
       </section>
     </div>
+    </MenuEditorDirtyContext.Provider>
   );
 }
 

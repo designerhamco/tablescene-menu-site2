@@ -25,7 +25,10 @@ export default function MenuEditorToastBridge({ message, error, description }: {
       return;
     }
 
-    if (message) toast.success(message, { description });
+    if (message) {
+      toast.success(message, { description });
+      window.dispatchEvent(new Event("tablescene:editor-saved"));
+    }
   }, [message, error, description]);
 
   useEffect(() => {

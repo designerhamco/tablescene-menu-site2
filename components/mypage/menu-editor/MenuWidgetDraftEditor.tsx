@@ -7,6 +7,7 @@ import { Switch } from "@/app/components/ui/switch";
 import { AlignLeft, AlignCenter, AlignRight } from "@/app/components/ui/site-icon";
 import HelpTooltip from "@/components/ui/HelpTooltip";
 
+import MenuEditorActionBar from "@/components/mypage/menu-editor/MenuEditorActionBar";
 import MenuEditorSaveFeedback from "./MenuEditorSaveFeedback";
 import { getWidgetImagePositionAxis, getWidgetImagePositionOnAxis, getWidgetImagePositionOptions } from "@/lib/menu-widget-image-position";
 
@@ -265,8 +266,8 @@ export default function MenuWidgetDraftEditor({
             </div>
           </div>
         </>}
-        <div className="site-action-row site-editor-action-row">
-          <button type="button" className="site-button site-button-primary" disabled={finalSaveDisabled || validationErrors.length > 0 || countExceeded}
+        <MenuEditorActionBar pending={finalSavePending} dirty={hasChanges}>
+          <button type="button" className="site-button site-button-primary" data-editor-save-action disabled={finalSaveDisabled || validationErrors.length > 0 || countExceeded}
             onClick={onFinalSave}>{finalSavePending ? "저장 중…" : "최종 저장"}</button>
           {mode === "edit" && onCopy && <button type="button" className="site-button site-button-outline"
             disabled={widgetCount >= maxWidgetCount} onClick={onCopy}>복사</button>}
@@ -277,7 +278,7 @@ export default function MenuWidgetDraftEditor({
           ...validationErrors.map(error => ({ message: error.message, fieldId: issueFieldIds[error.field] })),
           ...(countExceeded ? [{ message: `한 페이지에는 위젯을 최대 ${maxWidgetCount}개까지 등록할 수 있습니다.` }] : []),
         ]} />
-        </div>
+        </MenuEditorActionBar>
         {isConfirmingDelete && <div className="site-action-row" role="alert">
           <span className="type-body-sm">이 위젯을 삭제할까요?</span>
           <button type="button" className="site-button site-button-danger" onClick={onConfirmDelete}>삭제</button>

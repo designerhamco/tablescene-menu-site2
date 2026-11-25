@@ -80,9 +80,9 @@ test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사
   const source = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
 
   assert.match(source, /site-gutter site-page-spacing-compact/);
-  assert.match(source, /function SectionCard[\s\S]*?<section className="site-card site-editor-panel p-5 sm:p-6">/);
-  assert.match(source, /<header className=\{useBasicEditorLayout \? "site-basic-editor-header site-stack-copy" : "site-card site-editor-panel mb-6 p-5 sm:p-6"\}/);
-  assert.match(readSource("../styles/site-design.css"), /\.site-basic-editor-summary \{[^}]*padding: var\(--site-panel-inset\);[^}]*background: var\(--ui-surface-muted\);/);
+  assert.match(source, /function SectionCard[\s\S]*?<ContentPanel>/);
+  assert.match(source, /<header className="site-editor-workspace-header site-stack-block"/);
+  assert.match(source, /data-editor-layout="workspace"/);
   assert.doesNotMatch(source, /shadow-(?:sm|md|lg|xl|2xl)/);
 });
 
@@ -91,11 +91,11 @@ test("메뉴 편집기의 탭과 구조 편집 패널도 공통 무그림자 표
   const navigation = readSource("../components/mypage/menu-editor/MenuEditorNavigation.tsx");
   const management = readSource("../components/mypage/menu-editor/MenuManagementSection.tsx");
 
-  assert.match(navigation, /site-card site-card-compact mb-6/);
-  assert.match(editor, /function FinalActionRow[\s\S]*?site-editor-action-row/);
+  assert.match(navigation, /site-editor-navigation/);
+  assert.match(editor, /function FinalActionRow[\s\S]*?<MenuEditorActionBar>/);
   assert.match(management, /<section className="site-card site-editor-panel p-5 sm:p-6">/);
   assert.match(management, /<section className="site-card site-editor-panel site-card-compact min-w-0 p-4 lg:p-6">/);
-  assert.match(management, /function FinalActionRow[\s\S]*?site-editor-action-row/);
+  assert.match(management, /function FinalActionRow[\s\S]*?<MenuEditorActionBar>/);
   assert.match(uiSystemSource, /\.site-editor-action-row \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(uiSystemSource, /\.site-editor-action-row > :is\(button, a\) \{[\s\S]*?width: 100%/);
   assert.match(uiSystemSource, /@media \(min-width: 640px\) \{[\s\S]*?\.site-editor-action-row \{[\s\S]*?display: flex/);
