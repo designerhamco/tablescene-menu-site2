@@ -1,5 +1,6 @@
 import { applyPreviewDesign, previewDesignDefaults, readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
 import { applyBasicEditorPreviewDesign } from "@/lib/basic-editor-preview-design";
+import { buildMenuDesignReset } from "@/lib/menu-design-mutation";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { resolveMenuPatternBands } from "@/lib/menu-pattern-bands";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
@@ -175,6 +176,12 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       || !accessState.canEdit || !accessState.canUseWriteActions || !hasMenuSitePermission(accessContext, "menu.edit"))) {
     redirect(editHref);
   }
+  const designReset = isDesignEditor && getSearchParamValue(query.designReset) === "1";
+  const designTabHref = designReset ? `${editHref}&designReset=1` : editHref;
+  if (designReset && templateKey) {
+    const { settings, pageSettings } = buildMenuDesignReset(templateKey, data.menuSite.settings, data.menuSite.page_settings);
+    data.menuSite = { ...data.menuSite, settings, page_settings: pageSettings };
+  }
   const editorDraft = isDesignEditor ? readPreviewDesign(getSearchParamValue(query.designPreview)) : undefined;
   if (isActualView && templateKey && editorDraft && Object.keys(editorDraft).length) {
     const pageSettings = applyBasicEditorPreviewDesign(
@@ -197,7 +204,8 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         previewDesignDefaults={isDesignEditor ? previewDesignDefaults(data) : undefined}
         designEditor={editorDraft ? {
           initialDraft: editorDraft,
-          backHref: editHref,
+          backHref: designTabHref,
+          reset: designReset,
           returnDraft: serializePreviewDesign(readPreviewDesign(getSearchParamValue(query.designReturnDraft))),
         } : undefined}
         query={previewQuery}
@@ -227,7 +235,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       />
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
-          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation, designEditor: isDesignEditor, designPreview: getSearchParamValue(query.designPreview) })}
+          href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation, designEditor: isDesignEditor, designReset, designPreview: getSearchParamValue(query.designPreview) })}
           className="site-button site-button-primary fixed bottom-4 right-4 z-[1000] backdrop-blur"
         >
           기기 프레임으로 돌아가기

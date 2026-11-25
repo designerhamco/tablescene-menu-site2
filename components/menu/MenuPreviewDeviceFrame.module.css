@@ -36,7 +36,11 @@
   .workspace[data-toolbar-open="false"] [data-preview-options-panel] { display: none; }
 }
 
-@container (max-width: 560px) {
-  .toolbar[data-design-editor-toolbar] .toolbarContent { flex-wrap: wrap; }
+@container (max-width: 672px) {
+  .toolbar[data-design-editor-toolbar] .toolbarContent { flex-wrap: wrap; padding-inline-end: 0; }
   .toolbar[data-design-editor-toolbar] .deviceNav { flex-basis: 100%; }
+  .toolbar[data-design-editor-toolbar] :global(.site-preview-toolbar-toggle[aria-expanded="true"]) {
+    top: .375rem;
+    transform: none;
+  }
 }

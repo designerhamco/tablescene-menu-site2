@@ -830,7 +830,7 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams: Promise<{ error?: string; message?: string; tab?: string; designDraft?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; tab?: string; designDraft?: string; designReset?: string }>;
 };
 
 const statusLabels: Record<MenuSiteStatus, string> = {
@@ -1166,7 +1166,7 @@ function SchedulePlaceholder() {
 
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
-  const { error, message, tab, designDraft } = await searchParams;
+  const { error, message, tab, designDraft, designReset } = await searchParams;
   const requestedActiveTab = isMenuEditorTabKey(tab) ? tab : "basic";
   const authSupabase = await createClient();
   const {
@@ -1220,8 +1220,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const site = menuSite as MenuSite;
   const menuDesignPlan = requestedActiveTab === "design" && accessContext.isOwner ? await getMenuPlanEntitlement(createDesignAdminClient(), menuId, user.id) : null;
   const savedMenuDesignId = site.settings && typeof site.settings === "object" && !Array.isArray(site.settings) && typeof site.settings.menu_design_id === "string" ? site.settings.menu_design_id : site.template_key ?? "";
-  const patternBands = supportsMenuPatternBands(site.template_key, site.settings)
-    ? getMenuPatternBands(site.template_key, site.page_settings) : undefined;
   const isAubeTable = isAubeTableTemplate(site.template_key);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
@@ -1732,6 +1730,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const useBasicEditorLayout =
     !isAubeTable && editorServiceType !== "screen" && isTemplateSupportedForService(site.template_key, "basic");
   const pendingDesign = useBasicEditorLayout ? serializePreviewDesign(readPreviewDesign(designDraft)) : undefined;
+  const pendingDesignReset = useBasicEditorLayout && !isReadOnly && designReset === "1";
+  const patternBands = supportsMenuPatternBands(site.template_key, site.settings)
+    ? getMenuPatternBands(site.template_key, pendingDesignReset ? undefined : site.page_settings) : undefined;
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
@@ -2595,6 +2596,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
                     {useBasicEditorLayout && <input type="hidden" name="basic_design_editor" value="1" />}
+                    {pendingDesignReset && <input type="hidden" name="basic_design_reset" value="1" />}
                     {pendingDesign && <input type="hidden" name="basic_design_draft" value={pendingDesign} />}
                     {!useBasicEditorLayout && <div className="site-section site-editor-subpanel p-5">
                       <div>
@@ -2682,6 +2684,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           menuId={site.id}
                           saved={bannerMessage === "디자인 설정이 저장되었습니다."}
                           pendingDesign={pendingDesign}
+                          pendingReset={pendingDesignReset}
                           disabled={isReadOnly}
                           canPreview={canPreview}
                         />
@@ -2695,10 +2698,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         industryLabel={getTemplateCategoryLabel(site.restaurant_category ?? site.template_category)}
                       />
                     )}
-                    {patternBands ? <MenuPatternBandsForm key={JSON.stringify(patternBands)} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} basic={useBasicEditorLayout} /> : null}
+                    {patternBands ? <MenuPatternBandsForm key={JSON.stringify([pendingDesignReset, patternBands])} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} basic={useBasicEditorLayout} /> : null}
                     <FinalActionRow>
                       {!useBasicEditorLayout && <ResetTabActionButton menuId={site.id} kind="design" disabled={isReadOnly} />}
-                      <SubmitButton tone="final" dirtyFormId={pendingDesign ? undefined : "design-settings-form"} disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId={pendingDesign || pendingDesignReset ? undefined : "design-settings-form"} disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       {!useBasicEditorLayout && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.

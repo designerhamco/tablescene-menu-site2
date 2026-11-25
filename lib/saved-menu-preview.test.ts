@@ -102,9 +102,11 @@ test("Basic editor links keep the draft in its own preview mode", () => {
   const draft = serializePreviewDesign({ pageBackground: "#123456" });
   const url = new URL(buildMenuPreviewUrl("saved-menu", { lang: "en" }, {
     device: "tablet", orientation: "portrait", actual: true, embedded: true,
-    designEditor: true, designPreview: draft,
+    designEditor: true, designReset: true, designPreview: draft,
   }), "https://example.test");
   assert.equal(url.searchParams.get("editDesign"), "1");
+  assert.equal(url.searchParams.get("designReset"), "1");
+  assert.doesNotMatch(buildMenuPreviewUrl("saved-menu", {}, { designReset: true }), /designReset/);
   assert.equal(url.searchParams.get("designPreview"), draft);
   assert.equal(url.searchParams.get("orientation"), "portrait");
   assert.equal(url.searchParams.get("lang"), "en");

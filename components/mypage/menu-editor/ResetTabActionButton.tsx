@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   resetDesignSettingsToTemplateDefaultAction,
@@ -15,6 +16,7 @@ type ResetTabActionButtonProps = {
   menuId: string;
   kind: ResetKind;
   disabled?: boolean;
+  draftHref?: string;
 };
 
 const resetCopy: Record<
@@ -55,7 +57,8 @@ const resetActions = {
   design: resetDesignSettingsToTemplateDefaultAction,
 } satisfies Record<ResetKind, (formData: FormData) => void | Promise<void>>;
 
-export default function ResetTabActionButton({ menuId, kind, disabled: readOnly = false }: ResetTabActionButtonProps) {
+export default function ResetTabActionButton({ menuId, kind, disabled: readOnly = false, draftHref }: ResetTabActionButtonProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const copy = resetCopy[kind];
@@ -70,9 +73,13 @@ export default function ResetTabActionButton({ menuId, kind, disabled: readOnly 
   function handleReset() {
     if (isPending) return;
     setOpen(false);
-    const formData = new FormData();
-    formData.set("menuId", menuId);
     startTransition(() => {
+      if (draftHref) {
+        router.push(draftHref, { scroll: false });
+        return;
+      }
+      const formData = new FormData();
+      formData.set("menuId", menuId);
       void action(formData);
     });
   }
@@ -102,7 +109,7 @@ export default function ResetTabActionButton({ menuId, kind, disabled: readOnly 
             <h2 id={`reset-${kind}-title`} className="type-content-title break-keep text-zinc-950">
               {copy.title}
             </h2>
-            <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{copy.description}</p>
+            <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{copy.description}{draftHref ? " 최종 저장을 누르면 적용됩니다." : null}</p>
             <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"

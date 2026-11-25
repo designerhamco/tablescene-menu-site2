@@ -1,3 +1,6 @@
+import { getDefaultDesignReview } from "./menu-design-policy";
+import { menuSurfaceRecord, withMenuSurfaceSettings } from "./menu-design-surfaces";
+import type { Json } from "./supabase/types";
 import { isAubeTableTemplate, getAubeTableDefaultCoverBackgroundColor } from "./aube-table";
 import { getCatalogDesign } from './catalog-designs';
 import { TYPOGRAPHY_ROLE_KEYS } from './template-typography-presets';
@@ -19,4 +22,51 @@ export function buildMenuDesignMutation(input:{settings:unknown;pageSettings:unk
   return {settings:{...settings,...appearance,menu_design_id:design.id,menu_design_snapshots:snapshots},
     pageSettings:{...page,...(isAubeTableTemplate(design.templateKey)?{multi_page_cover_background_color:hasSaved && typeof saved.cover_background_color === "string"?saved.cover_background_color:design.kind==='standard'?'#FFFFFF':getAubeTableDefaultCoverBackgroundColor(design.templateKey)}:{}),design:hasSaved?record(saved.design):design.kind==='standard'?{backgroundColor:'#ffffff'}:{}},
     brandColor:hasSaved?(typeof saved.brand_color==='string'?saved.brand_color:null):design.kind==='standard'?'#191c1b':null};
+}
+
+/** Reset presentation overrides without mutating the source or touching menu content. */
+export function buildMenuDesignReset(templateKey: string, savedSettings: unknown, savedPageSettings: unknown) {
+  const settings = menuSurfaceRecord(savedSettings);
+  const pageSettings = withMenuSurfaceSettings(savedPageSettings, savedSettings, templateKey, {});
+
+  delete settings.badge_styles;
+  delete settings.typography;
+  delete pageSettings.badge_styles;
+  delete pageSettings.typography;
+  const designSettings = menuSurfaceRecord(pageSettings.design);
+  delete designSettings.appearance;
+  delete designSettings.chipColors;
+  delete designSettings.patternBands;
+  delete designSettings.backgroundColor;
+  delete designSettings.koreanFont;
+  delete designSettings.englishFont;
+  delete designSettings.fontSizeScale;
+  delete designSettings.commonFonts;
+  delete designSettings.textColors;
+  delete designSettings.textColorGroupsVersion;
+  delete designSettings.typographyRoles;
+  delete designSettings.typography_roles;
+  delete designSettings.onePageLayoutShell;
+  delete designSettings.one_page_layout_shell;
+  if (Object.keys(designSettings).length > 0) {
+    pageSettings.design = designSettings;
+  } else {
+    delete pageSettings.design;
+  }
+  delete pageSettings.backgroundColor;
+  delete pageSettings.koreanFont;
+  delete pageSettings.englishFont;
+  delete pageSettings.fontSizeScale;
+  delete pageSettings.typographyRoles;
+  delete pageSettings.typography_roles;
+  delete pageSettings.onePageLayoutShell;
+  delete pageSettings.one_page_layout_shell;
+
+  if (getDefaultDesignReview(typeof settings.menu_design_id === "string" ? settings.menu_design_id : undefined, templateKey)) {
+    const neutral = getNeutralDesignAppearance();
+    settings.typography = neutral.typography;
+    settings.badge_styles = neutral.badge_styles;
+  }
+
+  return { settings: settings as Record<string, Json>, pageSettings: pageSettings as Record<string, Json> };
 }
