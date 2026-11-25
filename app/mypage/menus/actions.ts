@@ -3600,7 +3600,11 @@ export async function updateMenuCoverAction(formData: FormData) {
 
   if (hasFeaturedSlidesPayload && canUseFeaturedSlides) {
     const featuredSlides = parseFeaturedSlidesPayload(menuId, formData, featuredSlideMaxSlides);
-    const featuredSlidesEnabled = menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
+    const usePerSlideProducts = menuCoverCapabilities.coverMode === "section"
+      && getString(formData, "featured_slides_product_mode") === "per-slide";
+    const featuredSlidesEnabled = usePerSlideProducts
+      ? featuredSlides.some((slide) => Boolean(slide.featured_item_id))
+      : menuCoverEnabled && canUseFeaturedItem && getBoolean(formData, "featured_item_enabled");
     const validFeaturedItemIds = featuredSlidesEnabled
       ? await getValidFeaturedItemIds(supabase, menuId, featuredSlides)
       : new Set<string>();

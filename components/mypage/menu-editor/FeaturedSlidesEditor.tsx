@@ -227,6 +227,7 @@ export default function FeaturedSlidesEditor({
     return (
       <div className="site-stack-group">
         <input ref={hiddenInputRef} type="hidden" name="featured_slides" value={JSON.stringify(slides)} readOnly />
+        <input type="hidden" name="featured_slides_product_mode" value="per-slide" />
         <div className="site-stack-copy" data-featured-image-editor="">
           <h3 className="type-subsection-title site-basic-editor-cover-title">대표 이미지·상품 등록</h3>
           <div className="site-content-divider site-action-row" data-density="compact" data-distribution="end">
@@ -239,12 +240,7 @@ export default function FeaturedSlidesEditor({
         </div>
 
         <div className="site-stack-copy">
-          <div className="site-content-heading-row">
-            <h4 className="type-label">등록된 이미지·상품</h4>
-            <div data-featured-product-editor="">
-              <CafeAStarterFeaturedEnabledSwitch compact defaultChecked={defaultFeaturedItemEnabled} formId={formId} label="연결한 대표 상품 표시" />
-            </div>
-          </div>
+          <h4 className="type-label">등록된 이미지·상품</h4>
           <ContentPanel surface="muted" density="compact">
             {slides.length === 0 ? <p className="type-body-sm site-copy-muted">아직 등록된 대표 이미지가 없어요.</p> : (
               <ol className="site-stack-copy">
