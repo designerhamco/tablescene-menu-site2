@@ -41,19 +41,24 @@ test("mypage navigation uses separate surfaces and a sticky single-line rail bef
   assert.match(siteDesignSource, /\.site-account-nav \.site-nav-item \{ min-height: 3\.25rem;[\s\S]*?padding: \.75rem 1rem; \}/);
 });
 
-test("mypage menu cards use the shared gallery layout on PC and tablet", () => {
-  assert.match(mypageSource, /className="site-menu-card-list"/);
-  assert.match(mypageSource, /className="site-card site-menu-card"/);
-  assert.match(mypageSource, /className="site-menu-card-media"/);
-  assert.match(mypageSource, /className="site-menu-card-details"/);
-  assert.match(mypageSource, /className="site-menu-card-meta"/);
-  assert.match(siteDesignSource, /\.site-menu-card-media \{[\s\S]*?aspect-ratio: 16 \/ 9/);
-  assert.match(siteDesignSource, /\.site-menu-card-meta \{[\s\S]*?background: var\(--ui-surface-muted\)/);
-  assert.match(siteDesignSource, /\.site-menu-card-actions \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(siteDesignSource, /@media \(min-width: 768px\) \{[\s\S]*?\.site-menu-card \{[\s\S]*?grid-template-columns: clamp\(13rem, 28vw, 17rem\) minmax\(0, 1fr\)/);
-  assert.match(siteDesignSource, /@media \(min-width: 768px\) \{[\s\S]*?\.site-menu-card-actions \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
-  assert.doesNotMatch(mypageSource, /className="grid gap-4 md:grid-cols-2"/);
-  assert.doesNotMatch(mypageSource, /<article key=\{card\.key\} className="site-card p-5">/);
+test("mypage menu cards use compact shared work panels and keep owner and staff actions", () => {
+  const card = readFileSync(new URL("../components/mypage/MenuSummaryCard.tsx", import.meta.url), "utf8");
+  const list = readFileSync(new URL("../components/mypage/MenuCardList.tsx", import.meta.url), "utf8");
+  assert.match(card, /<ContentPanel as="article" aria-labelledby=/);
+  assert.match(card, /className="site-menu-card"/);
+  assert.match(card, /className="site-menu-card-media"/);
+  assert.match(card, /className="site-menu-card-meta"/);
+  assert.match(card, /supportingDetails.map/);
+  assert.match(card, /className="site-action-row site-menu-card-actions"/);
+  assert.match(list, /className="site-menu-card-list"/);
+  assert.match(list, /matchesMenuName\(card.title, query\)/);
+  assert.match(mypageSource, /content: renderMenuCard\(card\)/);
+  assert.match(mypageSource, /content: renderStaffMenuCard\(card\)/);
+  assert.match(mypageSource, /card.section === "deleted" \? undefined/);
+  assert.match(mypageSource, /billingQuery: publicPath.startsWith/);
+  assert.match(siteDesignSource, /aspect-ratio: 4 \/ 3/);
+  assert.doesNotMatch(siteDesignSource, /\.site-menu-card-meta \{[^}]*background:/);
+  assert.doesNotMatch(siteDesignSource, /\.site-menu-card-actions \{[^}]*border-left/);
 });
 
 test("billing filters use the current product names and do not expose a legacy trial filter", () => {

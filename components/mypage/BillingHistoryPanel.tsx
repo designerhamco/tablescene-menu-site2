@@ -92,6 +92,7 @@ export type BillingHistoryEntry = {
 
 type BillingHistoryPanelProps = {
   entries: BillingHistoryEntry[];
+  initialQuery?: string;
   restoreCheckoutEnabled?: boolean;
   restoreCheckoutConfig?: {
     userId: string;
@@ -524,9 +525,9 @@ function RestoreSubscriptionModal({
   );
 }
 
-export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
+export default function BillingHistoryPanel({ entries, initialQuery = "", restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
   const queryId = useId();
-  const [filters, setFilters] = useState<FilterState>(initialFilters);
+  const [filters, setFilters] = useState<FilterState>(() => ({ ...initialFilters, query: initialQuery }));
   const filteredEntries = useMemo(() => {
     const normalizedQuery = filters.query.trim().toLowerCase();
 

@@ -13,6 +13,7 @@ import {
   SITE_TYPE_STEPS,
   SITE_WIDE_TYPE_POLICY,
   SITE_MANAGEMENT_INTRO,
+  SITE_MANAGEMENT_FONT_POLICY,
   SITE_HOME_HERO_TITLE_POLICY,
   SITE_HOME_SECTION_TITLE_POLICY,
   getSiteWideTypeScale,
@@ -597,4 +598,20 @@ test("공식 사이트의 주요 제목과 소개 문장은 화면 폭별 공통
     assert.equal(description[device], lead[device]);
     assert.ok(lead[device] > body[device]);
   }
+});
+
+test("management hierarchy separates major titles, working headings and supporting copy without changing public fonts", () => {
+  const roles = new Map(SITE_MANAGEMENT_TYPE_ROLES.map(role => [role.key, role]));
+  assert.equal(roles.get("section-title")?.weight, 600);
+  assert.equal(roles.get("subsection-title")?.weight, 600);
+  assert.equal(roles.get("content-title")?.weight, 600);
+  assert.equal(roles.get("body")?.weight, 400);
+  assert.equal(roles.get("metric")?.weight, 600);
+  assert.equal(SITE_MANAGEMENT_FONT_POLICY.family, "Pretendard");
+  assert.match(typographySource, /--font-family-site-ui: "ArtiMenu Site Latin"/);
+  assert.match(typographySource, /--font-family-management-ui: "Pretendard"/);
+  assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*--font-family-site-ui: var\(--font-family-management-ui\)/);
+  assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*font-variant-numeric: tabular-nums/);
+  assert.match(siteDesignSource, /--site-leading-reading-support: 1\.5/);
+  assert.match(siteDesignSource, /--site-weight-section-title: var\(--font-weight-semibold\)/);
 });

@@ -8,16 +8,17 @@ export const SITE_READING_TYPE_STEPS = [13,14,16,18,20] as const;
 export const SITE_CONTROL_TYPE_STEPS = [14,16] as const;
 export const SITE_EMPHASIS_TYPE_STEPS = [24,28,32,36,44] as const;
 export const SITE_TYPE_STEPS = [13,14,15,16,18,20,24,28,32,36,44] as const;
+export const SITE_MANAGEMENT_FONT_POLICY = { family: "Pretendard", bodyLineHeight: 1.5, supportingLineHeight: 1.5, numericStyle: "tabular-nums" } as const;
 export const SITE_MANAGEMENT_TYPE_ROLES = [
-  { key: "section-title", label: "큰 구역 제목", size: 24, weight: 700, usage: "메뉴판 관리·결제 내역 등 주 콘텐츠 구역" },
-  { key: "subsection-title", label: "폼·패널 제목", size: 20, weight: 700, usage: "새 문의·운영 패널·편집 구역" },
+  { key: "section-title", label: "큰 구역 제목", size: 24, weight: 600, usage: "메뉴판 관리·결제 내역 등 주 콘텐츠 구역" },
+  { key: "subsection-title", label: "폼·패널 제목", size: 20, weight: 600, usage: "새 문의·운영 패널·편집 구역" },
   { key: "content-title", label: "콘텐츠 제목", size: 18, weight: 600, usage: "카드·내역·설정 묶음 제목" },
   { key: "item-title", label: "항목 제목", size: 16, weight: 500, usage: "메뉴판·결제·주문 항목 이름" },
   { key: "body", label: "일반 본문", size: 16, weight: 400, usage: "화면과 카드의 읽는 설명" },
   { key: "body-sm", label: "보조 설명", size: 14, weight: 400, usage: "상태 설명·폼 도움말" },
   { key: "label", label: "라벨·조작 문구", size: 14, weight: 500, usage: "필드명·필터·작은 조작" },
   { key: "caption", label: "메타·작은 안내", size: 13, desktopSize: 14, weight: 400, usage: "날짜·분류·보충 정보" },
-  { key: "metric", label: "통계·작은 결제 수치", size: 24, weight: 700, usage: "운영 지표·결제 요약" },
+  { key: "metric", label: "통계 수치", size: 24, desktopSize: 32, weight: 600, usage: "운영 지표·결제 요약" },
 ] as const;
 export const SITE_HOME_SECTION_TITLE_POLICY = { mobile: 28, tablet: 32, desktop: 36 } as const;
 

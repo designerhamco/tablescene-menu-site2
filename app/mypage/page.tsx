@@ -1,6 +1,11 @@
 import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
+import MenuCardList from "@/components/mypage/MenuCardList";
+import MenuSummaryCard from "@/components/mypage/MenuSummaryCard";
+import SiteBreadcrumb from "@/components/layout/SiteBreadcrumb";
+import { EditIcon } from "@/app/components/ui/edit-icon";
+import { Eye } from "@/app/components/ui/site-icon";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
 import AccountAlimtalkSection from "@/components/mypage/AccountAlimtalkSection";
 import { getTemplateByKey } from "@/lib/templates";
@@ -73,6 +78,7 @@ type SearchParams = Promise<{
   tab?: string | string[];
   menuTab?: string | string[];
   billingTab?: string | string[];
+  billingQuery?: string | string[];
   error?: string | string[];
   message?: string | string[];
   inquiryPage?: string | string[];
@@ -1270,12 +1276,13 @@ async function getServiceEntitlementsForMenuSites(
 }
 
 export default async function MyPage({ searchParams }: { searchParams: SearchParams }) {
-  const { tab, menuTab, billingTab, error, message, inquiryPage, inquiryQuery, inquiryStatus, subscriptionId, modal } = await searchParams;
+  const { tab, menuTab, billingTab, billingQuery, error, message, inquiryPage, inquiryQuery, inquiryStatus, subscriptionId, modal } = await searchParams;
   const yearlyRefundConfirmEnabled = isYearlyRefundConfirmQaEnabled();
   const restoreSubscriptionQaEnabled = isRestoreSubscriptionQaEnabled();
   const activeTab = getActiveTab(tab);
   const activeMenuTab = getMenuTab(menuTab);
   const activeBillingTab = getBillingTab(billingTab);
+  const requestedBillingQuery = getSearchParamString(billingQuery).slice(0, 200);
   const requestedSubscriptionId = getSearchParamString(subscriptionId);
   const requestedModal = getSearchParamString(modal);
   const messageCode = getSearchParamString(message);
@@ -2443,233 +2450,56 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       ? holdingMenuCards
       : deletedMenuCards;
   const activeMenuCardCount = activeMenuCards.length + staffMenuCardViewModels.length;
-  const visibleMenuCardCount = visibleMenuCards.length + (activeMenuTab === "active" ? staffMenuCardViewModels.length : 0);
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
-  const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
+  function menuBillingHref(publicPath: string, title: string) {
+    return `/mypage?${new URLSearchParams({ tab: "payments", billingTab: "history", billingQuery: publicPath.startsWith("/menu/") ? publicPath : title })}`;
+  }
+
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
-    const primaryActionClassName = "site-button site-button-primary";
-    const secondaryActionClassName = "site-button site-button-outline";
-    const disabledActionClassName = "site-button site-button-outline";
-
-    function renderActionButton({
-      label,
-      href,
-      enabled,
-      disabledReason,
-      primary = false,
-      newWindow = false,
-    }: {
-      label: string;
-      href: string | null;
-      enabled: boolean;
-      disabledReason: string | null;
-      primary?: boolean;
-      newWindow?: boolean;
+    function renderActionButton({ label, href, enabled, disabledReason, primary = false, newWindow = false, icon }: {
+      label: string; href: string | null; enabled: boolean; disabledReason: string | null;
+      primary?: boolean; newWindow?: boolean; icon?: React.ReactNode;
     }) {
-      if (enabled && href) {
-        return (
-          <Link
-            href={href}
-            target={newWindow ? "_blank" : undefined}
-            rel={newWindow ? "noopener noreferrer" : undefined}
-            className={primary ? primaryActionClassName : secondaryActionClassName}
-          >
-            {label}
-          </Link>
-        );
-      }
-
+      const className = primary ? "site-button site-button-primary" : "site-button site-button-outline";
+      if (enabled && href) return <Link href={href} target={newWindow ? "_blank" : undefined} rel={newWindow ? "noopener noreferrer" : undefined} className={className}>{icon}{label}</Link>;
       const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
-      return (
-        <button
-          type="button"
-          disabled
-          title={reason}
-          aria-label={`${label} 비활성화: ${reason}`}
-          className={disabledActionClassName}
-        >
-          {label}
-        </button>
-      );
+      return <button type="button" disabled title={reason} aria-label={`${label} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
     }
-
-    return (
-      <article key={card.key} className="site-card site-menu-card">
-        <div className="site-menu-card-media">
-          <TemplateThumbnail template={card.template} design={card.design} />
-        </div>
-        <div className="site-menu-card-body">
-          <div className="site-menu-card-details">
-            <div className="site-menu-card-header">
-              <div className="min-w-0">
-                <h3 className="type-content-title">{card.title}</h3>
-                <p className="site-menu-card-path">{card.publicPath}</p>
-              </div>
-              <div className="site-menu-card-badges">
-                {card.badges.map((badge) => (
-                  <Badge key={badge.key}>
-                    {badge.label}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <p className="site-menu-card-status">{card.primaryMessage}</p>
-
-            <dl className="site-menu-card-meta">
-              <div>
-                <dt>템플릿</dt>
-                <dd>{card.templateLabel}</dd>
-              </div>
-              {card.metaItems.map((item) => (
-                <div key={item.label}>
-                  <dt>{item.label}</dt>
-                  <dd>{item.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-
-          {card.section === "deleted" ? (
-            <p className="site-notice mt-5 px-4 py-3">
-              복구 가능 기간이 종료되어 메뉴판 작업 버튼은 제공되지 않습니다.
-            </p>
-          ) : (
-            <div className="site-menu-card-actions">
-              {renderActionButton({
-                label: "편집하기",
-                href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null,
-                enabled: card.actions.canEdit,
-                disabledReason: card.actions.editDisabledReason,
-                primary: true,
-              })}
-              {renderActionButton({
-                label: "미리보기",
-                href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
-                enabled: card.actions.canOwnerPreview,
-                disabledReason: card.actions.previewDisabledReason,
-                newWindow: true,
-              })}
-              {renderActionButton({
-                label: "공개 메뉴판 보기",
-                href: card.publicPath,
-                enabled: card.actions.canViewPublic,
-                disabledReason: card.actions.publicDisabledReason,
-                newWindow: true,
-              })}
-              <MenuQrDownloadModal
-                menuSiteId={card.siteId ?? ""}
-                menuName={card.title}
-                disabled={!card.siteId || !card.actions.canManageQr}
-                disabledReason={card.actions.qrDisabledReason}
-              />
-            </div>
-          )}
-        </div>
-      </article>
-    );
+    const supportingLabels = new Set(["결제수단", "결제방식", "인증 사업자"]);
+    const details = [{ label: "템플릿", value: card.templateLabel }, ...card.metaItems.filter(item => !supportingLabels.has(item.label))];
+    const showStatus = card.section !== "active" || !card.actions.canViewPublic || card.badges.some(badge => badge.key.startsWith("subscription:") || badge.key.startsWith("plan:"));
+    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle={card.section}
+      thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
+      badges={card.badges.map(badge => <Badge key={badge.key}>{badge.label}</Badge>)}
+      details={details} supportingDetails={card.metaItems.filter(item => supportingLabels.has(item.label))}
+      status={showStatus ? card.primaryMessage : undefined}
+      billingHref={menuBillingHref(card.publicPath, card.title)}
+      billingLabel={card.section === "holding" ? "재구독·복구 안내" : card.section === "deleted" ? "결제내역" : "구독 정보"}
+      actions={card.section === "deleted" ? undefined : <>
+        {card.section === "active" ? renderActionButton({ label: "편집하기", href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null, enabled: card.actions.canEdit, disabledReason: card.actions.editDisabledReason, primary: true, icon: <EditIcon /> }) : null}
+        {renderActionButton({ label: "미리보기", href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null, enabled: card.actions.canOwnerPreview, disabledReason: card.actions.previewDisabledReason, newWindow: true, icon: <Eye aria-hidden="true" /> })}
+        {card.section === "active" ? renderActionButton({ label: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true }) : null}
+        {card.section === "active" ? <MenuQrDownloadModal menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} /> : null}
+      </>} />;
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
-    const enabledPrimaryActionClassName = "site-button site-button-primary";
-    const enabledSecondaryActionClassName = "site-button site-button-outline";
-    const disabledActionClassName = "site-button site-button-outline";
-
-    return (
-      <article key={card.key} className="site-card site-menu-card">
-        <div className="site-menu-card-media">
-          <TemplateThumbnail template={card.template} design={card.design} />
-        </div>
-        <div className="site-menu-card-body">
-          <div className="site-menu-card-details">
-            <div className="site-menu-card-header">
-              <div className="min-w-0">
-                <h3 className="type-content-title">{card.title}</h3>
-                <p className="site-menu-card-path">{card.publicPath}</p>
-              </div>
-              <div className="site-menu-card-badges">
-                <Badge>직원 참여</Badge>
-                <Badge tone="role">{card.roleLabel}</Badge>
-                <Badge>{card.statusLabel}</Badge>
-              </div>
-            </div>
-
-            <p className="site-menu-card-status">
-              직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
-            </p>
-
-            <dl className="site-menu-card-meta">
-              <div><dt>템플릿</dt><dd>{card.templateLabel}</dd></div>
-              <div><dt>최근 업데이트</dt><dd>{formatDate(card.updatedAt)}</dd></div>
-              <div><dt>사용 가능한 기능</dt><dd>{card.permissionSummary}</dd></div>
-            </dl>
-          </div>
-
-          <div className="site-menu-card-actions">
-          {card.canEdit ? (
-            <Link
-              href={`/mypage/menus/${card.siteId}/edit`}
-              className={enabledPrimaryActionClassName}
-            >
-              메뉴 편집
-            </Link>
-          ) : (
-            <button
-              type="button"
-              disabled
-              title="현재 직원 역할에는 메뉴 편집 권한이 없습니다."
-              aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다."
-              className={disabledActionClassName}
-            >
-              메뉴 편집
-            </button>
-          )}
-          <Link
-            href={`/mypage/menus/${card.siteId}/preview`}
-            target="_blank"
-            rel="noopener noreferrer"
-              className="site-button site-button-outline"
-          >
-            미리보기
-          </Link>
-          {card.canViewPublic ? (
-            <Link
-              href={card.publicPath}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={enabledSecondaryActionClassName}
-            >
-              공개 메뉴판 보기
-            </Link>
-          ) : (
-            <button
-              type="button"
-              disabled
-              title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다."
-              aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다."
-              className={disabledActionClassName}
-            >
-              공개 메뉴판 보기
-            </button>
-          )}
-          <MenuQrDownloadModal
-            menuSiteId={card.siteId}
-            menuName={card.title}
-            disabled={!card.canManageQr}
-            disabledReason={card.qrDisabledReason}
-            className={enabledSecondaryActionClassName}
-          />
-          </div>
-          {!card.canViewPublic ? (
-            <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">
-              현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
-            </p>
-          ) : null}
-        </div>
-      </article>
-    );
+    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle="active"
+      thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
+      badges={<><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge><Badge>{card.statusLabel}</Badge></>}
+      details={[{ label: "템플릿", value: card.templateLabel }, { label: "최근 업데이트", value: formatDate(card.updatedAt) }]}
+      supportingDetails={[{ label: "사용 가능한 기능", value: card.permissionSummary }]}
+      status={!card.canViewPublic ? "현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다." : undefined}
+      actions={<>
+        {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
+          : <button type="button" disabled title="현재 직원 역할에는 메뉴 편집 권한이 없습니다." aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다." className="site-button site-button-outline"><EditIcon />메뉴 편집</button>}
+        <Link href={`/mypage/menus/${card.siteId}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><Eye aria-hidden="true" />미리보기</Link>
+        {card.canViewPublic ? <Link href={card.publicPath} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">공개 메뉴판 보기</Link>
+          : <button type="button" disabled title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다." aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다." className="site-button site-button-outline">공개 메뉴판 보기</button>}
+        <MenuQrDownloadModal menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
+      </>} />;
   }
 
   const identityProviders = getIdentityProviders(user.identities);
@@ -2703,83 +2533,36 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             />
           </>}>
             {activeTab === "menus" ? (
-            <section id="my-menus" className="scroll-mt-28">
-              <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-                <div>
-                  <h2 className="type-section-title">메뉴판 관리</h2>
+              <section id="my-menus" className="site-stack-group scroll-mt-28">
+                <div className="site-stack-title">
+                  <SiteBreadcrumb items={[{ label: "마이페이지", href: "/mypage" }, { label: "내 메뉴판" }]} />
+                  <h2 className="type-section-title">내 메뉴판</h2>
                 </div>
-
-              </div>
-
-              <NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" className="mb-6" items={[
-                { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
-                { label: "보관 중", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
-                { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
-              ]} />
-
-          {mypageNotice && messageCode !== "staff-invitation-accepted" ? (
-            <div className="site-notice site-notice-warning mb-5 p-5">
-              {mypageNotice}
-            </div>
-          ) : null}
-
-          {menuSitesError && (
-            <div className="site-notice site-notice-error mb-5 p-5">
-              메뉴판 목록을 불러오지 못했습니다: {menuSitesError.message}
-            </div>
-          )}
-
-          {serviceEntitlementsError && (
-            <div className="site-notice site-notice-warning mb-5 p-5">
-              이용 상태 정보를 불러오지 못해 일부 메뉴판은 기존 저장값 기준으로 표시됩니다: {serviceEntitlementsError.message}
-            </div>
-          )}
-
-          {staffMenuSitesError && (
-            <div className="site-notice site-notice-warning mb-5 p-5">
-              {staffMenuSitesError.message}
-            </div>
-          )}
-
-          {hasAnyMenuCards ? (
-            <section className="space-y-3">
-              <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                <div>
-                  <h3 className="type-content-title">
-                    {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
-                  </h3>
-                  {activeMenuTab !== "active" ? <p className="mt-1 break-keep text-copy font-normal leading-relaxed text-zinc-600">
-                    {activeMenuTab === "holding"
-                      ? "이용이 종료되었지만 보관 기간 안에 있어 미리보기와 재구독 복구 흐름을 사용할 수 있습니다."
-                      : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
-                  </p> : null}
-                </div>
-                <span className="text-support font-medium text-zinc-600">
-                  {visibleMenuCardCount.toLocaleString("ko-KR")}개 · 전체 {totalMenuCardCount.toLocaleString("ko-KR")}개
-                </span>
-              </div>
-
-              {visibleMenuCardCount > 0 ? (
-                <div className="site-menu-card-list">
-                  {visibleMenuCards.map(renderMenuCard)}
-                  {activeMenuTab === "active" ? staffMenuCardViewModels.map(renderStaffMenuCard) : null}
-                </div>
-              ) : (
-                <EmptyState headingLevel={3} icon={<PanelsTopLeft />} title={activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"} description={<>
-                    {activeMenuTab === "active"
-                      ? "새 메뉴판을 추가 구매하거나 기존 메뉴판을 복구해 이용할 수 있습니다."
-                      : activeMenuTab === "holding"
-                        ? "복구 가능한 보관 기간 안의 메뉴판이 생기면 이곳에 표시됩니다."
-                        : "복구 가능 기간이 지난 메뉴판이 생기면 이곳에 표시됩니다."}
-                  </>} />
-              )}
-            </section>
-          ) : (
-            <EmptyState headingLevel={3} icon={<PanelsTopLeft />} title="아직 만든 메뉴판이 없습니다" description={<>
-                상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
-              </>} />
-          )}
-            </section>
+                <MenuCardList
+                  tabs={<NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" items={[
+                    { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
+                    { label: "보관 중", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
+                    { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
+                  ]} />}
+                  cards={[
+                    ...visibleMenuCards.map(card => ({ key: card.key, title: card.title, content: renderMenuCard(card) })),
+                    ...(activeMenuTab === "active" ? staffMenuCardViewModels.map(card => ({ key: card.key, title: card.title, content: renderStaffMenuCard(card) })) : []),
+                  ]}
+                  notices={<>
+                    {mypageNotice && messageCode !== "staff-invitation-accepted" ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">{mypageNotice}</p></ContentPanel> : null}
+                    {menuSitesError ? <ContentPanel as="aside" surface="danger" density="compact"><p className="type-body-sm" role="alert">메뉴판 목록을 불러오지 못했습니다: {menuSitesError.message}</p></ContentPanel> : null}
+                    {serviceEntitlementsError ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">이용 상태 정보를 불러오지 못해 일부 메뉴판은 기존 저장값 기준으로 표시됩니다: {serviceEntitlementsError.message}</p></ContentPanel> : null}
+                    {staffMenuSitesError ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">{staffMenuSitesError.message}</p></ContentPanel> : null}
+                  </>}
+                  description={activeMenuTab === "holding"
+                    ? "보관 기한 안에는 미리보기와 재구독 복구를 이용할 수 있습니다. 편집과 공개는 복구 후 사용할 수 있습니다."
+                    : activeMenuTab === "deleted"
+                      ? "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다. 종료 사유와 이용 기록을 확인할 수 있습니다."
+                      : undefined}
+                  emptyState={<EmptyState headingLevel={3} icon={<PanelsTopLeft />} title={activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
+                    description={activeMenuTab === "active" ? "상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다." : activeMenuTab === "holding" ? "복구 가능한 보관 기간 안의 메뉴판이 생기면 이곳에 표시됩니다." : "복구 가능 기간이 지난 메뉴판이 생기면 이곳에 표시됩니다."} />}
+                />
+              </section>
             ) : null}
 
             {activeTab === "payments" ? (
@@ -2808,6 +2591,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
                 {activeBillingTab === "history" ? (
                   <BillingHistoryPanel
+                    key={requestedBillingQuery}
+                    initialQuery={requestedBillingQuery}
                     entries={billingHistoryEntries}
                     restoreCheckoutEnabled={restoreSubscriptionQaEnabled}
                     restoreCheckoutConfig={{
