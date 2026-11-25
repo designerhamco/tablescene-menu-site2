@@ -4,7 +4,7 @@ import {
   type MenuWidgetContentBlockDraft,
 } from "@/lib/menu-widget-editor-draft";
 import type { MenuWidgetDraft } from "@/lib/menu-widgets";
-import { Badge } from "@/app/components/ui/badge";
+import { Menu } from "@/app/components/ui/site-icon";
 
 type MenuWidgetStructureRowProps = {
   block: MenuWidgetContentBlockDraft;
@@ -30,6 +30,7 @@ export default function MenuWidgetStructureRow({
   const hidden = block.visible === false || widget?.visible === false;
   const displayName = getMenuWidgetEditorDisplayName(widget);
   const typeLabel = getMenuWidgetEditorTypeLabel(widget?.type ?? "");
+  const rowLabel = `위젯 (${typeLabel.replace(/ 위젯$/, "").replace(/\s*\+\s*/g, "+")})`;
 
   return (
     <div
@@ -44,7 +45,7 @@ export default function MenuWidgetStructureRow({
         event.preventDefault();
         onDrop();
       }}
-      className={`w-full min-w-0 rounded-md px-2 py-1.5 text-left transition ${
+      className={`site-editor-tree-row w-full min-w-0 rounded-md text-left transition ${
         selected ? "bg-zinc-950 text-white" : "text-zinc-600 hover:bg-zinc-100"
       }`}
     >
@@ -53,6 +54,7 @@ export default function MenuWidgetStructureRow({
           type="button"
           draggable={!dragDisabled}
           disabled={dragDisabled}
+          data-icon-size="compact"
           onDragStart={(event) => {
             event.stopPropagation();
             if (dragDisabled) {
@@ -71,34 +73,17 @@ export default function MenuWidgetStructureRow({
           } `}
           aria-label="위젯 순서 이동"
         >
-          <DragHandleIcon />
+          <Menu className="h-4 w-4" aria-hidden="true" />
         </button>
-        <Badge aria-hidden="true">
-          위젯
-        </Badge>
-        <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span className={`min-w-0 truncate text-support font-medium ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>
-            {hidden && (
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-support font-medium ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-600"}`}>
-                숨김
-              </span>
-            )}
-          </div>
-          <p className={`mt-0.5 truncate text-support font-medium ${selected ? "text-zinc-300" : "text-zinc-600"}`}>{typeLabel}</p>
+        <button type="button" onClick={onSelect} aria-label={`${rowLabel} · ${displayName}`} title={displayName} className="flex min-w-0 flex-1 items-center gap-1.5 text-left">
+          <span className={`min-w-0 truncate text-support font-medium ${selected ? "text-white" : "text-zinc-700"}`}>{rowLabel}</span>
+          {hidden && (
+            <span className={`shrink-0 rounded-full px-2 py-0.5 text-support font-medium ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-600"}`}>
+              숨김
+            </span>
+          )}
         </button>
       </div>
     </div>
-  );
-}
-
-function DragHandleIcon() {
-  return (
-    <span aria-hidden="true" className="grid grid-cols-2 gap-0.5">
-      <span className="h-1 w-1 rounded-full bg-current" />
-      <span className="h-1 w-1 rounded-full bg-current" />
-      <span className="h-1 w-1 rounded-full bg-current" />
-      <span className="h-1 w-1 rounded-full bg-current" />
-    </span>
   );
 }
