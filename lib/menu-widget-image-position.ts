@@ -1,3 +1,4 @@
+import { MENU_WIDGET_OBJECT_POSITIONS } from "./menu-widgets";
 import type { MenuWidgetAspectRatio, MenuWidgetObjectFit, MenuWidgetObjectPosition } from "./menu-widgets";
 
 export type WidgetImagePositionAxis = "horizontal" | "vertical";
@@ -20,7 +21,9 @@ export function getWidgetImagePositionAxis(
 const HORIZONTAL = ["center-left", "center", "center-right"] as const;
 const VERTICAL = ["top-center", "center", "bottom-center"] as const;
 
-export function getWidgetImagePositionOptions(axis: WidgetImagePositionAxis) {
+export function getWidgetImagePositionOptions(axis: WidgetImagePositionAxis | null, fit: MenuWidgetObjectFit = "cover") {
+  if (fit === "contain") return MENU_WIDGET_OBJECT_POSITIONS;
+  if (!axis) return [];
   return axis === "horizontal" ? HORIZONTAL : VERTICAL;
 }
 
