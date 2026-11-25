@@ -95,7 +95,7 @@
   .actions, .drawerHeader, .drawerHeaderActions { gap: var(--space-1); }
 }
 @media (min-width: 1280px) {
-  .accountTools { display: flex; align-items: center; gap: var(--ui-control-gap); }
+  .accountTools { display: flex; align-items: center; gap: var(--ui-header-action-gap); }
   .profileTrigger { display: inline-flex; }
   .accountTools > :global(.site-button) { display: inline-flex; }
   .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }
