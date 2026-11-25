@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/badge";
-import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { signOutAction } from "@/app/auth/actions";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
@@ -25,7 +24,7 @@ export default function AccountMenuPanel({ userId, account, loading, failed, ret
     <div className="site-account-menu-section">
       <Link href="/mypage?tab=menus" onClick={close} className="site-account-menu-row"><span>내 메뉴판</span><strong>{count(account.menuCount, "개")}</strong></Link>
       {owner ? <>
-        <Link href="/mypage?tab=payments&billingTab=ai-credits" onClick={close} className="site-account-menu-row"><span className="site-action-row">AI 크레딧<ArrowUpRight size={16} aria-hidden="true" /></span><strong>{count(account.aiCredits, "개")}</strong></Link>
+        <Link href="/mypage?tab=payments&billingTab=ai-credits" onClick={close} className="site-account-menu-row"><span>AI 크레딧</span><strong>{count(account.aiCredits, "개")}</strong></Link>
         {isStaffManagementAvailable() ? <Link href="/mypage/staff" onClick={close} className="site-account-menu-row"><span>직원 계정</span><strong>{count(account.staffCount, "명")}</strong></Link> : null}
       </> : null}
       {loading ? <LoadingState label="계정 정보 확인 중" inline /> : failed ? <div className="site-field-stack" role="status"><p className="type-caption site-copy-muted">계정 정보를 불러오지 못했습니다.</p><button type="button" className="site-button site-button-outline" onClick={retry}>다시 시도</button></div> : null}
