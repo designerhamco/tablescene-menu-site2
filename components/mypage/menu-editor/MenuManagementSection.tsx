@@ -3571,6 +3571,7 @@ function MenuItemForm({
     draftImageState.imagePath !== (committedDraftItem?.imagePath ?? item.image_path ?? null) ||
     draftImageState.imageAction !== (committedDraftItem?.imageAction ?? "keep") ||
     (canManageTimeSales &&
+      (effectiveTimeSaleEnabled || Boolean(committedDraftItem?.timeSale)) &&
       !areItemTimeSaleDraftsEqual(
         buildCurrentTimeSaleDraft({
           enabled: effectiveTimeSaleEnabled,
