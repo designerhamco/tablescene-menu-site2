@@ -1,5 +1,6 @@
 "use client";
 
+import MenuEditorActionBar from "./MenuEditorActionBar";
 import MenuEditorSaveFeedback from "./MenuEditorSaveFeedback";
 
 import { Check } from "@/app/components/ui/site-icon";
@@ -1193,13 +1194,13 @@ function LocalizationSectionContent({
           </div>
         </section>
 
-        <div className={basic ? "site-editor-action-row" : "site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4"}>
+<MenuEditorActionBar dirty={hasLocaleChanges || hasTranslationChanges}>
           <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>{basic ? "최종 저장" : "저장"}</LocalizationSaveButton>
           <MenuEditorSaveFeedback error={finalSaveError} />
           {!basic && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
             언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
           </p>}
-        </div>
+        </MenuEditorActionBar>
       </form>
 
       {overwriteRequest ? (

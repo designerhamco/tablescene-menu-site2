@@ -47,6 +47,7 @@ import MenuEditorSaveFeedback from "@/components/mypage/menu-editor/MenuEditorSa
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import HelpTooltip from "@/components/ui/HelpTooltip";
+import MenuEditorActionBar from "@/components/mypage/menu-editor/MenuEditorActionBar";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
 import MenuPopupSettingsForm from "@/components/mypage/menu-editor/MenuPopupSettingsForm";
 import { readMenuPopupSettings } from "@/lib/menu-popup";
@@ -1072,9 +1073,7 @@ function SubmitButton({
 
 function FinalActionRow({ children }: { children: ReactNode }) {
   return (
-    <div className="site-editor-action-row">
-      {children}
-    </div>
+    <MenuEditorActionBar>{children}</MenuEditorActionBar>
   );
 }
 
@@ -1090,25 +1089,14 @@ function normalizeFinalSaveError(error?: string | null) {
   return error;
 }
 
-function SectionCard({ title, action, children, basic = false }: { title: string; action?: ReactNode; children: ReactNode; basic?: boolean }) {
-  if (basic) {
-    return (
-      <section className="site-basic-editor-section site-stack-block">
-        <h2 className="type-subsection-title">{title}</h2>
-        {action}
-        <div className="site-content-divider" data-density="compact">{children}</div>
-      </section>
-    );
-  }
-  return (
-    <section className="site-card site-editor-panel p-5 sm:p-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <h2 className="type-subsection-title">{title}</h2>
-        {action && <div className="flex flex-wrap items-center justify-end gap-3">{action}</div>}
-      </div>
-      <div className="mt-6">{children}</div>
-    </section>
-  );
+function SectionCard({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+  return <ContentPanel>
+    <div className="site-content-heading-row">
+      <h2 className="type-subsection-title">{title}</h2>
+      {action && <div className="site-action-row">{action}</div>}
+    </div>
+    {children}
+  </ContentPanel>;
 }
 
 function CustomEditorUnavailable({ siteName }: { siteName: string }) {
@@ -1939,17 +1927,18 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
+      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout="workspace">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} description={saveToastDescription} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
-        <header className={useBasicEditorLayout ? "site-basic-editor-header site-stack-copy" : "site-card site-editor-panel mb-6 p-5 sm:p-6"}>
-          <Link href="/mypage" className={useBasicEditorLayout ? "site-basic-editor-back type-body-sm" : "mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950"}>
+        <header className="site-editor-workspace-header site-stack-block">
+          <Link href="/mypage" className="site-basic-editor-back type-body-sm">
             <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
-          <div className={useBasicEditorLayout ? "site-basic-editor-summary" : "flex flex-col justify-between gap-5 lg:flex-row lg:items-end"}>
-            <div className={useBasicEditorLayout ? "site-stack-copy" : "min-w-0"}>
+          <div className="site-editor-summary">
+            <div className="site-editor-summary-identity site-stack-copy">
               <div className="site-action-row site-editor-status">
+                <h1 className="type-page-title">{site.name}</h1>
                 <Badge>
                   {headerStatusLabel}
                 </Badge>
@@ -1960,7 +1949,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 {!useBasicEditorLayout && editorTemplateLabel}
               </div>
               {useBasicEditorLayout && editorTemplateLabel}
-              <h1 className="type-page-title">{site.name}</h1>
               <p className="type-body-sm site-editor-public-address">
                 <span>{publicUrl}</span>
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
@@ -1980,7 +1968,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 />
               </div>
             )}
-            <div className={useBasicEditorLayout ? "site-basic-editor-shortcuts" : "flex w-full flex-col items-stretch gap-2 sm:items-end lg:w-auto"}>
+            <div className="site-editor-summary-shortcuts">
               <div className="site-editor-header-actions">
                 {accessContext.isOwner && site.status === "draft" && !isReadOnly ? (
                   <Link
@@ -2039,7 +2027,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </>
                 )}
               </div>
-              {!useBasicEditorLayout && <p className="text-center text-support font-medium text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>}
             </div>
           </div>
         </header>
@@ -2078,13 +2065,13 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         )}
 
         <CafeAStarterResetProvider menuId={site.id}>
-        <div className="site-editor-sections" data-editor-layout={useBasicEditorLayout ? "sidebar" : undefined}>
-        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} sidebar={useBasicEditorLayout} />
+        <div className="site-editor-sections" data-editor-layout="workspace">
+        <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
-        <div className={`site-editor-section-content space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
+        <div className={`site-editor-section-content site-stack-group ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>
             {activeTab === "basic" && (
               <>
-                <SectionCard title={useBasicEditorLayout ? "기본 정보 입력" : "기본 정보"} basic={useBasicEditorLayout}>
+                <SectionCard title={useBasicEditorLayout ? "기본 정보 입력" : "기본 정보"}>
                   <form id="basic-info-form" action={updateMenuSiteAction} className={useBasicEditorLayout ? "site-basic-editor-fields site-basic-identity-form" : "grid gap-5 md:grid-cols-2"}>
                   <HiddenMenuId menuId={site.id} />
                   <div className={useBasicEditorLayout ? "site-field-stack" : undefined}>
@@ -2199,7 +2186,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "advertising" && site.template_key !== "display_menu_a" ? (
-              <SectionCard title={useBasicEditorLayout ? "광고 설정" : "광고"} basic={useBasicEditorLayout}>
+              <SectionCard title={useBasicEditorLayout ? "광고 설정" : "광고"}>
                 <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} basic={useBasicEditorLayout} finalSaveError={finalSaveError} />
               </SectionCard>
             ) : null}
@@ -2274,7 +2261,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "cover" && (
               <SectionCard
                 title={useBasicEditorLayout ? "사용 여부" : coverTabLabel ?? "커버 이미지"}
-                basic={useBasicEditorLayout}
+
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
@@ -2574,11 +2561,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             {activeTab === "design" && (
               <SectionCard
                 title={useBasicEditorLayout ? "디자인 설정" : "디자인"}
-                basic={useBasicEditorLayout}
+
               >
                 <div className="space-y-5">
                   {!useBasicEditorLayout && menuDesignPlan ? <MenuDesignSwitcher key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId} service={menuDesignPlan.service} access={menuDesignPlan.access} /> : null}
-                  <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
+                  <form id="design-settings-form" data-editor-dirty={pendingDesign || pendingDesignReset ? "true" : undefined} action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
                     {useBasicEditorLayout && <input type="hidden" name="basic_design_editor" value="1" />}
                     {pendingDesignReset && <input type="hidden" name="basic_design_reset" value="1" />}
@@ -2697,7 +2684,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "localization" && (
-              <SectionCard title={useBasicEditorLayout ? "다국어 설정" : "다국어"} basic={useBasicEditorLayout}>
+              <SectionCard title={useBasicEditorLayout ? "다국어 설정" : "다국어"}>
                 {useBasicEditorLayout && accessState?.canUseAi && accessContext.isOwner ? null : accessState?.canUseAi && accessContext.isOwner ? (
                   <AiCreditRechargePanel
                     menuSiteId={site.id}
@@ -2732,7 +2719,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
             )}
 
             {activeTab === "publish" && (
-              <SectionCard title="공개 설정" basic={useBasicEditorLayout}>
+              <SectionCard title="공개 설정">
                 <form id="publish-settings-form" action={updatePublishSettingsAction} className={useBasicEditorLayout ? "site-stack-group" : "space-y-5"}>
                   <HiddenMenuId menuId={site.id} />
                   <div>
