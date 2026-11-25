@@ -9,7 +9,7 @@ import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
 import DisplayPreviewGuide from "./DisplayPreviewGuide";
 import DisplayPreviewOptions from "./DisplayPreviewOptions";
 import { useDisplayPreviewNavigation } from "./useDisplayPreviewNavigation";
-import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
+import { ArrowLeft, ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 import type { DisplayPreviewPage } from "@/lib/display-preview";
 import { normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 
@@ -94,10 +94,20 @@ function CallPreviewToggle({
   );
 }
 
+type DesignEditor = {
+  initialDraft: PreviewDesign;
+  backHref: string;
+  returnDraft?: string;
+};
+
+function designEditorHref(backHref: string, draft?: string) {
+  return draft ? `${backHref}&${new URLSearchParams({ designDraft: draft })}` : backHref;
+}
+
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; savedPatternBandsAvailable?: boolean; displayPages?: DisplayPreviewPage[] },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; savedPatternBandsAvailable?: boolean; displayPages?: DisplayPreviewPage[]; designEditor?: DesignEditor },
 ) {
-  const { device, query } = props;
+  const { device, query, designEditor } = props;
   const isTemplatePreview = typeof props.templateKey === "string";
   const templateKey = props.templateKey ?? props.menuTemplateKey;
   const isDisplayPreview = isTemplatePreview && templateKey === "display_menu_a";
@@ -111,11 +121,17 @@ export default function MenuPreviewDeviceFrame(
   const wideOptions = useSyncExternalStore(subscribeWideOptions, getWideOptions, getServerWideOptions);
   const [displayOptionsOpenOverride, setDisplayOptionsOpenOverride] = useState<boolean>();
   const areDisplayOptionsOpen = displayOptionsOpenOverride ?? wideOptions;
-  const [optionsTab, setOptionsTab] = useState((query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
+  const [optionsTab, setOptionsTab] = useState(designEditor || (query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
   const initialDesign = readPreviewDesign(isTemplatePreview ? (query as TemplatePreviewQuery).designPreview : { hidePatternBands: query.patternBandsPreview === "off" });
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
   if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
-  const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
+  const [previewDesign, setDesignOptions] = useOptimistic(initialDesign);
+  const [editorDraft, setEditorDraft] = useState(designEditor?.initialDraft ?? {});
+  const designOptions = designEditor ? editorDraft : previewDesign;
+  const serializedEditorDraft = designEditor ? serializePreviewDesign({
+    ...editorDraft,
+    textColorGroupsVersion: Object.values(editorDraft.textColors ?? {}).some(Boolean) ? editorDraft.textColorGroupsVersion : undefined,
+  }) : undefined;
   const templateQuery: TemplatePreviewQuery = {
     ...query,
     previewOptions: optionsTab,
@@ -167,7 +183,7 @@ export default function MenuPreviewDeviceFrame(
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayGroups = isTemplatePreview && templateKey ? getTemplatePreviewOptionGroups(templateKey, defaultDesign) : [];
   const patternBandsAvailable = props.previewDesignDefaults?.patternBandsAvailable || props.savedPatternBandsAvailable;
-  const hasDisplayOptions = displayGroups.length > 0 || Boolean(patternBandsAvailable);
+  const hasDisplayOptions = Boolean(designEditor) || displayGroups.length > 0 || Boolean(patternBandsAvailable);
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!hasDisplayOptions) return;
     startTransition(() => {
@@ -218,7 +234,12 @@ export default function MenuPreviewDeviceFrame(
     }
 
     if (typeof props.menuId === "string") {
-      return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, options);
+      return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, {
+        ...options,
+        designEditor: Boolean(designEditor),
+        designPreview: serializedEditorDraft,
+        designReturnDraft: designEditor?.returnDraft,
+      });
     }
 
     throw new Error("미리보기 대상을 확인할 수 없습니다.");
@@ -254,6 +275,10 @@ export default function MenuPreviewDeviceFrame(
   const changeDesign = (next: PreviewDesign) => {
     if (!hasDisplayOptions) return;
     if (serializePreviewDesign(next) === serializePreviewDesign(designOptions)) return;
+    if (designEditor) {
+      setEditorDraft(next);
+      return;
+    }
     startTransition(() => {
       setDesignOptions(next);
       router.replace(buildPreviewUrl({ device, orientation }, { ...templateQuery, designPreview: serializePreviewDesign(next), patternBandsPreview: !isTemplatePreview && next.hidePatternBands ? "off" : undefined, appearanceQa: undefined, albumImageRatio: undefined }), {scroll:false});
@@ -275,6 +300,7 @@ export default function MenuPreviewDeviceFrame(
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
         <header ref={toolbarRef}
           data-preview-device-toolbar=""
+          data-design-editor-toolbar={designEditor ? "" : undefined}
           data-preview-service-controls={supportsLayoutPreview && device !== "mobile" ? "layout" : supportsCallPreview || supportsOrderPreview ? "services" : undefined}
           data-toolbar-open={showToolbar ? "true" : "false"}
           className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out`}
@@ -362,6 +388,22 @@ export default function MenuPreviewDeviceFrame(
                 ))}
               </div>
             ) : null}
+            {designEditor && (
+              <div className="site-preview-control-group">
+                <button type="button" className="site-preview-control" tabIndex={showToolbar ? undefined : -1}
+                  disabled={serializedEditorDraft === designEditor.returnDraft}
+                  onClick={() => router.push(designEditorHref(designEditor.backHref, serializedEditorDraft))}>
+                  디자인 반영
+                </button>
+                <Link href={designEditorHref(designEditor.backHref, designEditor.returnDraft)} className="site-preview-control"
+                  aria-label="디자인 탭으로 돌아가기" tabIndex={showToolbar ? undefined : -1} onClick={event => {
+                    if (serializedEditorDraft !== designEditor.returnDraft
+                      && !window.confirm("이번에 편집한 디자인을 취소하고 돌아갈까요?")) event.preventDefault();
+                  }}>
+                  <ArrowLeft aria-hidden className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
             <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} />
             {isDisplayPreview ? <DisplayPreviewGuide tabIndex={showToolbar ? undefined : -1} /> : null}
           </div>
@@ -382,7 +424,7 @@ export default function MenuPreviewDeviceFrame(
             )}
           </button>
         </header>
-        {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
+        {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel designOnly={Boolean(designEditor)} open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
           patternBandsAvailable={patternBandsAvailable} groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"}
           featureContent={isDisplayPreview && props.displayPages?.[displayNavigation.page - 1]?.split ? <label className="site-field-stack type-label"><span>이미지 위치</span><select className="site-field" aria-label="디스플레이 이미지 위치" value={templateQuery.displayImagePosition === "right" ? "right" : "left"} disabled={isPending} onChange={event => changeDisplayQuery({ displayImagePosition: event.target.value })}><option value="left">왼쪽</option><option value="right">오른쪽</option></select></label> : undefined}
           designContent={isDisplayPreview && props.previewDesignDefaults ? <DisplayPreviewOptions value={designOptions} defaults={props.previewDesignDefaults} scale={fontSizeScale} pending={isPending} onChange={changeDesign} onScaleChange={scale => changeDisplayQuery({ fontSizeScale: scale })} onReset={() => changeDisplayQuery({ designPreview: undefined, fontSizeScale: undefined })} /> : undefined} /> : null}

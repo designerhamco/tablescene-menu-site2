@@ -99,6 +99,9 @@ export function buildMenuPreviewUrl(
     callPreview?: boolean;
     orderPreview?: boolean;
     layoutMode?: string;
+    designEditor?: boolean;
+    designPreview?: string;
+    designReturnDraft?: string;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
@@ -110,6 +113,11 @@ export function buildMenuPreviewUrl(
   if (options.device) searchParams.set("device", options.device);
   if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
+  }
+  if (options.designEditor) {
+    searchParams.set("editDesign", "1");
+    if (options.designPreview) searchParams.set("designPreview", options.designPreview);
+    if (options.designReturnDraft && !options.actual) searchParams.set("designReturnDraft", options.designReturnDraft);
   }
   if (options.actual) searchParams.set("view", "actual");
 

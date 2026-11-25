@@ -1,3 +1,4 @@
+import { readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
 import { getMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { Check } from "@/app/components/ui/site-icon";
@@ -829,7 +830,7 @@ async function loadEditorTimeSales(menuId: string, supabase: Awaited<ReturnType<
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams: Promise<{ error?: string; message?: string; tab?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; tab?: string; designDraft?: string }>;
 };
 
 const statusLabels: Record<MenuSiteStatus, string> = {
@@ -1176,7 +1177,7 @@ function SchedulePlaceholder() {
 
 export default async function EditMenuPage({ params, searchParams }: PageProps) {
   const { menuId } = await params;
-  const { error, message, tab } = await searchParams;
+  const { error, message, tab, designDraft } = await searchParams;
   const requestedActiveTab = isMenuEditorTabKey(tab) ? tab : "basic";
   const authSupabase = await createClient();
   const {
@@ -1741,6 +1742,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const visiblePageSettingKeys = pageSettingKeys.filter((key) => key !== "menu_cover_enabled" || supportsMenuCover);
   const useBasicEditorLayout =
     !isAubeTable && editorServiceType !== "screen" && isTemplateSupportedForService(site.template_key, "basic");
+  const pendingDesign = useBasicEditorLayout ? serializePreviewDesign(readPreviewDesign(designDraft)) : undefined;
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {
@@ -2603,6 +2605,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   {!useBasicEditorLayout && menuDesignPlan ? <MenuDesignSwitcher key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId} service={menuDesignPlan.service} access={menuDesignPlan.access} /> : null}
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
+                    {useBasicEditorLayout && <input type="hidden" name="basic_design_editor" value="1" />}
+                    {pendingDesign && <input type="hidden" name="basic_design_draft" value={pendingDesign} />}
                     {!useBasicEditorLayout && <div className="site-section site-editor-subpanel p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
@@ -2687,14 +2691,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       return useBasicEditorLayout ? (
                         <BasicDesignWorkspace
                           menuId={site.id}
-                          formId="design-settings-form"
-                          revision={createHash("sha256").update(JSON.stringify(site.page_settings ?? null)).digest("hex").slice(0, 12)}
                           saved={bannerMessage === "디자인 설정이 저장되었습니다."}
+                          pendingDesign={pendingDesign}
                           disabled={isReadOnly}
                           canPreview={canPreview}
-                        >
-                          {controls}
-                        </BasicDesignWorkspace>
+                        />
                       ) : controls;
                     })()}
                     {useBasicEditorLayout && (
@@ -2707,12 +2708,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     )}
                     {patternBands ? <MenuPatternBandsForm key={JSON.stringify(patternBands)} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} basic={useBasicEditorLayout} /> : null}
                     <FinalActionRow>
-                      <ResetTabActionButton menuId={site.id} kind="design" />
-                      <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      {!useBasicEditorLayout && <ResetTabActionButton menuId={site.id} kind="design" disabled={isReadOnly} />}
+                      <SubmitButton tone="final" dirtyFormId={pendingDesign ? undefined : "design-settings-form"} disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
+                      {!useBasicEditorLayout && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
-                      </p>
+                      </p>}
                     </FinalActionRow>
                   </form>
                 </div>

@@ -4693,9 +4693,6 @@ function MenuItemForm({
             />
           </div>
         )}
-        <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-600">
-          실제 매장에서 제공하는 가격과 일치하는지 확인해주세요.
-        </p>
         {!basicEditor && priceVisibility}
       </section>
 
@@ -9133,6 +9130,66 @@ export default function MenuManagementSection({
       AI 메뉴 정리 · 3크레딧
     </button>
   );
+  const sampleResetButton = (
+    <button
+      type="button"
+      onClick={() => setIsSampleResetConfirming(true)}
+      disabled={Boolean(sampleResetDisabledReason)}
+      title={sampleResetDisabledReason || undefined}
+      className="site-button site-button-outline inline-flex items-center justify-center"
+    >
+      템플릿 샘플로 되돌리기
+    </button>
+  );
+  const registeredItems = itemsForCategory.length > 0 && (
+    <section className="site-content-divider site-stack-block">
+      <h3 className="type-item-title text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
+      <div className={basicEditor ? "site-editor-registered-items" : "mt-4 grid gap-3"}>
+        {itemsForCategory.map((item) => (
+          <MenuItemCard
+            supportsOrderCustomization={supportsOrderCustomization}
+            basicEditor={basicEditor}
+            key={item.id}
+            menuId={menuId}
+            categories={categoriesForPage}
+            item={item}
+            draftItem={itemBasicDrafts[item.id]}
+            committedDraftItem={itemBasicDrafts[item.id]}
+            hasPendingItemChanges={Boolean(pendingItemDrafts[item.id])}
+            onDraftItemChange={(patch) => updatePendingItemDraft(item.id, patch)}
+            onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
+            draftOnly
+            priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
+            categoryPriceOptionLabels={getCategoryPriceOptionLabels(item.category_id ?? "")}
+            traits={traits.filter((trait) => trait.menu_item_id === item.id)}
+            capabilities={capabilities}
+            canManageTimeSales={canManageTimeSales}
+            canManageCategoryPriceColumns={canManageCategoryPriceColumns}
+            supportsPriceDisplayMode={supportsPriceDisplayMode}
+            supportsPriceNote={supportsPriceNote}
+            supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
+            priceDisplayMode={priceDisplayModeDraft}
+            onPriceDisplayModeChange={updatePriceDisplayModeDraft}
+            aiDescriptionUsage={localAiDescriptionUsage}
+            onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
+            badgeStyles={badgeStyles}
+            labels={labels}
+            allowDirectItem={isAubeTable}
+            selectedPageId={visiblePageId}
+            cancelLabel="목록으로"
+            isEditing={false}
+            isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
+            onEdit={(trigger) => startEditItem(item.id, trigger)}
+            onCancel={resetModes}
+            onCancelDelete={() => setConfirmingDeleteKey("")}
+            onRequestDelete={() => startConfirmDelete(`item:${item.id}`)}
+            onConfirmDelete={() => deleteItemDraft(item.id)}
+            onCopy={() => copyItemDraft(item.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
   const pcTabletLayoutSettings = canConfigurePcTabletLayoutMode && (
     <div className={basicEditor ? "site-stack-block" : "site-section site-editor-subpanel p-4"}>
       <div className="site-action-row">
@@ -9856,6 +9913,12 @@ export default function MenuManagementSection({
                       : undefined
                   }
                 />
+                {basicEditor && (
+                  <div className="site-stack-block">
+                    {registeredItems}
+                    <div className="site-action-row" data-distribution="end">{sampleResetButton}</div>
+                  </div>
+                )}
                 {selectedCategoryDisplayQualityNotice ? (
                   <div className="mt-4">
                     <DisplayMenuCategoryQualityNoticeBox notice={selectedCategoryDisplayQualityNotice} />
@@ -10058,54 +10121,7 @@ export default function MenuManagementSection({
                       : `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`}
                   </p>
                 )}
-                {itemsForCategory.length > 0 && (
-                  <div className="mt-8 border-t border-zinc-100 pt-6">
-                    <h3 className="type-item-title text-zinc-950">등록된 {labels.itemPluralLabel}</h3>
-                    <div className="mt-4 grid gap-3">
-                      {itemsForCategory.map((item) => (
-                        <MenuItemCard
-                          supportsOrderCustomization={supportsOrderCustomization}
-                          key={item.id}
-                          menuId={menuId}
-                          categories={categoriesForPage}
-                          item={item}
-                          draftItem={itemBasicDrafts[item.id]}
-                          committedDraftItem={itemBasicDrafts[item.id]}
-                          hasPendingItemChanges={Boolean(pendingItemDrafts[item.id])}
-                          onDraftItemChange={(patch) => updatePendingItemDraft(item.id, patch)}
-                          onDraftCommit={(patch) => commitPendingItemDraft(item.id, patch)}
-                          draftOnly
-                          priceOptions={priceOptions.filter((option) => option.menu_item_id === item.id)}
-                          categoryPriceOptionLabels={getCategoryPriceOptionLabels(item.category_id ?? "")}
-                          traits={traits.filter((trait) => trait.menu_item_id === item.id)}
-                          capabilities={capabilities}
-                          canManageTimeSales={canManageTimeSales}
-                          canManageCategoryPriceColumns={canManageCategoryPriceColumns}
-                          supportsPriceDisplayMode={supportsPriceDisplayMode}
-                          supportsPriceNote={supportsPriceNote}
-                          supportsPriceNoteWithPriceColumns={supportsPriceNoteWithPriceColumns}
-                          priceDisplayMode={priceDisplayModeDraft}
-                          onPriceDisplayModeChange={updatePriceDisplayModeDraft}
-                          aiDescriptionUsage={localAiDescriptionUsage}
-                          onAiDescriptionUsageChange={setLocalAiDescriptionUsage}
-                          badgeStyles={badgeStyles}
-                          labels={labels}
-                          allowDirectItem={isAubeTable}
-                          selectedPageId={visiblePageId}
-                          cancelLabel="목록으로"
-                          isEditing={false}
-                          isConfirmingDelete={confirmingDeleteKey === `item:${item.id}`}
-                          onEdit={(trigger) => startEditItem(item.id, trigger)}
-                          onCancel={resetModes}
-                          onCancelDelete={() => setConfirmingDeleteKey("")}
-                          onRequestDelete={() => startConfirmDelete(`item:${item.id}`)}
-                          onConfirmDelete={() => deleteItemDraft(item.id)}
-                          onCopy={() => copyItemDraft(item.id)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {registeredItems}
               </div>
             ) : canManagePages && selectedPage ? (
               <div>
@@ -10265,15 +10281,7 @@ export default function MenuManagementSection({
               </p>
             ) : null}
             {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem)) && <FinalActionRow>
-              <button
-                type="button"
-                onClick={() => setIsSampleResetConfirming(true)}
-                disabled={Boolean(sampleResetDisabledReason)}
-                title={sampleResetDisabledReason || undefined}
-                className="site-button site-button-outline inline-flex items-center justify-center"
-              >
-                샘플 메뉴로 되돌리기
-              </button>
+              {sampleResetButton}
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 {finalSaveLabel}
               </SubmitButton>
@@ -10546,7 +10554,7 @@ export default function MenuManagementSection({
                   loadingLabel="적용 중..."
                   onClick={resetMenuManagementToStarterDraft}
                 >
-                  샘플 메뉴로 되돌리기
+                  템플릿 샘플로 되돌리기
                 </SubmitButton>
               </div>
             </div>
@@ -10673,7 +10681,7 @@ function MenuItemCard({
 
   const content = (
     <article
-      className={isEditing ? "site-management-scope fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:rounded-lg lg:border lg:border-zinc-100 lg:p-5" : "rounded-lg border border-zinc-100 p-4"}
+      className={isEditing ? "site-management-scope fixed inset-0 z-50 overflow-y-auto bg-white p-5 lg:static lg:rounded-lg lg:border lg:border-zinc-100 lg:p-5" : basicEditor ? "site-editor-registered-item" : "rounded-lg border border-zinc-100 p-4"}
       data-basic-item-editor={basicEditor && isEditing ? "" : undefined}
     >
       {isEditing ? (

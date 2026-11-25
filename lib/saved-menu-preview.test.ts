@@ -97,3 +97,38 @@ test("preview design conditions stay in shared help instead of permanent paragra
   assert.match(html,/디자인 초기화/);
   assert.match(html,/aria-label="가게명·가게 설명 정렬"[^>]*disabled/);
 });
+
+test("Basic editor links keep the draft in its own preview mode", () => {
+  const draft = serializePreviewDesign({ pageBackground: "#123456" });
+  const url = new URL(buildMenuPreviewUrl("saved-menu", { lang: "en" }, {
+    device: "tablet", orientation: "portrait", actual: true, embedded: true,
+    designEditor: true, designPreview: draft,
+  }), "https://example.test");
+  assert.equal(url.searchParams.get("editDesign"), "1");
+  assert.equal(url.searchParams.get("designPreview"), draft);
+  assert.equal(url.searchParams.get("orientation"), "portrait");
+  assert.equal(url.searchParams.get("lang"), "en");
+});
+
+test("Basic design edits preserve saved content, pattern bands and other appearances", async () => {
+  const { applyBasicEditorPreviewDesign } = await import("./basic-editor-preview-design");
+  const saved = {
+    featured_slides: [{ featured_item_id: "existing" }],
+    design: { backgroundColor: "#FFFFFF", appearance: { imageRadii: { logo: 8 } }, patternBands: { enabled: true }, textColors: { category: "#202020" } },
+  };
+  const settings = { menu_design_id: "basic-first-column" };
+  assert.deepEqual(applyBasicEditorPreviewDesign(saved, settings, "cafe_design_a", "{}", false), saved);
+  const next = applyBasicEditorPreviewDesign(saved, settings, "cafe_design_a", {
+    pageBackground: "#123456", chipColors: { saleText: "#ABCDEF" }, textColors: { product: "#333333" },
+    imageRadii: { item: 16 }, albumImageRatio: "4:5",
+  }, false);
+  const { menuSurfaceRecord } = await import("./menu-design-surfaces");
+  const design = menuSurfaceRecord(next.design);
+  assert.deepEqual(next.featured_slides, saved.featured_slides);
+  assert.deepEqual(design.patternBands, { enabled: true });
+  assert.equal(design.backgroundColor, "#123456");
+  assert.deepEqual(design.textColors, { category: "#202020", product: "#333333" });
+  assert.deepEqual(design.chipColors, { saleText: "#ABCDEF" });
+  assert.deepEqual(design.appearance, { imageRadii: { logo: 8, item: 16 }, chipShape: "template", albumImageRatio: "1:1" });
+  assert.equal(saved.design.backgroundColor, "#FFFFFF");
+});

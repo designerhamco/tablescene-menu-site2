@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import styles from "./MenuPreviewOptionsPanel.module.css";
 import designStyles from "./PreviewDesignOptions.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, patternBandsAvailable, alignmentDisabled = false, featureContent, designContent }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, patternBandsAvailable, alignmentDisabled = false, featureContent, designContent, designOnly = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -35,6 +35,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   alignmentDisabled?: boolean;
   featureContent?: ReactNode;
   designContent?: ReactNode;
+  designOnly?: boolean;
 }) {
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
@@ -47,6 +48,14 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       </label>
     </div>
   </fieldset> : null;
+  const designPanel = open && defaults ? designContent ?? (
+    <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design}
+      album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled}
+      onChange={onDesignChange} savedFallback={designOnly} resetLabel={designOnly ? "편집 내용 되돌리기" : undefined}>
+      {patternOption}
+    </PreviewDesignOptions>
+  ) : null;
+
   return <aside className={styles.panel} aria-label="보기 옵션" data-preview-options-panel data-options-open={open ? "true" : "false"}
     onKeyDown={event => {
       if (event.key === "Escape" && open && !event.defaultPrevented && !(event.target as Element).closest("[data-preview-color-picker], [data-preview-color-reset]")) {
@@ -57,7 +66,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       <Palette className={styles.palette} size={22} aria-hidden="true" /><span className={styles.label}>보기 옵션</span><span className={styles.count}>{groups.length && tab === "features" ? `${count}/${choices.length} 선택` : "디자인 미리보기"}</span><ChevronLeft className={styles.chevron} size={16} aria-hidden="true" />
     </button>
     <div id="preview-display-options" className={styles.body} hidden={!open}>
-      {!groups.length ? <div className={designStyles.panel}>{patternOption}</div> : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
+      {designOnly ? designPanel : !groups.length ? <div className={designStyles.panel}>{patternOption}</div> : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
         <TabsList size="sm" distribution="equal" aria-label="미리보기 옵션 종류" className="w-full">
           <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger>
           <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>
@@ -74,7 +83,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         </div>
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
-        {open && defaults ? designContent ?? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange}>{patternOption}</PreviewDesignOptions> : null}
+        {designPanel}
         </TabsContent>
       </Tabs>}
     </div>
