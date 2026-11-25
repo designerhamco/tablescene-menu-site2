@@ -122,7 +122,8 @@ export default function MenuPreviewDeviceFrame(
   const wideOptions = useSyncExternalStore(subscribeWideOptions, getWideOptions, getServerWideOptions);
   const [displayOptionsOpenOverride, setDisplayOptionsOpenOverride] = useState<boolean>();
   const areDisplayOptionsOpen = displayOptionsOpenOverride ?? wideOptions;
-  const [optionsTab, setOptionsTab] = useState(designEditor || (query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
+  const requestedOptionsTab = (query as TemplatePreviewQuery).previewOptions;
+  const [optionsTab, setOptionsTab] = useState(requestedOptionsTab === "decorations" ? "decorations" : designEditor || requestedOptionsTab === "design" ? "design" : "features");
   const initialDesign = readPreviewDesign(isTemplatePreview ? (query as TemplatePreviewQuery).designPreview : { hidePatternBands: query.patternBandsPreview === "off" });
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
   if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
@@ -267,7 +268,7 @@ export default function MenuPreviewDeviceFrame(
     device,
     orientation,
   });
-  const renderedDesign = usePreviewRenderedDesign(iframeRef, embeddedUrl, hasDisplayOptions && areDisplayOptionsOpen && optionsTab === "design");
+  const renderedDesign = usePreviewRenderedDesign(iframeRef, embeddedUrl, hasDisplayOptions && areDisplayOptionsOpen && (optionsTab === "design" || optionsTab === "decorations"));
   const detachedUrl = buildPreviewUrl({
     actual: true,
     embedded: true,
@@ -428,7 +429,7 @@ export default function MenuPreviewDeviceFrame(
             )}
           </button>
         </header>
-        {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel designOnly={Boolean(designEditor)} open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
+        {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel device={device} designOnly={Boolean(designEditor)} open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
           patternBandsAvailable={patternBandsAvailable} groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"}
           featureContent={isDisplayPreview && props.displayPages?.[displayNavigation.page - 1]?.split ? <label className="site-field-stack type-label"><span>이미지 위치</span><select className="site-field" aria-label="디스플레이 이미지 위치" value={templateQuery.displayImagePosition === "right" ? "right" : "left"} disabled={isPending} onChange={event => changeDisplayQuery({ displayImagePosition: event.target.value })}><option value="left">왼쪽</option><option value="right">오른쪽</option></select></label> : undefined}
           designContent={isDisplayPreview && props.previewDesignDefaults ? <DisplayPreviewOptions value={designOptions} defaults={props.previewDesignDefaults} scale={fontSizeScale} pending={isPending} onChange={changeDesign} onScaleChange={scale => changeDisplayQuery({ fontSizeScale: scale })} onReset={() => changeDisplayQuery({ designPreview: undefined, fontSizeScale: undefined })} /> : undefined} /> : null}

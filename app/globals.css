@@ -3256,7 +3256,8 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_design_a"] .cafe-a-category-heading {
-  border-bottom: clamp(0.1rem, 0.14vmin, 0.15rem) solid currentColor;
+  --cafe-a-native-underline-width: clamp(0.1rem, 0.14vmin, 0.15rem);
+  border-bottom: var(--cafe-a-native-underline-width) solid currentColor;
   padding-bottom: clamp(0.32rem, 0.62vmin, 0.56rem);
 }
 

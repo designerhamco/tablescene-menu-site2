@@ -4,6 +4,7 @@ import { readPreviewDesign } from "./menu-preview-design";
 import { readPreviewChipColors } from "./menu-preview-chip-colors";
 import { resolvedMenuTextColors } from "./menu-text-colors";
 import { getSafeEnglishFontValueForTemplate } from "./font-options";
+import { supportsMenuDecorations } from "./menu-decorations";
 
 /** Use the same settings for the editable preview and its final save. */
 export function applyBasicEditorPreviewDesign(pageSettings: unknown, settings: unknown, templateKey: string, raw: unknown, album: boolean) {
@@ -19,6 +20,7 @@ export function applyBasicEditorPreviewDesign(pageSettings: unknown, settings: u
   }
 
   const design = menuSurfaceRecord(page.design);
+  if (draft.decorations && supportsMenuDecorations(templateKey)) design.decorations = draft.decorations;
   if (draft.fontFamily) {
     design.commonFonts = true;
     if (draft.fontFamily.ko) design.koreanFont = draft.fontFamily.ko;

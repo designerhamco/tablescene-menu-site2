@@ -1731,8 +1731,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
     !isAubeTable && editorServiceType !== "screen" && isTemplateSupportedForService(site.template_key, "basic");
   const pendingDesign = useBasicEditorLayout ? serializePreviewDesign(readPreviewDesign(designDraft)) : undefined;
   const pendingDesignReset = useBasicEditorLayout && !isReadOnly && designReset === "1";
-  const patternBands = supportsMenuPatternBands(site.template_key, site.settings)
+  const savedPatternBands = supportsMenuPatternBands(site.template_key, site.settings)
     ? getMenuPatternBands(site.template_key, pendingDesignReset ? undefined : site.page_settings) : undefined;
+  const patternBands = savedPatternBands ? { ...savedPatternBands, enabled: readPreviewDesign(pendingDesign).decorations?.patternBands ?? savedPatternBands.enabled } : undefined;
   const configuredEditorTabs = getTemplateEditorTabs(site.template_key);
   const canManagePublish = hasMenuSitePermission(accessContext, "menu.publish");
   const visibleEditorTabs: Array<(typeof configuredEditorTabs)[number] & { disabledReason?: string }> = configuredEditorTabs.flatMap((item) => {

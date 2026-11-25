@@ -18,6 +18,8 @@ This refactor moves existing declarations without changing formulas, tokens, con
 
 ## Shared parts
 
+- `lib/menu-decorations.ts` validates optional Basic line settings and registers device/album exclusions. `shared/MenuDecorationContext.tsx` passes list/album settings to reused rows; `MenuAppearanceScope` paints only explicit overrides. Native/Matcha contained readers reserve configured divider geometry in both candidates and visible tracks. `PreviewDecorationOptions` owns the separate viewing-options tab, sharing `PreviewDesign` normalization with the existing final-save helper. Per-design snapshots retain the whole decoration object. See `docs/basic-menu-decorations-contract.md`.
+
 - `shared/cafe-template-types.ts`: existing data, content-block and measurement contracts.
 - `shared/cafe-menu-pricing.ts`: existing price-option/price-column formatting and selection, shared by rows and layout estimates.
 - `shared/cafe-template-content.ts`: existing brand/logo/image visibility and supporting-copy class selection.

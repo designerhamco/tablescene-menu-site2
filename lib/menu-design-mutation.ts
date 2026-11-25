@@ -37,6 +37,7 @@ export function buildMenuDesignReset(templateKey: string, savedSettings: unknown
   delete designSettings.appearance;
   delete designSettings.chipColors;
   delete designSettings.patternBands;
+  delete designSettings.decorations;
   delete designSettings.backgroundColor;
   delete designSettings.koreanFont;
   delete designSettings.englishFont;

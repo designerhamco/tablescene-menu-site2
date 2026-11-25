@@ -1,5 +1,7 @@
 "use client";
 import { menuPatternBandRenderProps } from "@/lib/menu-pattern-bands";
+import { readMenuDecorations } from "@/lib/menu-decorations";
+import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
 import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
 import MenuClampedCopy from "../shared/MenuClampedCopy";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
@@ -129,6 +131,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const topRow = structure === "basic-top-row";
   const centerColumn = structure === "basic-center-column";
   const upperLeft = structure === "basic-upper-left";
+  const decorations = readMenuDecorations(data.menuSite.page_settings);
+  const columnDividers = !album && !centerColumn && hasMenuColumnDivider(data.menuSite.template_key, data.menuSite.page_settings);
+  const dividerGeometry = getMenuColumnDividerGeometry("var(--scroll-page-inset)", decorations.columnDivider?.width);
   const leftColumn = structure === "basic-first-column";
   const layoutMode = data.mode === "preview" && data.previewLayoutMode
     ? data.previewLayoutMode
@@ -262,7 +267,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         group: category.id,
         kind: "heading",
         node: (
-          <CafeACategoryTitle category={category} density="default" priceRailColumns={priceRailColumns} />
+          <>
+            {decorations.categoryDivider?.visible && result.at(-1)?.kind === "item" ? <div className="cafe-a-menu-category-top-divider" data-cafe-a-category-divider="" aria-hidden="true" /> : null}
+            <CafeACategoryTitle category={category} density="default" priceRailColumns={priceRailColumns} />
+          </>
         ),
       });
       for (const item of items) {
@@ -285,6 +293,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               priceDisplayMode={priceDisplayMode}
               priceRailColumns={priceRailColumns}
               previewDevice={device}
+              pagePresentation="one"
               onOpenImage={openImage}
             />
           ),
@@ -294,7 +303,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     return result;
   // Rebuild measurements for content, role fonts, features and sale boundaries.
   // Countdown ticks stay inside the original sale component.
-  }, [data, timeSaleByItemId, device, saleNow, customBadgeStyles, priceDisplayMode, openImage]);
+  }, [data, timeSaleByItemId, device, saleNow, customBadgeStyles, priceDisplayMode, openImage, decorations.categoryDivider?.visible]);
   const unitById = useMemo(() => new Map(units.map((u) => [u.id, u])), [units]);
   useLayoutEffect(() => {
     if (mobile || album || !area.current || !measure.current) return;
@@ -583,7 +592,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-kind={value.kind}
         data-next-kind={nextKind}
         data-paged-block={id}
-        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last && !hasFooter ? { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
+        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, "--decoration-item-gap": `${block.gapAfter ?? 0}px`, ...(last && !hasFooter ? { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
       >
         {value.node}
       </div>
@@ -646,6 +655,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             "--scroll-min-column-width": `${SCROLL_MIN_COLUMN_WIDTH_REM}rem`,
             ...(album ? { "--scroll-item-size": `${getOnePageItemNameCeilingRem(device) ?? 1.3}rem` } : {}),
             "--paged-gap-scale": 1,
+            ...(columnDividers ? { "--scroll-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}),
           } as CSSProperties
         }
         data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
@@ -714,8 +724,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
+                      {columnDividers && i > 0 ? <span className={styles.columnRule} data-menu-column-divider="" data-menu-category-decoration="" aria-hidden="true" /> : null}
                       {upperLeft && i === 0 ? brandPanel : null}
-                      {column.map((b, index) => <div key={b.id}>
+                      {column.map((b, index) => <div key={b.id} data-menu-column-start={index === 0 ? "" : undefined}>
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
                           column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}
                       </div>)}
