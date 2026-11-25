@@ -464,7 +464,7 @@ test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 C
   assert.match(siteDesignSource, /\.site-tabs-outline\[data-purpose="state"\]\.site-tab-size-lg \{[^}]*--site-tab-height: var\(--ui-control-height-header\);[^}]*--site-segment-font: var\(--type-control-size\);/);
   assert.match(typographySource, /@media \(min-width: 1024px\) \{[\s\S]*?--type-primary-control-size: var\(--site-type-16\);/);
   assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-primary-control-size: var\(--type-control-size\);/);
-  assert.match(siteDesignSource, /\.site-page-tabs\[data-purpose="page"\] \{ --site-tab-font: var\(--type-primary-control-size\); \}/);
+  assert.match(siteDesignSource, /\.site-page-tabs\[data-purpose="page"\]:is\(\.site-tab-size-md, \.site-tab-size-lg\) \{[^}]*--site-tab-font: var\(--site-type-18\);[^}]*--site-tab-height: var\(--ui-control-height-header\);/);
   assert.equal(SITE_TYPE_ROLES.find(role => role.key === "price")?.weight, 700);
 });
 

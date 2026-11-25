@@ -48,6 +48,7 @@
   --type-label-size: var(--site-type-14);
   /* Site navigation stays independent from compact control text. */
   --type-nav-size: var(--site-type-15);
+  --type-menu-nav-size: var(--site-type-16);
   --type-caption-size: var(--site-type-13);
   --type-control-size: var(--site-type-14);
   --type-primary-control-size: var(--type-control-size);
@@ -247,6 +248,7 @@
 .type-card-detail { font-size: var(--type-card-detail-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); overflow-wrap: anywhere; letter-spacing: var(--site-tracking-meta); }
 
 .type-plan-title { font-size: var(--type-plan-title-size); font-weight: var(--font-weight-semibold); line-height: 1.4; letter-spacing: var(--site-tracking-copy); word-break: keep-all; }
+.type-menu-nav { font-size: var(--type-menu-nav-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); letter-spacing: var(--site-tracking-copy); }
 .type-control { font-size: var(--type-control-size); font-weight: var(--font-weight-semibold); line-height: var(--site-leading-control); letter-spacing: var(--site-tracking-copy); }
 .type-price { font-size: var(--type-price-size); font-weight: var(--site-weight-price); line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: var(--site-tracking-copy); }
 .type-price-compact { font-size: var(--type-price-compact-size); font-weight: var(--site-weight-price); line-height: 1.25; font-variant-numeric: tabular-nums; letter-spacing: var(--site-tracking-copy); }

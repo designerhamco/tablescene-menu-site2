@@ -30,6 +30,9 @@
   --ui-button-height: var(--ui-control-height-md);
   --ui-button-group-divider-height: 1.5rem;
   --ui-edit-icon-size: 1rem;
+  --ui-label-icon-supporting: 1rem;
+  --ui-label-icon-action: 1.25rem;
+  --ui-header-icon-size: 1.5rem;
   --ui-button-boundary: var(--ui-border);
   --ui-radius-control-rounded: .5rem;
   --ui-tab-rail-height: 3rem;
@@ -445,6 +448,20 @@
 
 .site-button:is(.site-button-lg.site-button-primary, [data-purpose="primary-action"]) {
   font-size: var(--type-primary-button-size, var(--type-primary-control-size));
+}
+
+@media (min-width: 1024px) {
+  .site-button { --ui-label-icon-size: var(--ui-label-icon-supporting); }
+  .site-button-primary:not(:where(.site-button-compact, .site-button-header, .site-button-icon, .site-preview-control)) {
+    font-size: var(--site-type-16);
+    --ui-label-icon-size: var(--ui-label-icon-action);
+  }
+  .site-button[data-purpose="primary-action"]:not(:where(.site-button-compact, .site-button-header, .site-button-icon, .site-preview-control)),
+  .site-button-icon:not(:where([data-icon-size="compact"], .site-preview-control, .site-button-media)) { --ui-label-icon-size: var(--ui-label-icon-action); }
+  .site-button:not(:where(.site-button-header, .site-preview-control, .site-button-media)) svg[data-site-icon]:not(.site-edit-icon) {
+    width: var(--ui-label-icon-size);
+    height: var(--ui-label-icon-size);
+  }
 }
 
 .site-button-compact {

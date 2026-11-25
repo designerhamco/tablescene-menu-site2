@@ -1,12 +1,17 @@
-import { SITE_CONTENT_COMPOSITION, SITE_CONTROL_DENSITY, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "@/lib/site-spacing";
+import { SITE_COMPONENT_HIERARCHY, SITE_CONTENT_COMPOSITION, SITE_CONTROL_DENSITY, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "@/lib/site-spacing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import { CheckboxField, CheckboxFieldGroup } from "@/app/components/ui/checkbox-field";
 import { Button } from "@/app/components/ui/button";
+import ComponentHierarchyExamples from "./ComponentHierarchyExamples";
 import styles from "./SiteComponentGallery.module.css";
 
 export default function SiteSpacingRules() {
-  return <><section className={styles.section} id="content-composition">
+  return <><section className={styles.section} id="component-hierarchy">
+    <div className={styles.heading}><h2 className="type-section-title">위계에 따른 컴포넌트 크기</h2><p className="type-body site-copy-muted">PC에서는 화면 탐색18px, 주요 콘텐츠 전환과 실행16px, 보조 조작14px로 구분합니다. 문구 옆 아이콘은 보조14px 문구에16px, 주요16~18px 문구에20px을 사용합니다. 색상이나 페이지 종류보다 역할을 먼저 선택하며 모바일·태블릿과 헤더·연필 전용 규격은 별도로 유지합니다.</p></div>
+    <div className={styles.usageTable}><table aria-label="PC 컴포넌트 위계 기준"><thead><tr><th>역할</th><th>글자·높이</th><th>아이콘</th><th>공통 API</th><th>선택 기준</th></tr></thead><tbody>{SITE_COMPONENT_HIERARCHY.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.desktop}</td><td>{item.icon}</td><td><code>{item.api}</code></td><td>{item.rule}</td></tr>)}</tbody></table></div>
+    <ComponentHierarchyExamples />
+  </section><section className={styles.section} id="content-composition">
     <div className={styles.heading}>
       <h2 className="type-section-title">열린 구성·작업 패널·간격</h2>
       <p className="type-body site-copy-muted">일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본입니다. 제목·여백·정렬·필요한 구분선으로 나누고, 대시보드·마이페이지·운영관리의 독립된 정보·설정·작업에만 필요한 패널을 선택합니다. 박스를 제거할 때는 배경뿐 아니라 전용 래퍼·안쪽 여백·불필요한 높이·클리핑도 없앱니다. 페이지 바깥 여백과 컨트롤 클릭 영역은 유지하고, 콘텐츠 사이 간격은 공통 stack/section이 소유합니다.</p>

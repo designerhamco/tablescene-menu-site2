@@ -126,7 +126,7 @@
 .supportTrigger:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
 .supportDropdown { width: 13rem; padding: .5rem; border: 1px solid var(--ui-border); border-radius: .75rem; background: var(--ui-surface); color: var(--ui-text); box-shadow: var(--site-shadow-popover); }
 .supportDropdown nav { display: grid; gap: .125rem; }
-.supportLink { display: flex; min-height: 2.75rem; align-items: center; border-radius: .5rem; padding: .625rem .75rem; font-size: var(--type-body-sm-size); font-weight: 500; }
+.supportLink { display: flex; min-height: var(--ui-control-height-header); align-items: center; border-radius: .5rem; padding: .625rem .75rem; font-size: var(--type-menu-nav-size); font-weight: var(--font-weight-medium); line-height: var(--site-leading-control); }
 .supportLink:hover, .supportLink[aria-current="page"] { background: var(--ui-surface-soft); color: var(--ui-text); }
 .supportLink:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
 .drawerSupportNavigation { display:grid; padding:var(--site-space-copy) 0 var(--site-space-block) var(--site-space-block); }
