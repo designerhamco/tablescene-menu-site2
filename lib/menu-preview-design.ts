@@ -11,7 +11,7 @@ import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getTemplateTimeSaleBadgeTextC
 import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
 import { getDiningTextColorDefaults, normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
-import { normalizeMenuDecorations, readMenuDecorations, supportsMenuDecorations, type MenuDecorations } from "./menu-decorations";
+import { MENU_DECORATION_LINES, nativeMenuDecorationVisible, normalizeMenuDecorations, readMenuDecorations, supportsMenuDecorations, type MenuDecorationLine, type MenuDecorations } from "./menu-decorations";
 import { getMenuPatternBands, supportsMenuPatternBands } from "./menu-pattern-bands";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
@@ -86,6 +86,7 @@ export function previewDesignDefaults(data: MenuPageData) {
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
   const savedChips = readPreviewChipColors(record(record(data.menuSite.page_settings).design).chipColors);
   const saleBackground = savedChips.saleBackground ?? data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
+  const nativeDecorationPage = { ...record(data.menuSite.page_settings), design: { ...record(record(data.menuSite.page_settings).design), decorations: undefined } };
   return {
     textColors: resolvedMenuTextColors(data.menuSite.page_settings, key?.startsWith("dining_aube_table_") === true),
     textColorDefaults: {
@@ -114,6 +115,10 @@ export function previewDesignDefaults(data: MenuPageData) {
     appearance: resolveMenuAppearance(data.menuSite.page_settings, key, typeof savedDesignId === "string" ? savedDesignId : undefined),
     ...(supportsMenuDecorations(key, data.pagePresentation) ? {
       decorations: readMenuDecorations(data.menuSite.page_settings),
+      decorationVisibilityDefaults: {
+        ...Object.fromEntries(MENU_DECORATION_LINES.map(line => [line, nativeMenuDecorationVisible(line, key ?? "", neutral)])) as Record<MenuDecorationLine, boolean>,
+        patternBands: Boolean(resolveMenuPatternBands(key, data.menuSite.settings, nativeDecorationPage, data.pagePresentation)),
+      },
       patternBandsSupported: supportsMenuPatternBands(key, data.menuSite.settings, data.pagePresentation),
       patternBandsAssetAvailable: Boolean(getMenuPatternBands(key, data.menuSite.page_settings).image || key === "fast_food_loop_bagel_a"),
     } : {}),

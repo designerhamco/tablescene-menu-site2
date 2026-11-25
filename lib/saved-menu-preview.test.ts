@@ -106,12 +106,26 @@ test("Basic editor viewing options keep design and decoration tabs without catal
     open: true, onToggle() {}, tab: "decorations", onTabChange() {}, groups: [],
     values: getDefaultDesignOptions({}), onFeatureChange() {}, onFeatureReset() {}, canResetFeatures: false,
     pending: false, templateKey: "cafe_design_a", defaults: previewDesignDefaults(fixture()),
-    design: {}, onDesignChange() {}, album: false, device: "pc", designOnly: true,
+    design: { decorations: { categoryUnderline: { visible: true }, columnDivider: { visible: true } } }, onDesignChange() {}, album: false, device: "pc", designOnly: true,
   }));
   assert.match(html, /디자인 옵션/); assert.match(html, /장식 기능/);
   assert.match(html, /카테고리명 아래 선 두께/); assert.match(html, /열 사이 구분선 스타일/);
-  assert.match(html, /기본색 유지/); assert.match(html, /직접 지정/);
+  assert.match(html, /type="checkbox" aria-label="카테고리명 아래 선 표시" checked/);
+  assert.match(html, /카테고리명 아래 선 색상 선택/); assert.match(html, /카테고리명 아래 선 색상 기본색 복원/);
+  assert.doesNotMatch(html, /메뉴 아이템 사이 구분선 두께|색상 방식/);
   assert.doesNotMatch(html, /기능 옵션|기능 초기화|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
+});
+
+test("untouched neutral decoration options show unchecked choices and an empty design area", () => {
+  const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+    open: true, onToggle() {}, tab: "decorations", onTabChange() {}, groups: [],
+    values: getDefaultDesignOptions({}), onFeatureChange() {}, onFeatureReset() {}, canResetFeatures: false,
+    pending: false, templateKey: "cafe_design_a", defaults: previewDesignDefaults(fixture()),
+    design: {}, onDesignChange() {}, album: false, device: "pc", designOnly: true,
+  }));
+  assert.equal((html.match(/type="checkbox"/g) ?? []).length, 6);
+  assert.doesNotMatch(html, /type="checkbox"[^>]*checked|data-preview-decoration="/);
+  assert.match(html, /선 장식을 선택하면 디자인 설정이 표시됩니다/);
 });
 
 test("Basic album decoration options omit column, item and price-leader controls", () => {
