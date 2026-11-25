@@ -43,6 +43,7 @@ import {
 } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import CoverSampleResetButton from "@/components/mypage/menu-editor/CoverSampleResetButton";
 import CoverBackgroundOpacityField from "@/components/mypage/menu-editor/CoverBackgroundOpacityField";
+import MenuEditorSaveFeedback from "@/components/mypage/menu-editor/MenuEditorSaveFeedback";
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import HelpTooltip from "@/components/ui/HelpTooltip";
@@ -90,7 +91,6 @@ import {
   type MenuEditorTimeSale,
 } from "@/lib/menu-time-sales";
 import { normalizeTimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
-import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getAiUsageSnapshot, getAiUsageSnapshotFromCredits, normalizeMenuLinkPlanKey } from "@/lib/menu-ai-usage";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { getAiCreditBalanceForMenuSite } from "@/lib/server/ai-credits-service";
@@ -1079,11 +1079,7 @@ function FinalActionRow({ children }: { children: ReactNode }) {
 }
 
 function FinalSaveFeedback({ error }: { error?: string | null }) {
-  return error ? (
-    <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
-      {error}
-    </p>
-  ) : null;
+  return <MenuEditorSaveFeedback error={error} />;
 }
 
 function normalizeFinalSaveError(error?: string | null) {
@@ -1776,16 +1772,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         ? "미리보기에서 확인할 수 있어요. 손님에게 보여주려면 공개 설정에서 공개로 바꿔 주세요."
         : "미리보기에서 확인할 수 있어요."
     : undefined;
-  const bannerError =
-    activeTab === "localization"
-      ? latestTranslationJob?.status === "completed"
-        ? null
-        : latestTranslationJob?.status === "failed"
-          ? getSafeTranslationErrorMessage(latestTranslationJob.error_message)
-          : error
-            ? error
-            : null
-      : error;
+  const bannerError = error;
   const basicNameError = activeTab === "basic" && bannerError?.includes("메뉴판 이름") ? bannerError : null;
   const basicRestaurantNameError = activeTab === "basic" && bannerError?.includes("실제 매장명") ? bannerError : null;
   const basicBrandDescriptionError = activeTab === "basic" && bannerError?.includes("매장 설명") ? bannerError : null;
@@ -1793,13 +1780,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const basicFooterNotice2Error = activeTab === "basic" && bannerError?.includes("안내사항 2") ? bannerError : null;
   const basicFooterNotice3Error = activeTab === "basic" && bannerError?.includes("안내사항 3") ? bannerError : null;
   const coverFeaturedItemError = activeTab === "cover" && bannerError?.includes("대표 추천 메뉴") ? bannerError : null;
-  const finalSaveError = normalizeFinalSaveError(
-    (activeTab === "basic" && (basicNameError || basicRestaurantNameError)) ||
-      (activeTab === "cover" && coverFeaturedItemError)
-      ? null
-      : bannerError
-  );
-  const globalBannerError = activeTab === "localization" ? bannerError : null;
+  const finalSaveError = normalizeFinalSaveError(bannerError);
   const templateDisplayName = getMenuDesignDisplayName(site.template_key, site.template_category, site.settings);
   const templateContentLimits = getTemplateContentLimits(site.template_key, site.settings);
   const usesTopRowCopyLimit = hasFixedHeaderAlignment(site.template_key, site.settings);
@@ -2063,7 +2044,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           </div>
         </header>
 
-        {globalBannerError && <div className="site-notice site-notice-error mb-5 p-4 text-copy font-medium">{globalBannerError}</div>}
         {!accessContext.isOwner && (
           <div className="site-notice site-notice-info mb-5 p-4 text-copy font-medium leading-relaxed">
             직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
@@ -2220,8 +2200,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
             {activeTab === "advertising" && site.template_key !== "display_menu_a" ? (
               <SectionCard title={useBasicEditorLayout ? "광고 설정" : "광고"} basic={useBasicEditorLayout}>
-                <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} basic={useBasicEditorLayout} />
-                <FinalSaveFeedback error={finalSaveError} />
+                <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} basic={useBasicEditorLayout} finalSaveError={finalSaveError} />
               </SectionCard>
             ) : null}
 
@@ -2739,6 +2718,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                 )}
                 <LocalizationSection
+                  finalSaveError={finalSaveError}
                   basic={useBasicEditorLayout}
                   menuId={site.id}
                   enabledLocales={enabledLocales}

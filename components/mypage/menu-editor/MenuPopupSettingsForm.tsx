@@ -8,9 +8,10 @@ import { ArrowUp, ArrowDown } from "@/app/components/ui/site-arrow";
 import { getImageUploadPolicy } from "@/lib/image-upload-policy";
 import HelpTooltip from "@/components/ui/HelpTooltip";
 import SwitchField from "./SwitchField";
+import MenuEditorSaveFeedback from "./MenuEditorSaveFeedback";
 import DirtySubmitButton from "./DirtySubmitButton";
 
-export default function MenuPopupSettingsForm({ menuId, settings, disabled, basic = false }: { menuId: string; settings: MenuPopupSettings; disabled: boolean; basic?: boolean }) {
+export default function MenuPopupSettingsForm({ menuId, settings, disabled, basic = false, finalSaveError }: { menuId: string; settings: MenuPopupSettings; disabled: boolean; basic?: boolean; finalSaveError?: string | null }) {
   const [enabled, setEnabled] = useState(settings.enabled);
   const [images, setImages] = useState(() => settings.images.map((image, index) => ({ ...image, key: `saved-${index}` })));
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
           <p className="type-caption site-copy-muted">광고 이미지는 최대 {MAX_MENU_POPUP_IMAGES}개까지 등록할 수 있습니다.</p>
           <ImageUploadField
             key={selectedImage ?? "add"}
+            uploadButtonLabel={selectedImage ? "이미지 교체" : "파일 선택"}
             label={selectedIndex < 0 ? "광고 이미지 파일" : `광고 이미지 ${selectedIndex + 1} 교체`}
             menuId={menuId}
             editorLayout
@@ -106,10 +108,11 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
           </ol>
         )}
         <p className="type-caption site-copy-muted">{getImageUploadPolicy("menu-popup-image-draft").label} · 업로드된 이미지는 화면에 맞게 자동 최적화될 수 있습니다.</p>
-        {missingImage && <p className="type-body-sm">광고를 사용하려면 이미지를 한 장 이상 등록해 주세요.</p>}
         <div className="site-editor-action-row">
           <DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary" disabled={uploadPending || missingImage}>최종 저장</DirtySubmitButton>
-        </div>
+          <MenuEditorSaveFeedback error={finalSaveError} issues={missingImage ? [{ message: "광고를 사용하려면 이미지를 한 장 이상 등록해 주세요." }] : []} />
+      </div>
+
       </fieldset>
     </form>
   );
@@ -126,7 +129,7 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
       </div>)}
       {images.length < MAX_MENU_POPUP_IMAGES ? <button type="button" className="site-button site-button-secondary" onClick={addImage}>광고 이미지 추가 ({images.length}/3)</button> : null}
       <p className="text-support text-zinc-600">등록 순서대로 표시됩니다. 이미지는 저장 후 공개 메뉴판에 반영됩니다.</p>
-      <div className="flex justify-center"><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary">광고 저장</DirtySubmitButton></div>
+      <div className="flex justify-center"><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary">광고 저장</DirtySubmitButton><MenuEditorSaveFeedback error={finalSaveError} /></div>
     </fieldset>
   </form>;
 }

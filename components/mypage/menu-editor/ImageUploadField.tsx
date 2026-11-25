@@ -13,6 +13,7 @@ import HelpTooltip from "@/components/ui/HelpTooltip";
 
 type ImageUploadFieldProps = {
   label: string;
+  uploadButtonLabel?: string;
   editorLayout?: boolean;
   labelAction?: ReactNode;
   hidePreview?: boolean;
@@ -58,6 +59,7 @@ function getStateClassName(type: UploadState["type"]) {
 
 export default function ImageUploadField({
   label,
+  uploadButtonLabel,
   editorLayout = false,
   labelAction,
   hidePreview = false,
@@ -229,7 +231,7 @@ export default function ImageUploadField({
     <button type="button" disabled={isLoading || disabled} onClick={() => inputRef.current?.click()}
       className="site-button site-button-primary">
       {isLoading && <LoadingSpinner className="h-3 w-3" />}
-      {isLoading ? "업로드 중..." : editorLayout ? "파일 선택" : "이미지 등록"}
+      {isLoading ? "업로드 중..." : uploadButtonLabel ?? (previewUrl ? "이미지 교체" : editorLayout ? "파일 선택" : "이미지 등록")}
     </button>
   );
   const status = state.message && (
