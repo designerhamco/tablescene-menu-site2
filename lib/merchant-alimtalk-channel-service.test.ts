@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ORDER_READY_TEMPLATE_CONTENT } from "./order-ready-message";
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 
@@ -10,7 +11,9 @@ const fixture = {
   challenge_id: "44444444-4444-4444-8444-444444444444", requested_at: new Date().toISOString(), expires_at: new Date(Date.now() + 600_000).toISOString(),
   verified_at: null as string | null, verify_attempts: 0, request_count: 1, request_window_started_at: new Date().toISOString(),
   sender_key: null as string | null, sending_enabled: false,
-  verification_method: "kakao_token",
+  verification_method: "kakao_token", template_code: "cooking_ready_v1", template_status: "unregistered",
+  template_content: null as string | null, template_checked_at: null as string | null,
+  template_check_id: null as string | null, template_check_started_at: null as string | null, template_registration_started_at: null as string | null,
 };
 const harness = {
   context: { isOwner: true, actorUserId: fixture.actor_id },
@@ -20,7 +23,9 @@ const harness = {
       rpc(name: string, args: Record<string, unknown>) {
         harness.rpcs.push({ name, args });
         return { async single() {
-          harness.row = name === "link_existing_menu_alimtalk_channel"
+          harness.row = name === "reserve_menu_alimtalk_template"
+            ? { ...harness.row, template_status: "checking", template_check_id: "66666666-6666-4666-8666-666666666666" }
+            : name === "link_existing_menu_alimtalk_channel"
             ? { ...harness.row, state: "connected", masked_phone: null, sender_key: String(args.p_sender_key), verified_at: new Date().toISOString(), verification_method: "operator_binding" }
             : { ...harness.row, state: name.endsWith("verification") ? "verifying" : "requesting", verify_attempts: name.endsWith("verification") ? 1 : 0 };
           return { data: { ...harness.row }, error: null };
@@ -69,6 +74,14 @@ function setup(t: test.TestContext, rejected = false) {
   process.env.ORDER_ALIMTALK_NHN_SECRET_KEY = "fake-secret";
   delete process.env.ORDER_ALIMTALK_NHN_EXISTING_OWNER_ID;
   t.mock.method(globalThis, "fetch", async (url: string) => {
+    if (url.endsWith("/templates/cooking_ready_v1")) return Response.json({ header: ok, template: {
+      senderKey: "a".repeat(40), plusFriendId: fixture.channel_id, templateCode: "cooking_ready_v1", templateContent: ORDER_READY_TEMPLATE_CONTENT,
+      templateMessageType: "BA", templateEmphasizeType: "NONE", status: "TSC03", block: false, dormant: false,
+    } });
+    if (url.includes("/templates?")) return Response.json({ header: ok, templateListResponse: { totalCount: 1, templates: [{
+      senderKey: "a".repeat(40), plusFriendId: fixture.channel_id, templateCode: "cooking_ready_v1", templateContent: ORDER_READY_TEMPLATE_CONTENT,
+      templateMessageType: "BA", templateEmphasizeType: "NONE", status: "TSC03", block: false, dormant: false,
+    }] } });
     if (url.endsWith("/sender/categories")) return Response.json({ header: ok, categories: [{ code: "011", name: "음식점", subCategories: [{ code: "0004", name: "카페", subCategories: [{ code: "0001", name: "카페" }] }] }] });
     if (url.endsWith("/senders")) return Response.json({ header: ok });
     if (url.endsWith("/senders/" + "a".repeat(40))) return Response.json({ header: ok, sender: {
@@ -138,11 +151,11 @@ test("existing proof returns no secret and persists via a single owner-scoped RP
   assert.equal(result.connection?.maskedPhone, null);
   assert.equal(result.connection?.sendingEnabled, false);
   assert.doesNotMatch(JSON.stringify(result), /aaaaaaa|fake-secret|actor_id/);
-  assert.deepEqual(harness.rpcs, [{ name: "link_existing_menu_alimtalk_channel", args: {
+  assert.deepEqual(harness.rpcs.filter(r => r.name === "link_existing_menu_alimtalk_channel"), [{ name: "link_existing_menu_alimtalk_channel", args: {
     p_menu_id: fixture.menu_site_id, p_actor_id: fixture.actor_id, p_channel_id: fixture.channel_id,
     p_category_code: fixture.category_code, p_sender_key: "a".repeat(40),
   } }]);
-  assert.equal(harness.queries.length, 0);
+  assert.equal(result.connection?.template?.status, "approved");
 });
 test("another owner or menu cannot claim the approved existing profile", async t => {
   setup(t); approveExisting();

@@ -1,25 +1,14 @@
 import "server-only";
 import { normalizeOrderManagementId } from "@/lib/order-management";
 import { MerchantChannelInputError, findAlimtalkCategory, normalizeMerchantAdminPhone, normalizeMerchantChannelId,
-  normalizeMerchantToken, type MerchantChannelInput, type MerchantChannelPage, type MerchantChannelResult,
-  type MerchantChannelView } from "@/lib/merchant-alimtalk-channel";
+  normalizeMerchantToken, type MerchantChannelInput, type MerchantChannelPage, type MerchantChannelResult } from "@/lib/merchant-alimtalk-channel";
 import { requireMenuSitePermission, requireMenuSiteWriteAccess } from "./menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/supabase/types";
+import { MERCHANT_CHANNEL_COLUMNS as columns, merchantChannelView as view } from "./merchant-alimtalk-channel-record";
+import { prepareMerchantAlimtalkTemplate } from "./merchant-alimtalk-template-service";
 import { createMerchantChannelProvider, getApprovedExistingChannel, getMerchantChannelCredentials, MerchantChannelProviderError } from "./merchant-alimtalk-channel-provider";
 
-type Row = Database["public"]["Tables"]["menu_alimtalk_channels"]["Row"];
-const columns = "menu_site_id,actor_id,channel_id,category_code,masked_phone,state,challenge_id,requested_at,expires_at,verify_attempts,request_window_started_at,request_count,sender_key,verified_at,sending_enabled,verification_method";
 export class MerchantChannelError extends Error {}
-function view(row: Row): MerchantChannelView {
-  return {
-    challengeId: row.challenge_id, channelId: row.channel_id, categoryCode: row.category_code,
-    maskedPhone: row.masked_phone, state: row.state as MerchantChannelView["state"],
-    requestedAt: row.requested_at, expiresAt: row.expires_at, verifiedAt: row.verified_at,
-    attemptsRemaining: Math.max(0, 5 - row.verify_attempts), sendingEnabled: false,
-    verificationMethod: row.verification_method as MerchantChannelView["verificationMethod"],
-  };
-}
 const dbMessages: Record<string, string> = {
   CHANNEL_ALREADY_CONNECTED: "이미 연결된 채널입니다.",
   CHANNEL_COOLDOWN: "인증번호는 60초 뒤 다시 요청할 수 있습니다.",
@@ -70,6 +59,9 @@ export async function loadMerchantChannelPage(menuIdInput: string): Promise<Merc
 export async function handleMerchantChannel(menuIdInput: string, input: MerchantChannelInput): Promise<MerchantChannelResult> {
   const menuId = normalizeOrderManagementId(menuIdInput);
   await owner(menuId);
+  if (input?.intent === "prepare-template" || input?.intent === "refresh-template") {
+    return prepareMerchantAlimtalkTemplate(menuId, { registerMissing: input.intent === "prepare-template" });
+  }
   const { context, supabase } = await requireMenuSiteWriteAccess(menuId, "menu.edit", "menu_order_settings");
   if (!context.isOwner) throw new MerchantChannelError("채널 연결은 사장님만 변경할 수 있습니다.");
   if (!input || !["request", "verify", "cancel", "connect-existing"].includes(input.intent)) throw new MerchantChannelError("진행할 채널 인증을 확인해 주세요.");
@@ -84,7 +76,8 @@ export async function handleMerchantChannel(menuIdInput: string, input: Merchant
     }).single();
     if (result.error) throw databaseError(result.error);
     if (!result.data) throw new MerchantChannelError("기존 채널 연결을 저장하지 못했습니다.");
-    return { connection: view(result.data), notice: "인증된 기존 매장 채널을 연결했습니다." };
+    const prepared = await prepareMerchantAlimtalkTemplate(menuId).catch(() => ({} as MerchantChannelResult));
+    return { ...prepared, connection: prepared.connection ?? view(result.data), notice: prepared.notice ?? "인증된 기존 매장 채널을 연결했습니다." };
   }
   if (input.intent === "request") {
     const channelId = normalizeMerchantChannelId(input.channelId);
@@ -150,5 +143,6 @@ export async function handleMerchantChannel(menuIdInput: string, input: Merchant
     .select(columns).maybeSingle();
   if (saved.error) throw databaseError(saved.error);
   if (!saved.data) throw new MerchantChannelError("인증 결과를 저장하지 못했습니다. 고객지원에 문의해 주세요.");
-  return { connection: view(saved.data), notice: "매장 채널을 연결했습니다." };
+  const prepared = await prepareMerchantAlimtalkTemplate(menuId).catch(() => ({} as MerchantChannelResult));
+  return { ...prepared, connection: prepared.connection ?? view(saved.data), notice: prepared.notice ?? "매장 채널을 연결했습니다." };
 }

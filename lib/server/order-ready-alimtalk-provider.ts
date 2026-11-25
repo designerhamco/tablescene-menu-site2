@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isOrderReadyTemplateContent } from "@/lib/order-ready-message";
 import { normalizeOrderPhone } from "@/lib/order-session-policy";
 
 const origin = "https://kakaotalk-bizmessage.api.nhncloudservice.com";
@@ -10,27 +11,14 @@ export function getOrderAlimtalkPhone(value: unknown) {
   try { return normalizeOrderPhone(value); } catch { return null; }
 }
 
-/** Pilot binding: never use ArtiMenu's sender for an unconfigured merchant. */
-export function getOrderAlimtalkConfig(menuSiteId: string) {
-  return process.env.ORDER_ALIMTALK_ENABLED === "true" ? getOrderAlimtalkReceiptConfig(menuSiteId) : null;
-}
-
-/** Receipt lookup remains available after pausing new messages. Never use this to authorize a send. */
-export function getOrderAlimtalkReceiptConfig(menuSiteId: string) {
+export type OrderAlimtalkConfig = { appKey: string; secretKey: string; senderKey: string; channelId: string; templateCode: string };
+export function isOrderAlimtalkSendingEnabled() { return process.env.ORDER_ALIMTALK_ENABLED === "true"; }
+export function getOrderAlimtalkCredentials() {
   const appKey = process.env.ORDER_ALIMTALK_NHN_APP_KEY?.trim();
   const secretKey = process.env.ORDER_ALIMTALK_NHN_SECRET_KEY?.trim();
-  const senderKey = process.env.ORDER_ALIMTALK_NHN_SENDER_KEY?.trim();
-  const channelId = process.env.ORDER_ALIMTALK_NHN_CHANNEL_ID?.trim();
-  const templateCode = process.env.ORDER_ALIMTALK_NHN_TEMPLATE_CODE?.trim();
-  if (menuSiteId !== process.env.ORDER_ALIMTALK_MENU_SITE_ID?.trim()
-    || !appKey || !keyPattern.test(appKey) || !secretKey || /[\r\n]/.test(secretKey)
-    || !senderKey || !/^[a-f0-9]{40}$/i.test(senderKey)
-    || !channelId?.startsWith("@") || channelId.length < 2 || /[\r\n]/.test(channelId)
-    || !templateCode || !/^[A-Za-z0-9_-]{1,20}$/.test(templateCode)) return null;
-  return { appKey, secretKey, senderKey, channelId, templateCode };
+  return appKey && keyPattern.test(appKey) && secretKey && !/[\r\n]/.test(secretKey) ? { appKey, secretKey } : null;
 }
 
-type Config = NonNullable<ReturnType<typeof getOrderAlimtalkConfig>>;
 export type OrderAlimtalkMessageContext = {
   phone: string;
   orderNumber: number;
@@ -55,7 +43,7 @@ function value(input: string) {
   return normalized;
 }
 
-export function createOrderAlimtalkProvider(config: Config) {
+export function createOrderAlimtalkProvider(config: OrderAlimtalkConfig) {
   const base = `/alimtalk/v2.3/appkeys/${encodeURIComponent(config.appKey)}`;
   async function request(path: string, method: "GET" | "POST" = "GET", body?: object, attemptId?: string) {
     return fetch(origin + base + path, {
@@ -85,19 +73,19 @@ export function createOrderAlimtalkProvider(config: Config) {
         || t?.plusFriendId !== config.channelId || t.senderKey !== config.senderKey || t.templateCode !== config.templateCode
         || t.status !== "TSC03" || t.block !== false || t.dormant !== false
         || t.templateMessageType !== "BA" || t.templateEmphasizeType !== "NONE"
-        || t.buttons?.length || t.quickReplies?.length || typeof t.templateContent !== "string") {
+        || t.buttons?.length || t.quickReplies?.length || !isOrderReadyTemplateContent(t.templateContent)) {
         throw new Error("승인된 조리완료 알림톡 템플릿을 확인해 주세요.");
       }
       const parameters: Record<string, string> = {
         매장명: value(context.storeName), 룸명: value(context.roomName),
         테이블명: value(context.tableName), 주문번호: String(context.orderNumber),
       };
-      const used = [...t.templateContent.matchAll(/#\{([^{}]+)\}/g)].map(match => match[1]);
+      const used = [...t.templateContent!.matchAll(/#\{([^{}]+)\}/g)].map(match => match[1]);
       if (!used.includes("주문번호") || used.some(key => !Object.hasOwn(parameters, key))) {
         throw new Error("템플릿 변수는 매장명·룸명·테이블명·주문번호만 사용할 수 있습니다.");
       }
       const templateParameter = Object.fromEntries(used.map(key => [key, parameters[key]]));
-      const content = t.templateContent.replace(/#\{([^{}]+)\}/g, (_, key: string) => parameters[key]);
+      const content = t.templateContent!.replace(/#\{([^{}]+)\}/g, (_, key: string) => parameters[key]);
       if (content.includes("#{") || content.length > 1300) throw new Error("알림톡 내용과 변수 길이를 확인해 주세요.");
       return { recipientNo: phone, templateParameter };
     },

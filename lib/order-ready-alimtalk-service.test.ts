@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { ORDER_READY_TEMPLATE_CONTENT } from "./order-ready-message";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
@@ -13,7 +14,7 @@ const pointId = "44444444-4444-4444-8444-444444444444";
 const actorId = "11111111-1111-4111-8111-111111111111";
 const harness = {
   authorized: true, dashboard: true, conflictOnInsert: false,
-  order: {} as Row, attempts: [] as Row[], operations: [] as { table: string; kind: string }[],
+  channel: {} as Row, ownerId: actorId, order: {} as Row, attempts: [] as Row[], operations: [] as { table: string; kind: string }[],
   getDb() {
     return { from(table: string) {
       let kind = "select", patch: Row = {}, fields = "";
@@ -50,7 +51,8 @@ const harness = {
         let rows: Row[];
         if (table === "menu_order_alimtalk_attempts") rows = [...harness.attempts].sort((a, b) => Number(b.attempt_no) - Number(a.attempt_no));
         else if (table === "menu_customer_orders") rows = [harness.order];
-        else if (table === "menu_sites") rows = [{ id: menuId, restaurant_name: "샘플 매장", business_name: null, name: "테스트 메뉴판" }];
+        else if (table === "menu_alimtalk_channels") rows = [harness.channel];
+        else if (table === "menu_sites") rows = [{ id: menuId, user_id: harness.ownerId, restaurant_name: "샘플 매장", business_name: null, name: "테스트 메뉴판" }];
         else if (table === "menu_tables") rows = [{ id: pointId, menu_site_id: menuId, label: "테이블 1" }];
         else if (table === "menu_floor_plans") rows = [];
         else throw new Error("Unexpected test table");
@@ -90,6 +92,10 @@ function setup(t: test.TestContext, scenario: "success" | "unapproved" | "timeou
     ORDER_ALIMTALK_NHN_APP_KEY: "fake-app", ORDER_ALIMTALK_NHN_SECRET_KEY: "fake-secret",
     ORDER_ALIMTALK_NHN_SENDER_KEY: "a".repeat(40), ORDER_ALIMTALK_NHN_CHANNEL_ID: "@샘플매장", ORDER_ALIMTALK_NHN_TEMPLATE_CODE: "cooking_ready_v1" });
   harness.authorized = true; harness.dashboard = true; harness.conflictOnInsert = false; harness.operations = []; harness.attempts = [];
+  harness.ownerId = actorId;
+  harness.channel = { menu_site_id: menuId, actor_id: actorId, state: "connected", verified_at: new Date().toISOString(),
+    sending_enabled: true, sender_key: "a".repeat(40), channel_id: "@샘플매장", template_code: "cooking_ready_v1",
+    template_status: "approved", template_content: ORDER_READY_TEMPLATE_CONTENT };
   harness.order = { id: orderId, menu_site_id: menuId, status: "ready", notification_phone: "01000000000", order_number: 301,
     menu_table_id: pointId, service_table_id: null };
   const calls: { method: string; path: string }[] = [];
@@ -101,7 +107,7 @@ function setup(t: test.TestContext, scenario: "success" | "unapproved" | "timeou
       return Response.json({ header: ok, template: {
         plusFriendId: "@샘플매장", senderKey: "a".repeat(40), templateCode: "cooking_ready_v1",
         status: scenario === "unapproved" ? "TSC02" : "TSC03", block: false, dormant: false,
-        templateMessageType: "BA", templateEmphasizeType: "NONE", templateContent: "[#{매장명}] #{룸명} #{테이블명} #{주문번호}",
+        templateMessageType: "BA", templateEmphasizeType: "NONE", templateContent: ORDER_READY_TEMPLATE_CONTENT,
       } });
     }
     if (path.endsWith("/messages")) {
@@ -191,4 +197,31 @@ test("a competing DB reservation is reused without another provider request", as
   const calls = setup(t); harness.conflictOnInsert = true;
   const result = await send(); assert.equal(result.status, "pending");
   assert.equal(harness.attempts.length, 1); assert.equal(calls.length, 0);
+});
+
+test("unverified, paused, unapproved and transferred merchant channels cannot send", async t => {
+  const calls = setup(t);
+  for (const patch of [{ state: "pending" }, { sending_enabled: false }, { template_status: "pending" },
+    { actor_id: "77777777-7777-4777-8777-777777777777" }, { template_content: "다른 안내" }, { sender_key: null }]) {
+    const previous = { ...harness.channel }; Object.assign(harness.channel, patch);
+    await assert.rejects(send(), /발송 설정/); harness.channel = previous;
+  }
+  assert.equal(calls.length, 0); assert.equal(harness.attempts.length, 0);
+});
+test("receipt checks use the submission snapshot after the current channel changes", async t => {
+  setup(t); const accepted = await send();
+  const snapshot = harness.attempts[0];
+  assert.equal(snapshot.sender_key, "a".repeat(40)); assert.equal(snapshot.channel_owner_id, actorId);
+  assert.match(String(snapshot.provider_app_key_hash), /^[a-f0-9]{64}$/);
+  harness.channel.sender_key = "b".repeat(40); harness.channel.channel_id = "@새채널";
+  process.env.ORDER_ALIMTALK_ENABLED = "false";
+  assert.equal((await handleOrderAlimtalk(menuId, { intent: "check", orderId, expectedAttemptId: accepted.id })).status, "sent");
+});
+test("owner or provider-project changes block external receipt lookup", async t => {
+  const calls = setup(t); const accepted = await send(); const count = calls.length;
+  harness.ownerId = "77777777-7777-4777-8777-777777777777";
+  await assert.rejects(handleOrderAlimtalk(menuId, { intent: "check", orderId, expectedAttemptId: accepted.id }), /발송 당시/);
+  harness.ownerId = actorId; process.env.ORDER_ALIMTALK_NHN_APP_KEY = "other-project";
+  await assert.rejects(handleOrderAlimtalk(menuId, { intent: "check", orderId, expectedAttemptId: accepted.id }), /발송 당시/);
+  assert.equal(calls.length, count);
 });
