@@ -10,7 +10,7 @@ import { setMenuPublicationStatus } from "@/lib/server/menu-publication-service"
 import { setMenuTextColorsFromForm } from "@/lib/menu-text-colors";
 
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
-import { getNeutralDesignAppearance } from "@/lib/menu-design-mutation";
+import { getNeutralDesignAppearance, buildMenuDesignReset } from "@/lib/menu-design-mutation";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { menuSurfaceSettingsFromForm, withMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
 import { menuAppearanceFromForm } from "@/lib/menu-appearance";
@@ -2940,12 +2940,15 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const previewDraft = serializePreviewDesign(readPreviewDesign(getString(formData, "basic_design_draft")));
   const isBasicEditor = formData.get("basic_design_editor") === "1";
+  const resetDesign = isBasicEditor && formData.get("basic_design_reset") === "1";
   if ((previewDraft || isBasicEditor) && !isTemplateSupportedForService(menuSite.template_key, "basic")) {
     redirectToTabEditWithError(menuId, "design", "이 메뉴판은 베이직 디자인 편집을 지원하지 않습니다.");
   }
   const fail = (message: string): never => {
-    if (!previewDraft) redirectToTabEditWithError(menuId, "design", message);
-    const query = new URLSearchParams({ tab: "design", error: message, designDraft: previewDraft });
+    if (!previewDraft && !resetDesign) redirectToTabEditWithError(menuId, "design", message);
+    const query = new URLSearchParams({ tab: "design", error: message });
+    if (previewDraft) query.set("designDraft", previewDraft);
+    if (resetDesign) query.set("designReset", "1");
     redirect(`/mypage/menus/${encodeURIComponent(menuId)}/edit?${query}`);
   };
 
@@ -2969,9 +2972,13 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
   const savedDesign = getSavedMenuDesign(menuSite.template_key, menuSite.settings);
-  let pageSettings = previewDraft && isBasicEditor
-    ? applyBasicEditorPreviewDesign(menuSite.page_settings, menuSite.settings, menuSite.template_key, previewDraft, savedDesign?.itemLayout === "album") as ReturnType<typeof getJsonObject>
-    : getJsonObject(menuSite.page_settings);
+  const restoredDesign = resetDesign ? buildMenuDesignReset(menuSite.template_key, menuSite.settings, menuSite.page_settings) : undefined;
+  let pageSettings = restoredDesign?.pageSettings ?? getJsonObject(menuSite.page_settings);
+  if (previewDraft && isBasicEditor) {
+    pageSettings = applyBasicEditorPreviewDesign(
+      pageSettings, restoredDesign?.settings ?? menuSite.settings, menuSite.template_key, previewDraft, savedDesign?.itemLayout === "album",
+    ) as typeof pageSettings;
+  }
   try {
     const surfaces = menuSurfaceSettingsFromForm(formData, menuSite.template_key);
     if (surfaces) pageSettings = withMenuSurfaceSettings(pageSettings, menuSite.settings, menuSite.template_key, surfaces) as typeof pageSettings;
@@ -3003,7 +3010,10 @@ export async function updateDesignSettingsAction(formData: FormData) {
       image = { imagePath: path, imageUrl: bucket.getPublicUrl(path).data.publicUrl };
     }
     if (enabled && !image && menuSite.template_key !== "fast_food_loop_bagel_a") fail("패턴 띠를 사용하려면 정사각형 이미지를 등록해주세요.");
-    designSettings.patternBands = { enabled, ...(thickness === undefined ? {} : { thickness }), ...(image ? { image } : {}) };
+    const templatePattern = getMenuPatternBands(menuSite.template_key, undefined);
+    if (!resetDesign || enabled !== templatePattern.enabled || thickness !== undefined || image) {
+      designSettings.patternBands = { enabled, ...(thickness === undefined ? {} : { thickness }), ...(image ? { image } : {}) };
+    }
   }
   if (!isBasicEditor) {
     if (formData.get("menu_surfaces_present") !== "1" && backgroundColor) designSettings.backgroundColor = backgroundColor;
@@ -3039,11 +3049,19 @@ export async function updateDesignSettingsAction(formData: FormData) {
     delete pageSettings.onePageLayoutShell;
     delete pageSettings.one_page_layout_shell;
   }
-  pageSettings.design = designSettings;
+  if (resetDesign && Object.keys(designSettings).length === 0) {
+    delete pageSettings.design;
+  } else {
+    pageSettings.design = designSettings;
+  }
 
   const { error } = await supabase
     .from("menu_sites")
-    .update({ page_settings: pageSettings, updated_at: new Date().toISOString() })
+    .update({
+      ...(restoredDesign && { settings: restoredDesign.settings }),
+      page_settings: pageSettings,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", menuId);
 
   if (error) fail(`디자인 설정 저장에 실패했습니다: ${error.message}`);
@@ -3184,47 +3202,11 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const settings = getJsonObject(menuSite.settings);
-  const pageSettings = withMenuSurfaceSettings(menuSite.page_settings, menuSite.settings, menuSite.template_key, {}) as ReturnType<typeof getJsonObject>;
-
-  delete settings.badge_styles;
-  delete settings.typography;
-  delete pageSettings.badge_styles;
-  delete pageSettings.typography;
-  const designSettings = getJsonObject(pageSettings.design);
-  delete designSettings.appearance;
-  delete designSettings.chipColors;
-  delete designSettings.patternBands;
-  delete designSettings.backgroundColor;
-  delete designSettings.koreanFont;
-  delete designSettings.englishFont;
-  delete designSettings.fontSizeScale;
-  delete designSettings.commonFonts;
-  delete designSettings.textColors;
-  delete designSettings.textColorGroupsVersion;
-  delete designSettings.typographyRoles;
-  delete designSettings.typography_roles;
-  delete designSettings.onePageLayoutShell;
-  delete designSettings.one_page_layout_shell;
-  if (Object.keys(designSettings).length > 0) {
-    pageSettings.design = designSettings;
-  } else {
-    delete pageSettings.design;
+  // Older Basic editor clients may still post the reset action directly.
+  if (isTemplateSupportedForService(menuSite.template_key, "basic")) {
+    redirect(`/mypage/menus/${encodeURIComponent(menuId)}/edit?tab=design&designReset=1`);
   }
-  delete pageSettings.backgroundColor;
-  delete pageSettings.koreanFont;
-  delete pageSettings.englishFont;
-  delete pageSettings.fontSizeScale;
-  delete pageSettings.typographyRoles;
-  delete pageSettings.typography_roles;
-  delete pageSettings.onePageLayoutShell;
-  delete pageSettings.one_page_layout_shell;
-
-  if (getDefaultDesignReview(typeof settings.menu_design_id === "string" ? settings.menu_design_id : undefined, menuSite.template_key)) {
-    const neutral = getNeutralDesignAppearance();
-    settings.typography = JSON.parse(JSON.stringify(neutral.typography));
-    settings.badge_styles = JSON.parse(JSON.stringify(neutral.badge_styles));
-  }
+  const { settings, pageSettings } = buildMenuDesignReset(menuSite.template_key, menuSite.settings, menuSite.page_settings);
 
   const { error } = await supabase
     .from("menu_sites")

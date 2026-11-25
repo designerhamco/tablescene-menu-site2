@@ -100,6 +100,7 @@ export function buildMenuPreviewUrl(
     orderPreview?: boolean;
     layoutMode?: string;
     designEditor?: boolean;
+    designReset?: boolean;
     designPreview?: string;
     designReturnDraft?: string;
   } = {},
@@ -116,6 +117,7 @@ export function buildMenuPreviewUrl(
   }
   if (options.designEditor) {
     searchParams.set("editDesign", "1");
+    if (options.designReset) searchParams.set("designReset", "1");
     if (options.designPreview) searchParams.set("designPreview", options.designPreview);
     if (options.designReturnDraft && !options.actual) searchParams.set("designReturnDraft", options.designReturnDraft);
   }

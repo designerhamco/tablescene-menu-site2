@@ -9,7 +9,7 @@ import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
 import DisplayPreviewGuide from "./DisplayPreviewGuide";
 import DisplayPreviewOptions from "./DisplayPreviewOptions";
 import { useDisplayPreviewNavigation } from "./useDisplayPreviewNavigation";
-import { ArrowLeft, ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
+import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 import type { DisplayPreviewPage } from "@/lib/display-preview";
 import { normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 
@@ -98,6 +98,7 @@ type DesignEditor = {
   initialDraft: PreviewDesign;
   backHref: string;
   returnDraft?: string;
+  reset?: boolean;
 };
 
 function designEditorHref(backHref: string, draft?: string) {
@@ -237,6 +238,7 @@ export default function MenuPreviewDeviceFrame(
       return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, {
         ...options,
         designEditor: Boolean(designEditor),
+        designReset: designEditor?.reset,
         designPreview: serializedEditorDraft,
         designReturnDraft: designEditor?.returnDraft,
       });
@@ -319,6 +321,15 @@ export default function MenuPreviewDeviceFrame(
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
+            {designEditor && (
+              <Link href={designEditorHref(designEditor.backHref, designEditor.returnDraft)} className="site-preview-control"
+                tabIndex={showToolbar ? undefined : -1} onClick={event => {
+                  if (serializedEditorDraft !== designEditor.returnDraft
+                    && !window.confirm("이번에 편집한 디자인을 취소하고 돌아갈까요?")) event.preventDefault();
+                }}>
+                편집기로 돌아가기
+              </Link>
+            )}
             {isDisplayPreview ? <nav aria-label="디스플레이 페이지 이동" className={`${styles.displayPages} flex min-w-0 flex-1 items-center justify-center`}>
               <button type="button" className="site-preview-control" aria-label="이전 페이지" title="이전 페이지" tabIndex={showToolbar ? undefined : -1} disabled={!displayNavigation.ready || displayNavigation.page <= 1 || isPending} onClick={() => displayNavigation.select(displayNavigation.page - 1)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /><span className="hidden min-[640px]:inline">이전 페이지</span></button>
               <span role="status" aria-live="polite" aria-label={`전체 ${props.displayPages?.length ?? 0}페이지 중 ${displayNavigation.page}페이지`} className="type-caption tabular-nums" data-display-page-count="">{displayNavigation.page} / {props.displayPages?.length ?? 0}</span>
@@ -395,13 +406,6 @@ export default function MenuPreviewDeviceFrame(
                   onClick={() => router.push(designEditorHref(designEditor.backHref, serializedEditorDraft))}>
                   디자인 반영
                 </button>
-                <Link href={designEditorHref(designEditor.backHref, designEditor.returnDraft)} className="site-preview-control"
-                  aria-label="디자인 탭으로 돌아가기" tabIndex={showToolbar ? undefined : -1} onClick={event => {
-                    if (serializedEditorDraft !== designEditor.returnDraft
-                      && !window.confirm("이번에 편집한 디자인을 취소하고 돌아갈까요?")) event.preventDefault();
-                  }}>
-                  <ArrowLeft aria-hidden className="h-4 w-4" />
-                </Link>
               </div>
             )}
             <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} />

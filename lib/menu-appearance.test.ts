@@ -8,6 +8,7 @@ import TypographySettingsForm from "../components/mypage/menu-editor/TypographyS
 import { getDefaultTypographyPreset, normalizeTypographyRoleSettings } from "./template-typography-presets";
 import { getKoreanFontOption, getEnglishFontOption } from "./font-options";
 import PreviewDesignOptions from "../components/menu/PreviewDesignOptions";
+import { buildMenuDesignReset } from "./menu-design-mutation";
 import { buildTemplatePreviewUrl } from "./menu-preview-devices";
 import { IMAGE_RADIUS_KEYS, IMAGE_RADIUS_PRESETS, imageRadiusPreset, unifiedAppearanceRadius, withUnifiedAppearanceRadius, menuAppearanceFromForm, menuAppearancePreview, menuAppearanceStyle, normalizeMenuAppearance, readMenuAppearance } from "./menu-appearance";
 function form(radii: Record<string,string> = {}) { const f=new FormData(); f.set("menu_appearance_present","1"); f.set("chip_shape","template"); f.set("album_image_ratio","1:1");for(const [key,value]of Object.entries(radii))f.set(`image_radius_${key}`,value);return f; }
@@ -17,7 +18,32 @@ test("invalid posted radii/shapes cannot reach persistence",()=>{for(const radiu
 test("malformed stored data falls back safely and unsupported renderers opt out of shapes",()=>{const a=normalizeMenuAppearance({imageRadii:{item:999,cover:-1,widget:'12',advertisement:NaN,logo:4},chipShape:'oops',albumImageRatio:'oops'});assert.deepEqual(a.imageRadii,{logo:4});assert.equal(a.chipShape,'template');assert.deepEqual(menuAppearanceStyle(a,false,false),{});assert.deepEqual(menuAppearanceStyle({...a,albumImageRatio:'5:4'},false,true),{'--menu-album-image-ratio':'5 / 4'});});
 test("catalog album choices preserve shapes and source and cannot affect lists",()=>{const original={design:{appearance:{imageRadii:{item:7},chipShape:'soft',albumImageRatio:'1:1'}}};assert.equal(readMenuAppearance(menuAppearancePreview(original,{albumImageRatio:'4:5'},true)).albumImageRatio,'4:5');assert.equal(readMenuAppearance(menuAppearancePreview(original,{albumImageRatio:'4:5'},false)).albumImageRatio,'1:1');assert.equal(readMenuAppearance(original).imageRadii.item,7);const zero=readMenuAppearance(menuAppearancePreview(original,{appearanceQa:'zero'},false));for(const key of IMAGE_RADIUS_KEYS)assert.equal(zero.imageRadii[key],0);});
 test("Basic and Dining editors preserve saved fields while exposing one shared radius control",()=>{for(const basic of [true,false]){const html=renderToStaticMarkup(createElement(MenuAppearanceSettingsForm,{initial:normalizeMenuAppearance({imageRadii:{item:12,cover:16}}),basic,album:true,formId:'design-settings-form'}));for(const key of IMAGE_RADIUS_KEYS)assert.ok(html.includes(`name="image_radius_${key}"`));assert.ok(!html.includes('type="number"'));assert.ok(!html.includes('type="range"'));for(const preset of IMAGE_RADIUS_PRESETS)assert.ok(html.includes(preset.label));assert.ok(html.includes('기존 설정 유지'));assert.ok(html.includes('value="12"'));assert.ok(html.includes('name="chip_shape"'));assert.ok(html.includes('name="album_image_ratio"'));assert.ok(html.includes('value="4:5"'));assert.ok(html.includes('value="5:4"'));assert.equal((html.match(/aria-label="이미지·텍스트칩 라운드"/g)||[]).length,1);assert.ok(!html.includes('로고 이미지 라운드'));assert.ok(!html.includes('텍스트칩 모양<select'));assert.ok(!html.includes('커버 이미지 라운드'));}});
-test("save and reset remain inside the existing authorized menu Design path",()=>{const source=fs.readFileSync('app/mypage/menus/actions.ts','utf8');const save=source.slice(source.indexOf('export async function updateDesignSettingsAction'),source.indexOf('export async function resetMenuCoverToPresetAction'));assert.ok(save.indexOf('requireOwnedMenuSite(menuId)')<save.indexOf('menuAppearanceFromForm(formData)'));assert.ok(save.includes('.eq("id", menuId)'));assert.ok(save.includes('page_settings: pageSettings'));const reset=source.slice(source.indexOf('export async function resetDesignSettingsToTemplateDefaultAction'),source.indexOf('async function assertCategoryBelongsToMenuSite'));assert.ok(reset.includes('delete designSettings.appearance'));});
+test("Basic design reset only writes through the authorized final save", () => {
+  const source = fs.readFileSync("app/mypage/menus/actions.ts", "utf8");
+  const save = source.slice(source.indexOf("export async function updateDesignSettingsAction"), source.indexOf("export async function resetMenuCoverToPresetAction"));
+  assert.ok(save.indexOf("requireOwnedMenuSite(menuId)") < save.indexOf("buildMenuDesignReset"));
+  assert.match(save, /formData.get\("basic_design_reset"\) === "1"/);
+  assert.match(save, /settings: restoredDesign.settings/);
+  assert.match(save, /page_settings: pageSettings/);
+  assert.match(save, /\.eq\("id", menuId\)/);
+  const reset = source.slice(source.indexOf("export async function resetDesignSettingsToTemplateDefaultAction"), source.indexOf("async function assertCategoryBelongsToMenuSite"));
+  assert.match(reset, /isTemplateSupportedForService\(menuSite.template_key, "basic"\)[\s\S]+designReset=1[\s\S]+\.update\(/);
+});
+
+test("template reset removes saved design overrides and keeps menu content", () => {
+  const settings = { order: { call: true }, typography: { korean_font_key: "pretendard" }, badge_styles: { featured: "#123456" } };
+  const pageSettings = {
+    featured_slides: [{ featured_item_id: "item" }],
+    design: { commonFonts: true, appearance: { chipShape: "pills" }, patternBands: { enabled: true }, backgroundColor: "#123456", extra: { retained: true } },
+  };
+  const original = structuredClone({ settings, pageSettings });
+  const restored = buildMenuDesignReset("cafe_design_a", settings, pageSettings);
+  assert.deepEqual(restored, {
+    settings: { order: settings.order },
+    pageSettings: { featured_slides: pageSettings.featured_slides, design: { extra: { retained: true } } },
+  });
+  assert.deepEqual({ settings, pageSettings }, original);
+});
 
 test("album ratio survives frame, feature and tablet orientation navigation",()=>{const url=new URL(buildTemplatePreviewUrl('cafe_design_a',{design:'basic-first-column-album',albumImageRatio:'4:5',appearanceQa:'custom',imagesPreview:'on'},{device:'tablet',orientation:'portrait',actual:true}),'https://example.test');assert.equal(url.searchParams.get('albumImageRatio'),'4:5');assert.equal(url.searchParams.get('appearanceQa'),'custom');assert.equal(url.searchParams.get('orientation'),'portrait');assert.equal(url.searchParams.get('view'),'actual');});
 
@@ -95,6 +121,5 @@ test("editor exposes two common font pickers and submits inherited role fonts", 
  const source=fs.readFileSync("app/mypage/menus/actions.ts","utf8");
  const save=source.slice(source.indexOf("export async function updateDesignSettingsAction"),source.indexOf("export async function resetMenuCoverToPresetAction"));
  assert.ok(save.includes('designSettings.commonFonts = true'));
- const reset=source.slice(source.indexOf("export async function resetDesignSettingsToTemplateDefaultAction"),source.indexOf("async function assertCategoryBelongsToMenuSite"));
- assert.ok(reset.includes('delete designSettings.commonFonts'));
+
 });

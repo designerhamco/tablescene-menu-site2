@@ -53,7 +53,7 @@
 | 현재 커버의 ‘샘플로 되돌리기’ | `CoverSampleResetButton`은 이미지/슬라이드/설정을 **임시 변경**하고 커버 저장을 기다림. 독립 action `resetMenuCoverToPresetAction`과 저장 시점이 다름 |
 | 구성의 ‘샘플 메뉴로 되돌리기’ | 지원되는 샘플 snapshot을 초안에 적용하고 하단 저장으로 확정. 실제 허용 여부·대상은 UI/capability와 snapshot 검증을 따름. 오래된 `resetMenuManagementToPresetAction`은 비활성화된 경로이므로 현재 UI와 혼동하지 않음 |
 | 비어 있는 메뉴의 스타터 복구 | `restoreEmptyMenuManagementFromStarterPresetAction`은 페이지/카테고리/아이템이 전부 비어 있을 때만 허용. 기존 고객 내용 덮어쓰기 기능이 아님 |
-| ‘기본 디자인으로 되돌리기’ | `ResetTabActionButton`이 확인 뒤 `resetDesignSettingsToTemplateDefaultAction`을 직접 실행해 저장. 메뉴 내용/기본 정보는 유지. 일반 입력 초안 변경과 구분 |
+| 디자인의 ‘템플릿 샘플로 되돌리기’ | 베이직은 확인 시 디자인·패턴 띠를 템플릿 기본값의 초안으로 바꾸고, 디자인 탭의 ‘최종 저장’에서 확정. 편집용 미리보기는 복원값과 이후 수정값을 사용. 다이닝·디스플레이의 기존 디자인 탭은 확인 시 저장. 메뉴 내용·기본 정보는 유지 |
 | 다른 메뉴 가져오기/연결 | [공유 메뉴 계약](shared-menu-catalog.md)과 [가져오기 action](../app/mypage/menus/[menuId]/import/actions.ts)의 대상·독립 복사/연결·파일 소유권을 따름. 현재 탭의 취소로 되돌리는 작업이 아님 |
 | 디자인 교체 | [이용권 기준](service-pricing-contract.md), [교체 서비스](../lib/server/menu-plan-design-service.ts)의 디자인 권한/스냅샷 계약을 따름. 샘플 메뉴로 초기화와 구분 |
 
