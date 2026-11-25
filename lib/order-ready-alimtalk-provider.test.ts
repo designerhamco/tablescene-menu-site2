@@ -95,8 +95,12 @@ test("only confirmed delivery is successful; acceptance is not delivery", async 
     return Response.json({ header: ok, message: changed });
   });
   assert.equal(await provider.check(receipt), "pending");
-  changed = { ...message, messageStatus: "COMPLETED", resultCode: "0000" };
+  changed = { ...message, messageStatus: "COMPLETED", resultCode: "1000" };
   assert.equal(await provider.check(receipt), "sent");
+  changed = { ...message, messageStatus: "COMPLETED", resultCode: "0000" };
+  assert.equal(await provider.check(receipt), "pending");
+  changed = { ...message, messageStatus: "COMPLETED", resultCode: "3005" };
+  assert.equal(await provider.check(receipt), "pending");
   changed = { ...message, messageStatus: "FAILED", resultCode: "3018" };
   assert.equal(await provider.check(receipt), "failed");
   changed = { ...changed, senderKey: "wrong" };

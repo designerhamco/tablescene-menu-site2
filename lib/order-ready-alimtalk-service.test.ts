@@ -114,7 +114,7 @@ function setup(t: test.TestContext, scenario: "success" | "unapproved" | "timeou
     }
     assert(path.endsWith("/messages/test-request/1"));
     return Response.json({ header: ok, message: { requestId: "test-request", recipientSeq: 1, senderKey: "a".repeat(40),
-      templateCode: "cooking_ready_v1", messageStatus: "COMPLETED", resultCode: "0000" } });
+      templateCode: "cooking_ready_v1", messageStatus: "COMPLETED", resultCode: "1000" } });
   });
   return calls;
 }

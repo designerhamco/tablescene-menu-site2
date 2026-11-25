@@ -141,7 +141,8 @@ export function createOrderAlimtalkProvider(config: Config) {
         || m.senderKey !== config.senderKey || m.templateCode !== config.templateCode) {
         throw new Error("NHN 발송 결과가 일치하지 않습니다.");
       }
-      if (m.messageStatus === "COMPLETED" && m.resultCode === "0000") return "sent";
+      // NHN/Kakao's final delivery result is 1000; API submission uses 0.
+      if (m.messageStatus === "COMPLETED" && m.resultCode === "1000") return "sent";
       if (m.messageStatus === "FAILED" || m.messageStatus === "CANCEL") return "failed";
       return "pending";
     },
