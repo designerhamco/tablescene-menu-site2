@@ -44,12 +44,18 @@ export default function MenuProductOptionsField({ value, onChange, error, priceC
   if (basicEditor) return (
     <section className="site-stack-block" aria-labelledby={headingId}>
       <h4 id={headingId} className="type-label">상품 옵션</h4>
-      <div className="site-field-action-row">
-        <Input aria-label="추가할 상품 옵션" value={newChoice} maxLength={PRODUCT_OPTION_NAME_LIMIT} placeholder="예: 아주 맵게" onChange={event => setNewChoice(event.target.value)} />
-        <Button type="button" variant="outline" disabled={!newChoice.trim() || duplicateChoice(newChoice) || Boolean(editing) || value.choices.length >= PRODUCT_OPTION_LIMIT} onClick={() => {
-          onChange({ ...value, choices: [...value.choices, newChoice.trim()] });
-          setNewChoice("");
-        }}>추가 {value.choices.length}/{PRODUCT_OPTION_LIMIT}</Button>
+      <div className="site-field-stack">
+        <div className="site-field-action-row">
+          <Input aria-label="추가할 상품 옵션" aria-describedby={headingId + "-option-hint"} value={newChoice} maxLength={PRODUCT_OPTION_NAME_LIMIT} placeholder="예: 아주 맵게" onChange={event => setNewChoice(event.target.value)} />
+          <Button type="button" variant="outline" disabled={!newChoice.trim() || duplicateChoice(newChoice) || Boolean(editing) || value.choices.length >= PRODUCT_OPTION_LIMIT} onClick={() => {
+            onChange({ ...value, choices: [...value.choices, newChoice.trim()] });
+            setNewChoice("");
+          }}>추가 {value.choices.length}/{PRODUCT_OPTION_LIMIT}</Button>
+        </div>
+        <div className="site-editor-field-hint type-caption site-copy-muted">
+          <span id={headingId + "-option-hint"}>고객이 주문할 때 선택할 수 있는 항목입니다.</span>
+          <span data-editor-count>{newChoice.length} / {PRODUCT_OPTION_NAME_LIMIT}</span>
+        </div>
       </div>
       <ol className="site-stack-copy">
         {value.choices.map((choice, index) => (

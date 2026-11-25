@@ -2915,12 +2915,16 @@ function MenuCategoryForm({
           </div>
           <div className="site-stack-copy">
             <div className="site-field-action-row">
-              <input className="site-field site-input" aria-label="추가할 가격 옵션 컬럼" placeholder="예: HOT, ICE, LARGE"
+              <input className="site-field site-input" aria-label="추가할 가격 옵션 컬럼" aria-describedby="category-price-column-hint"
                 maxLength={MENU_FIELD_LIMITS.menuItemPriceOptions.label} value={newPriceColumnLabel} onChange={(event) => setNewPriceColumnLabel(event.target.value)} />
               <button type="button" className="site-button site-button-primary" disabled={!newPriceColumnLabel.trim() || categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns || Boolean(editingPriceColumn)} onClick={() => {
                 addCategoryPriceColumn(newPriceColumnLabel.trim());
                 setNewPriceColumnLabel("");
               }}>{categoryPriceColumns.length}/{effectiveMaxCategoryPriceColumns} 추가</button>
+            </div>
+            <div className="site-editor-field-hint type-caption site-copy-muted">
+              <span id="category-price-column-hint">예: HOT, ICE, LARGE</span>
+              <span data-editor-count>{newPriceColumnLabel.length} / {MENU_FIELD_LIMITS.menuItemPriceOptions.label}</span>
             </div>
             {categoryPriceColumnValidationMessage && <p role="status" className="type-caption text-red-600">{categoryPriceColumnValidationMessage}</p>}
           </div>
@@ -3924,10 +3928,15 @@ function MenuItemForm({
       <FieldLabel>메뉴아이템 배지</FieldLabel>
       <div className="site-editor-badge-row">
         <BadgeSelect form={formId} value={selectedBadgeLabel} onChange={value => { setSelectedBadgeLabel(value); updateBadgeDraft(value); }} variant={badgeVariant} />
-        {isCustomBadge && <input className="site-field site-input" aria-label="배지 문구" form={formId} name="item_custom_badge_label" value={customBadgeLabel} maxLength={MENU_BADGE_MAX_LENGTH} placeholder="예: SIGNATURE" onChange={event => { setCustomBadgeLabel(event.target.value); updateBadgeDraft(selectedBadgeLabel, event.target.value); }} />}
+        {isCustomBadge && <input className="site-field site-input" aria-label="배지 문구" aria-describedby="basic-badge-copy-hint" form={formId} name="item_custom_badge_label" value={customBadgeLabel} maxLength={MENU_BADGE_MAX_LENGTH} placeholder="예: SIGNATURE" onChange={event => { setCustomBadgeLabel(event.target.value); updateBadgeDraft(selectedBadgeLabel, event.target.value); }} />}
         {capabilities.itemBadgeColorControl !== false && <BadgeColorInlineSettings formId={formId} selectedBadgeLabel={visibleBadgeLabel} forceStyleKey={isCustomBadge ? "default" : undefined} badgeStyles={badgeStyles} inline onColorChange={patch => updateDraftItem(patch)} />}
       </div>
-      {isCustomBadge && <p className="type-caption site-copy-muted" data-editor-count>{customBadgeLabel.length} / {MENU_BADGE_MAX_LENGTH}</p>}
+      {isCustomBadge && (
+        <div className="site-editor-field-hint type-caption site-copy-muted">
+          <span id="basic-badge-copy-hint">배지 문구를 직접 입력하세요.</span>
+          <span data-editor-count>{customBadgeLabel.length} / {MENU_BADGE_MAX_LENGTH}</span>
+        </div>
+      )}
     </section>
   ) : capabilities.itemBadges ? (
             <div className="min-w-0">
@@ -4078,7 +4087,9 @@ function MenuItemForm({
             target="menu-item-draft"
             recordId={item?.id ?? "new-item"}
             currentUrl={displayImageUrl}
-            uploadSuccessMessage="새 이미지는 저장 후 공개 메뉴판에 반영됩니다."
+            description={basicEditor ? "메뉴판에 표시할 상품 이미지를 등록하세요." : undefined}
+            fileGuidance={basicEditor ? "PNG, JPG, WebP · 최대 5MB" : undefined}
+            uploadSuccessMessage={basicEditor ? "새 상품 이미지를 불러왔습니다." : "새 이미지는 저장 후 공개 메뉴판에 반영됩니다."}
             deleteConfirmTitle="이 메뉴 이미지를 삭제할까요?"
             deleteConfirmDescription="삭제해도 하단의 저장을 누르기 전까지 공개 메뉴판에는 반영되지 않습니다."
             onDraftImageChange={(draft) => {
@@ -4191,12 +4202,16 @@ function MenuItemForm({
         <div className="site-field-stack">
           <FieldLabel>타임세일 배지 문구</FieldLabel>
           <div className="site-editor-sale-badge-row">
-            <input className="site-field site-input" form={formId} name="item_time_sale_badge_text" aria-label="타임세일 배지 문구" value={timeSaleBadgeText} maxLength={TIME_SALE_BADGE_TEXT_MAX_LENGTH} onChange={event => { setTimeSaleBadgeText(event.target.value); updateDraftItem({ timeSale: { badgeText: event.target.value } }); }} />
+            <input className="site-field site-input" form={formId} name="item_time_sale_badge_text" aria-label="타임세일 배지 문구" aria-describedby="basic-time-sale-badge-hint" value={timeSaleBadgeText} maxLength={TIME_SALE_BADGE_TEXT_MAX_LENGTH} onChange={event => { setTimeSaleBadgeText(event.target.value); updateDraftItem({ timeSale: { badgeText: event.target.value } }); }} />
             <div className="site-editor-badge-colors">
               <label className="site-action-row" data-wrap="nowrap"><span className="type-caption">배경색</span><input type="color" form={formId} name="item_time_sale_badge_background_color" aria-label="타임세일 배지 배경색" value={timeSaleBadgeBackgroundColor} onChange={event => { setTimeSaleBadgeBackgroundColor(event.target.value); updateDraftItem({ timeSale: { badgeBackgroundColor: event.target.value } }); }} /></label>
               <label className="site-action-row" data-wrap="nowrap"><span className="type-caption">글자색</span><input type="color" aria-label="타임세일 배지 글자색" value={timeSaleBadgeTextColor ?? getReadableTextColorForTimeSaleBadge(timeSaleBadgeBackgroundColor)} onChange={event => { setTimeSaleBadgeTextColor(event.target.value); updateDraftItem({ timeSale: { badgeTextColor: event.target.value } }); }} /></label>
               <span className="site-badge type-caption" style={{ backgroundColor: timeSaleBadgeBackgroundColor, color: timeSaleBadgeTextColor ?? getReadableTextColorForTimeSaleBadge(timeSaleBadgeBackgroundColor) }}>{timeSaleBadgeText || DEFAULT_TIME_SALE_BADGE_TEXT}</span>
             </div>
+          </div>
+          <div className="site-editor-field-hint type-caption site-copy-muted">
+            <span id="basic-time-sale-badge-hint">예: 타임세일, HAPPY HOUR</span>
+            <span data-editor-count>{timeSaleBadgeText.length} / {TIME_SALE_BADGE_TEXT_MAX_LENGTH}</span>
           </div>
         </div>
         {timeSaleInvalidReason && <p role="alert" className="type-body-sm text-red-600">{timeSaleInvalidReason}</p>}
@@ -4289,7 +4304,7 @@ function MenuItemForm({
             </div>
           </div>
           <div className="md:col-span-2">
-            <FieldLabel>보조 언어 표기</FieldLabel>
+            <FieldLabel>{basicEditor ? "보조 언어명" : "보조 언어 표기"}</FieldLabel>
             <input
               name="item_set_name"
               form={formId}
@@ -4304,7 +4319,7 @@ function MenuItemForm({
             />
             <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
               <span className="break-keep">
-                한국어 메뉴명 아래에 작게 함께 표시됩니다. 언어 전환 화면에서는 원래 한글 메뉴명이 보조 줄로 표시됩니다.
+                한국어 메뉴명 아래에 작게 함께 표시됩니다.{!basicEditor && " 언어 전환 화면에서는 원래 한글 메뉴명이 보조 줄로 표시됩니다."}
               </span>
               <span className="shrink-0">{setNameValue.length} / {MENU_FIELD_LIMITS.menuItems.setName}</span>
             </div>
@@ -4336,7 +4351,7 @@ function MenuItemForm({
                 value={descriptionValue}
                 placeholder={labels.itemDescriptionPlaceholder}
                 maxLength={MENU_FIELD_LIMITS.menuItems.description}
-                helperText={labels.itemDescriptionHelperText}
+                helperText={basicEditor ? "보조 언어명 하단에 표시됩니다." : labels.itemDescriptionHelperText}
                 onValueChange={(value) => {
                   setDescriptionValue(value);
                   updateDraftItem({ description: value });
@@ -4683,9 +4698,9 @@ function MenuItemForm({
               name="item_price_note"
               label={basicEditor ? "가격설명" : "가격 옆 문구"}
               defaultValue={priceNoteValue}
-              placeholder="예: HOT/ICE, HOT/ICE 동일가, 시즌 한정"
+              placeholder={basicEditor ? "예: ICE ONLY" : "예: HOT/ICE, HOT/ICE 동일가, 시즌 한정"}
               maxLength={MENU_FIELD_LIMITS.menuItems.priceNote}
-              helperText="가격 오른쪽에 짧게 표시할 문구를 입력하세요."
+              helperText={basicEditor ? "메뉴명 옆 가격 영역에 표시됩니다." : "가격 오른쪽에 짧게 표시할 문구를 입력하세요."}
               onValueChange={(value) => {
                 setPriceNoteValue(value);
                 updateDraftItem({ priceNote: value });

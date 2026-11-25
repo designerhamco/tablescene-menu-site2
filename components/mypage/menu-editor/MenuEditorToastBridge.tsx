@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
-export default function MenuEditorToastBridge({ message, error }: { message?: string | null; error?: string | null }) {
+export default function MenuEditorToastBridge({ message, error, description }: { message?: string | null; error?: string | null; description?: string }) {
   const lastToastKeyRef = useRef("");
   const pathname = usePathname();
   const router = useRouter();
@@ -25,8 +25,8 @@ export default function MenuEditorToastBridge({ message, error }: { message?: st
       return;
     }
 
-    if (message) toast.success(message);
-  }, [message, error]);
+    if (message) toast.success(message, { description });
+  }, [message, error, description]);
 
   useEffect(() => {
     if (!message && !error) return;
@@ -35,6 +35,7 @@ export default function MenuEditorToastBridge({ message, error }: { message?: st
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.delete("message");
     nextParams.delete("error");
+    nextParams.delete("saved");
 
     const query = nextParams.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });

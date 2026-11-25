@@ -21,8 +21,16 @@ test("representative image editor keeps the five-slide limit", () => {
   assert.match(editorSource, /대표 이미지는 최대 \{effectiveMaxSlides\}개까지 등록할 수 있습니다/);
 });
 
-test("representative image editor explains device-dependent cropping without a universal ratio", () => {
-  assert.doesNotMatch(editorSource, /권장 (?:크기|비율|원본):/);
+test("Basic slide edits expose a conditional product selector without saving the UI-only mode", () => {
+  assert.match(editorSource, /aria-pressed=\{editing.mode === "image"\}/);
+  assert.match(editorSource, /\{editing.mode === "linked" && <div/);
+  assert.match(editorSource, /editing.mode === "linked" && !linkedItemId/);
+  assert.match(editorSource, /const linkedItemId = editing\?\.mode === "linked" \? editing.featuredItemId : null/);
+  assert.match(editorSource, /featuredItemId: linkedItemId/);
+});
+
+test("representative image editor explains the recommended source and crop behavior", () => {
+  assert.match(editorSource, /1:1 정사각형 원본을 권장/);
   assert.match(editorSource, /디자인과 기기에 따라/);
   assert.match(editorSource, /미리보기에서 표시 영역을 확인/);
   assert.match(editorSource, /중앙 기준으로 일부 잘릴 수 있습니다/);
