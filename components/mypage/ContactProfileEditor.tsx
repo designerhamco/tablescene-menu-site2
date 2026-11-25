@@ -103,7 +103,6 @@ export default function ContactProfileEditor({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const fieldStates = getFieldStates({
     contactName: nameValue,
     contactPhone: phoneValue,
@@ -116,7 +115,6 @@ export default function ContactProfileEditor({
     setEmailValue(notificationEmail);
     setError(null);
     setDebugInfo(null);
-    setNotice(null);
     setIsOpen(true);
   }
 
@@ -170,7 +168,6 @@ export default function ContactProfileEditor({
       }
 
       setIsOpen(false);
-      setNotice(result.message || "담당자 정보가 저장되었습니다.");
       toast.success(result.message || "담당자 정보가 저장되었습니다.");
       router.refresh();
     } catch (submitError) {
@@ -192,7 +189,6 @@ export default function ContactProfileEditor({
         >
           담당자 정보 수정
         </button>
-        {notice ? <p className="text-support font-medium text-emerald-700">{notice}</p> : null}
       </div>
 
       {isOpen ? (

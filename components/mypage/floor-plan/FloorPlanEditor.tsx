@@ -6,6 +6,7 @@ import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useCallback, useEffect, useMemo, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
 import { Armchair, Monitor, CheckCircle2, LayoutGrid, Minus, Plus, Save, X } from "@/app/components/ui/site-icon";
 import { RotateCcw } from "@/app/components/ui/site-arrow";
+import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
 import RoomNameForm from "./RoomNameForm";
@@ -57,7 +58,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const [targetRoomId, setTargetRoomId] = useState("");
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [moveError, setMoveError] = useState("");
-  const [feedback, setFeedback] = useState<{ error: boolean; message: string; name?: boolean } | null>(null);
+  const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
   const [layoutPending, startTransition] = useTransition();
   const [renamePending, setRenamePending] = useState(false);
   const [roomAddPending, setRoomAddPending] = useState(false);
@@ -281,7 +282,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       const updated = result.document.rooms.find(item => item.id === id)!;
       setSaved({ available: true, revision: result.revision, document: result.document });
       setDraft(previous => ({ ...previous, rooms: previous.rooms.map(item => item.id === id ? { ...item, name: updated.name, emoji: updated.emoji, aspectRatio: updated.aspectRatio } : item) }));
-      setFeedback({ error: false, message: "룸 이름을 저장했습니다.", name: true });
+      setFeedback({ error: false, message: "룸 이름을 저장했습니다." });
       return { status: "success", value: updated.name };
     } finally { setRenamePending(false); }
   }
@@ -313,7 +314,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         if(!onRemoveRoom) {setRemoveError("룸 정리 기능을 사용할 수 없습니다. 새로고침해 주세요.");return;}
         const result=await onRemoveRoom(saved.revision,request);
         if(result.status==="error"){setRemoveError(result.message);return;}
-        setSaved({available:true,revision:result.revision,document:result.document});setDraft(result.document);setRoomId(result.document.rooms[0]?.id??"");setSelectedId("");setRemoveRoom(false);setFeedback({error:false,message:result.message??"룸을 정리했습니다.",name:true});
+        setSaved({available:true,revision:result.revision,document:result.document});setDraft(result.document);setRoomId(result.document.rooms[0]?.id??"");setSelectedId("");setRemoveRoom(false);setFeedback({error:false,message:result.message??"룸을 정리했습니다."});
       } catch {setRemoveError("룸을 정리하지 못했습니다. 새로고침 후 상태를 확인해 주세요.");}
     });
   }
@@ -332,7 +333,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         setArchiveSelection(undefined);
         setDraft(previous => retainRegisteredFloorPoints(previous, points.filter(point => !archiveSelection.includes(point.id))));
         clearSelection();
-        setFeedback({ error: false, message: result.message, name: true });
+        setFeedback({ error: false, message: result.message });
       } catch {
         setArchiveError("보관 결과를 확인하지 못했습니다. 새로고침 후 다시 확인해 주세요.");
       }
@@ -387,7 +388,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     : null;
   const pointSettings = selectedPoint && renderSelectedPoint ? renderSelectedPoint(selectedPoint, pending) : null;
   if (!initial.available) return <div className="site-stack-group">{registrationPanel}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요."}</p></ContentPanel></div>;
-  return <Tabs purpose="section" appearance="rooms" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setTargetRoomId(""); clearSelection(); setEditMode(false); setRemoveRoom(false); }}>
+  return <>
+    <ActionFeedbackToast message={feedback?.error === false ? feedback.message : undefined} eventKey={feedback} />
+    <Tabs purpose="section" appearance="rooms" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setTargetRoomId(""); clearSelection(); setEditMode(false); setRemoveRoom(false); }}>
     <div className={roomManagement ? "site-floor-room-tabs" : "site-stack-group"}>
       <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<Tooltip><TooltipTrigger asChild><Button iconAppearance="framed" ref={roomAddRef} type="button" variant="outline" shape="rounded" size="icon" onClick={addRoom} disabled={pending || Boolean(layoutLock) || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
         {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={pending} aria-busy={renamePending&&room?.id===r.id}>{<RoomLabel name={r.name || "이름 없는 룸"} emoji={r.emoji}/>}
@@ -495,11 +498,12 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       </AlertDialogContent>
     </AlertDialog>
     <div className="site-stack-block">
-      {feedback && (feedback.name || !dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
+      {feedback?.error ? <p className="type-body-sm text-destructive" role="alert">{feedback.message}</p> : null}
       {pending ? <LoadingState inline label={roomAddPending ? "룸을 추가하고 있습니다." : renamePending ? "룸 이름을 저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
     </div>
     </div>
     </TabsContent>
   </div>
-  </Tabs>;
+  </Tabs>
+  </>;
 }

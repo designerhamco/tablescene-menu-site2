@@ -41,13 +41,11 @@ export default function MarketingConsentSettings({
   const switchId = useId();
   const [accepted, setAccepted] = useState(initialAccepted);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function updateConsent(nextAccepted: boolean) {
     setAccepted(nextAccepted);
     setIsSaving(true);
-    setMessage(null);
     setError(null);
 
     try {
@@ -63,7 +61,6 @@ export default function MarketingConsentSettings({
       }
 
       const message = result.message || "마케팅 수신 설정이 저장되었습니다.";
-      setMessage(message);
       toast.success(message);
       router.refresh();
     } catch (updateError) {
@@ -92,7 +89,6 @@ export default function MarketingConsentSettings({
               ? `동의일: ${formatDateTime(consentedAt) ?? "저장 후 기록됩니다."}`
               : `철회일: ${formatDateTime(withdrawnAt) ?? "저장 후 기록됩니다."}`} · 추후 이메일/문자/카카오 채널별 설정으로 확장할 수 있도록 계정 단위 설정으로 저장합니다.
           </p>
-          {message ? <p className="type-body-sm text-emerald-700">{message}</p> : null}
           {error ? <p className="type-body-sm text-red-700">{error}</p> : null}
         </div>
         <label

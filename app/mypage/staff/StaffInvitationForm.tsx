@@ -81,9 +81,9 @@ export default function StaffInvitationForm({
             <ContentPanel surface="muted" density="compact"><p className="type-body-sm site-copy-muted">직원을 초대할 활성 메뉴판이 없습니다.</p></ContentPanel>
           )}
         </fieldset>
-        {state.message ? (
-          <ContentPanel surface={state.status === "success" ? "muted" : "notice"} density="compact">
-            <p className="type-body-sm" aria-live="polite">{state.message}</p>
+        {state.status === "error" && state.message ? (
+          <ContentPanel surface="notice" density="compact">
+            <p className="type-body-sm" role="alert">{state.message}</p>
           </ContentPanel>
         ) : null}
         <div className="site-action-row">

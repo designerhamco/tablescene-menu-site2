@@ -134,7 +134,7 @@ export default function CallItemManager({
           </div></ContentPanel>
         ))}
 
-        {state.status !== "idle" && state.message ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm" role="status">{state.message}</p></ContentPanel> : null}
+        {state.status === "error" && state.message ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm" role="alert">{state.message}</p></ContentPanel> : null}
 
         <div className="site-action-row">
           <button type="submit" disabled={pending} className="site-button site-button-primary">
