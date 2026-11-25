@@ -1459,7 +1459,37 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-account-menu-signout { justify-content: start; border: 0; background: transparent; color: var(--ui-danger); cursor: pointer; }
 
 /* Menu editor workspace: one navigation row, two working columns, persistent final actions. */
-.site-editor-workspace-header { margin-block-end: var(--site-space-group); }
+.site-editor-workspace-header {
+  position: relative;
+  isolation: isolate;
+  margin-block-end: var(--site-space-group);
+}
+/* Paint the surface to both viewport edges without widening the content or scroll area. */
+.site-editor-workspace-header::before,
+.site-editor-sections[data-editor-layout="workspace"] > .site-editor-navigation::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--ui-surface);
+  box-shadow: 0 0 0 100vmax var(--ui-surface);
+  clip-path: inset(0 -100vmax);
+  pointer-events: none;
+}
+.site-editor-workspace-header::before {
+  inset-block: calc(-1 * var(--site-page-heading-top)) calc(-1 * var(--site-space-group));
+}
+.site-editor-sections[data-editor-layout="workspace"] > .site-editor-navigation::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -1px;
+  block-size: 1px;
+  background: var(--ui-border);
+  box-shadow: 0 0 0 100vmax var(--ui-border);
+  clip-path: inset(0 -100vmax);
+  pointer-events: none;
+}
 .site-editor-summary {
   display: grid;
   min-width: 0;
@@ -1482,6 +1512,7 @@ html[data-home-service-cover]::view-transition-new(root) {
   position: sticky;
   top: var(--site-header-height);
   z-index: 30;
+  isolation: isolate;
   min-width: 0;
   padding-inline: var(--site-space-block);
   border-block-end: 1px solid var(--ui-border);
@@ -1546,8 +1577,7 @@ html[data-home-service-cover]::view-transition-new(root) {
   position: fixed;
   inset: auto 0 0;
   z-index: 40;
-  padding: var(--site-space-block) var(--site-gutter);
-  padding-block-end: max(var(--site-space-block), env(safe-area-inset-bottom));
+  padding-block: var(--site-space-block) max(var(--site-space-block), env(safe-area-inset-bottom));
   border-block-start: 1px solid var(--ui-border);
   background: var(--ui-surface);
   color: var(--ui-text);
@@ -1555,12 +1585,19 @@ html[data-home-service-cover]::view-transition-new(root) {
 .site-editor-action-bar-inner {
   display: flex;
   min-width: 0;
-  max-width: var(--site-content-width);
-  margin-inline: auto;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--site-space-block);
 }
+.site-editor-action-bar-leading {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--site-space-block);
+}
+.site-editor-action-bar-leading .site-editor-save-status { flex: none; }
 .site-editor-save-status {
   display: flex;
   min-width: 0;

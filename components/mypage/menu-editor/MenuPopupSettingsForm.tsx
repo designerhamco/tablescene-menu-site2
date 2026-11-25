@@ -70,7 +70,7 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
             currentUrl={images[selectedIndex]?.imageUrl}
             disabled={disabled || (isFull && selectedIndex < 0)}
             onUploadPendingChange={setUploadPending}
-            uploadSuccessMessage="광고 이미지를 등록했습니다. 최종 저장을 눌러 반영해 주세요."
+            uploadSuccessMessage="광고 이미지를 등록했습니다. 광고 설정 저장을 눌러 반영해 주세요."
             onDraftImageChange={({ imageUrl, imagePath }) => {
               if (!imageUrl) return;
               const newImage = { key: crypto.randomUUID(), imageUrl, imagePath };
@@ -110,7 +110,7 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
         )}
         <p className="type-caption site-copy-muted">{getImageUploadPolicy("menu-popup-image-draft").label} · 업로드된 이미지는 화면에 맞게 자동 최적화될 수 있습니다.</p>
         <MenuEditorActionBar>
-          <DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary" disabled={uploadPending || missingImage}>최종 저장</DirtySubmitButton>
+          <DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary" disabled={uploadPending || missingImage}>광고 설정 저장</DirtySubmitButton>
           <MenuEditorSaveFeedback error={finalSaveError} issues={missingImage ? [{ message: "광고를 사용하려면 이미지를 한 장 이상 등록해 주세요." }] : []} />
       </MenuEditorActionBar>
 
@@ -130,7 +130,7 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled, basi
       </div>)}
       {images.length < MAX_MENU_POPUP_IMAGES ? <button type="button" className="site-button site-button-secondary" onClick={addImage}>광고 이미지 추가 ({images.length}/3)</button> : null}
       <p className="text-support text-zinc-600">등록 순서대로 표시됩니다. 이미지는 저장 후 공개 메뉴판에 반영됩니다.</p>
-      <MenuEditorActionBar><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary">광고 저장</DirtySubmitButton><MenuEditorSaveFeedback error={finalSaveError} /></MenuEditorActionBar>
+      <MenuEditorActionBar><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary">광고 설정 저장</DirtySubmitButton><MenuEditorSaveFeedback error={finalSaveError} /></MenuEditorActionBar>
     </fieldset>
   </form>;
 }

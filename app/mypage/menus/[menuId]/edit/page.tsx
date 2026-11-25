@@ -1751,7 +1751,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const requestedEditorTab = visibleEditorTabs.find((item) => item.key === requestedActiveTab);
   const permissionTabNotice = requestedEditorTab?.disabledReason ?? null;
   const activeTab = enabledEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : enabledEditorTabs[0]?.key ?? "basic";
-  const editorShellMaxWidth = "max-w-[var(--site-content-width)]";
   const bannerMessage = message;
   const saveToastDescription = useBasicEditorLayout && saved === "1" && bannerMessage
     ? canViewPublic
@@ -1927,10 +1926,10 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout="workspace">
+      <main className="site-management-scope site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950" data-editor-layout="workspace">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} description={saveToastDescription} />
-        <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
+        <div className="site-container">
         <header className="site-editor-workspace-header site-stack-block">
           <Link href="/mypage" className="site-basic-editor-back type-body-sm">
             <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
@@ -2173,7 +2172,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   )}
                   <div data-editor-span="full" className={useBasicEditorLayout ? undefined : "md:col-span-2"}>
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>기본 정보 저장</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       {!useBasicEditorLayout && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -2206,7 +2205,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   })}
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="page-settings-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="page-settings-form" disabled={isReadOnly}>페이지 설정 저장</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -2247,7 +2246,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </div>
                   <div className="md:col-span-2">
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="intro-form" disabled={isReadOnly}>저장</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="intro-form" disabled={isReadOnly}>인트로 저장</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -2449,7 +2448,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="md:col-span-2">
                     <FinalActionRow>
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} representativeArea={menuCoverCapabilities.coverMode === "section"} />
-                      <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>{useBasicEditorLayout ? "대표 영역 저장" : "커버 이미지 저장"}</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                     </FinalActionRow>
                   </div>
@@ -2525,7 +2524,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                     <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final" dirtyFormId="about-form" disabled={isReadOnly}>저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="about-form" disabled={isReadOnly}>소개 저장</SubmitButton>
                         <FinalSaveFeedback error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
@@ -2547,7 +2546,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   />
                   <div className="md:col-span-2">
                       <FinalActionRow>
-                        <SubmitButton tone="final" dirtyFormId="events-form" disabled={isReadOnly}>저장</SubmitButton>
+                        <SubmitButton tone="final" dirtyFormId="events-form" disabled={isReadOnly}>이벤트 저장</SubmitButton>
                         <FinalSaveFeedback error={finalSaveError} />
                         <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
@@ -2672,7 +2671,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {patternBands ? <MenuPatternBandsForm key={JSON.stringify([pendingDesignReset, patternBands])} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} basic={useBasicEditorLayout} /> : null}
                     <FinalActionRow>
                       {!useBasicEditorLayout && <ResetTabActionButton menuId={site.id} kind="design" disabled={isReadOnly} />}
-                      <SubmitButton tone="final" dirtyFormId={pendingDesign || pendingDesignReset ? undefined : "design-settings-form"} disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId={pendingDesign || pendingDesignReset ? undefined : "design-settings-form"} disabled={isReadOnly}>디자인 설정 저장</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       {!useBasicEditorLayout && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
@@ -2728,7 +2727,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <legend className="site-editor-choice-legend">
                           <span className="site-action-row">
                             <span className="type-label">공개 상태</span>
-                            <HelpTooltip label="공개 상태 도움말">비공개 상태에서는 로그인한 뒤 미리볼 수 있으며, 공개 URL과 QR로 접속한 손님에게는 보이지 않습니다. 공개 상태를 바꾸려면 최종 저장을 눌러주세요.</HelpTooltip>
+                            <HelpTooltip label="공개 상태 도움말">비공개 상태에서는 로그인한 뒤 미리볼 수 있으며, 공개 URL과 QR로 접속한 손님에게는 보이지 않습니다. 공개 상태를 바꾸려면 공개 설정 저장을 눌러주세요.</HelpTooltip>
                           </span>
                         </legend>
                         <div className="site-basic-editor-publish-options">
@@ -2832,7 +2831,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </p>
                   <div>
                     <FinalActionRow>
-                      <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>{useBasicEditorLayout ? "최종 저장" : "저장"}</SubmitButton>
+                      <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>공개 설정 저장</SubmitButton>
                       <FinalSaveFeedback error={finalSaveError} />
                       {!useBasicEditorLayout && <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.

@@ -79,7 +79,8 @@ test("활성 메뉴판 관리 화면은 공통 여백과 무그림자 표면을 
 test("메뉴 편집기 외곽과 주요 섹션은 공통 반응형 표면을 사용한다", () => {
   const source = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
 
-  assert.match(source, /site-gutter site-page-spacing-compact/);
+  assert.match(source, /site-page-spacing-compact site-editor-workspace/);
+  assert.match(source, /<div className="site-container">/);
   assert.match(source, /function SectionCard[\s\S]*?<ContentPanel>/);
   assert.match(source, /<header className="site-editor-workspace-header site-stack-block"/);
   assert.match(source, /data-editor-layout="workspace"/);

@@ -23,7 +23,7 @@ import {
 } from "@/app/mypage/menus/actions";
 import AiUsageMeter from "@/components/mypage/menu-editor/AiUsageMeter";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
-import MenuEditorActionBar, { MenuEditorDirtyContext } from "@/components/mypage/menu-editor/MenuEditorActionBar";
+import MenuEditorActionBar, { MenuEditorDirtyContext, MenuEditorWorkspaceActionsContext } from "@/components/mypage/menu-editor/MenuEditorActionBar";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import MenuEditorSaveFeedback from "@/components/mypage/menu-editor/MenuEditorSaveFeedback";
 import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDraftEditor";
@@ -1711,6 +1711,7 @@ function getDisplayMenuCategoryQualityNotice(
 }
 
 function DraftDeleteConfirmButton({
+  label = "삭제",
   title = "정말 삭제하시겠습니까?",
   description,
   disabledReason,
@@ -1719,6 +1720,7 @@ function DraftDeleteConfirmButton({
   onConfirm,
   onCancel,
 }: {
+  label?: string;
   title?: string;
   description?: string;
   disabledReason?: string;
@@ -1734,7 +1736,7 @@ function DraftDeleteConfirmButton({
         onClick={onRequestConfirm}
         className="site-button site-button-outline-danger inline-flex items-center justify-center"
       >
-        삭제
+        {label}
       </button>
       {isConfirming && (
         <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
@@ -1747,7 +1749,7 @@ function DraftDeleteConfirmButton({
                 취소
               </button>
               <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
-                삭제 확정
+                {label} 확정
               </SubmitButton>
             </div>
           </div>
@@ -2499,7 +2501,6 @@ function MenuCategoryForm({
   copyAction,
   deleteAction,
   beforeActions,
-  resetAction,
   cancelHelperText,
 }: {
   menuId: string;
@@ -2533,7 +2534,6 @@ function MenuCategoryForm({
   copyAction?: ReactNode;
   deleteAction?: ReactNode;
   beforeActions?: ReactNode;
-  resetAction?: ReactNode;
   cancelHelperText?: string;
 }) {
   const [name, setName] = useState(draftName ?? category?.name ?? "");
@@ -3063,10 +3063,6 @@ function MenuCategoryForm({
         />
       </div>}
       {beforeActions}
-      {basicEditor && (deleteAction || resetAction) && <ContentPanel surface="muted" aria-label="카테고리 관리">
-        <h3 className="type-content-title">카테고리 관리</h3>
-        <div className="site-action-row">{resetAction}{deleteAction}</div>
-      </ContentPanel>}
       <MenuEditorFormActions dock={basicEditor} pending={finalSavePending} formId={formId}>
         {draftOnly ? (
           <SubmitButton
@@ -3075,7 +3071,7 @@ function MenuCategoryForm({
             disabled={finalSavePending || nameInvalid || Boolean(editingPriceColumn) || Boolean(categoryPriceColumnValidationMessage) || (!basicEditor && Boolean(category) && !categoryFormDirty)}
             onClick={() => { handleDraftCommit(); if (basicEditor) onFinalSave?.(); }}
           >
-            {basicEditor ? finalSavePending ? "저장 중..." : "최종 저장" : draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
+            {basicEditor ? finalSavePending ? "저장 중..." : "메뉴판 구성 저장" : draftActionLabel ?? (category ? "수정 내용 반영" : `${labels.categoryLabel} 추가`)}
           </SubmitButton>
         ) : (
           <SubmitButton tone="final" disabled={nameInvalid}>
@@ -3088,8 +3084,7 @@ function MenuCategoryForm({
           </button>
         )}
         {copyAction}
-        {!basicEditor && deleteAction}
-        {!basicEditor && resetAction}
+        {deleteAction}
       <MenuEditorSaveFeedback error={finalSaveError} issues={[
         ...(nameInvalid ? [{ message: `${labels.categoryLabel} 이름을 입력해 주세요.`, fieldName: "category_name" }] : []),
         ...(editingPriceColumn ? [{ message: "수정 중인 가격 옵션을 먼저 등록해 주세요." }] : []),
@@ -4166,7 +4161,7 @@ function MenuItemForm({
               name="item_is_sold_out"
               compact={basicEditor}
               label={basicEditor ? "품절 여부" : "품절 처리"}
-              description={basicEditor ? undefined : "켜면 최종 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."}
+              description={basicEditor ? undefined : "켜면 메뉴판 구성 저장 후 공개 메뉴판에서 품절 상태로 표시됩니다."}
               defaultChecked={soldOutValue}
               onText="품절"
               offText="판매 중"
@@ -5224,7 +5219,7 @@ function MenuItemForm({
                 if (basicEditor) onFinalSave?.();
               }}
             >
-              {basicEditor ? finalSavePending ? "저장 중..." : "최종 저장" : itemDraftActionLabel}
+              {basicEditor ? finalSavePending ? "저장 중..." : "메뉴판 구성 저장" : itemDraftActionLabel}
             </SubmitButton>
             {!basicEditor && onCancel && (
               <button type="button" onClick={onCancel} className="site-button site-button-outline">
@@ -5233,7 +5228,7 @@ function MenuItemForm({
             )}
             {item && onDraftCopy && (
               <SubmitButton type="button" tone="light" disabled={finalSavePending || itemDraftSaveDisabled} onClick={handleDraftCopy}>
-                복사
+                {labels.itemLabel} 복사
               </SubmitButton>
             )}
             {deleteAction}
@@ -5263,7 +5258,7 @@ function MenuItemForm({
           <div role="dialog" aria-modal="true" aria-label="기존 설명 교체 확인" className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <h3 className="type-content-title text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
             <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
-              {basicEditor ? "현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 최종 저장 후 공개 메뉴판에 반영됩니다." : "현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 수정 내용 반영 전까지는 저장 대상에 포함되지 않습니다."}
+              {basicEditor ? "현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 메뉴판 구성 저장 후 공개 메뉴판에 반영됩니다." : "현재 입력된 설명이 AI가 작성한 설명으로 바뀝니다. 수정 내용 반영 전까지는 저장 대상에 포함되지 않습니다."}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -5592,7 +5587,7 @@ export default function MenuManagementSection({
   const isAubeTable = isAubeTableTemplate(templateKey);
   const supportsOrderCustomization = getDiningTemplateFeatures(templateKey).order;
   const cafeAStarterReset = useCafeAStarterResetCoordinator();
-  const finalSaveLabel = basicEditor ? "최종 저장" : "저장";
+  const finalSaveLabel = "메뉴판 구성 저장";
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const initialTimeSaleDraftByItemId = new Map(
     timeSales
@@ -7332,7 +7327,7 @@ export default function MenuManagementSection({
       applyItemOrderDraft(orderedIds);
     }
 
-    toast.success("순서가 변경되었습니다. 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.");
+    toast.success("순서가 변경되었습니다. 하단의 메뉴판 구성 저장을 눌러야 공개 메뉴판에 반영됩니다.");
   }
 
   function getSelectedTopLevelBlockIdForWidgetInsert() {
@@ -8680,7 +8675,7 @@ export default function MenuManagementSection({
     setExpandedCategoryIds(new Set(firstCategoryId ? [firstCategoryId] : []));
     markMenuManagementDirty();
     cafeAStarterReset?.applySnapshot(snapshot);
-    toast.success("오브커피 샘플이 임시 상태로 복원되었습니다. 메뉴, 대표 영역, 특가세일은 최종 저장 후 반영됩니다.");
+    toast.success("오브커피 샘플이 임시 상태로 복원되었습니다. 메뉴, 대표 영역, 특가세일은 메뉴판 구성 저장 후 반영됩니다.");
     return true;
   }
 
@@ -9259,6 +9254,7 @@ export default function MenuManagementSection({
 
   return (
     <MenuEditorDirtyContext.Provider value={menuManagementDirty || Object.keys(pendingItemDrafts).length > 0}>
+    <MenuEditorWorkspaceActionsContext.Provider value={sampleResetButton}>
     <div
       className="space-y-6"
       data-menu-widgets-enabled={menuWidgetCapability.enabled ? "true" : "false"}
@@ -9413,7 +9409,7 @@ export default function MenuManagementSection({
             </div>
             {hasActiveWidgetEditorChanges && (
               <p className="site-notice site-notice-warning mt-3 px-3 py-2 text-support font-medium leading-relaxed">
-                {basicEditor ? "위젯을 최종 저장한 뒤 순서를 변경해 주세요." : "현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요."}
+                {basicEditor ? "메뉴판 구성 저장을 누른 뒤 위젯 순서를 변경해 주세요." : "현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요."}
               </p>
             )}
             {!basicEditor && menuWidgetCapability.enabled && (
@@ -9758,7 +9754,7 @@ export default function MenuManagementSection({
                   canUseDisplayVideoUpload={canUseDisplayVideoUpload}
                   supportsAubeTablePageSettings={isAubeTable}
                   deleteAction={
-                    <DraftDeleteConfirmButton
+                    <DraftDeleteConfirmButton label={`${labels.pageLabel} 삭제`}
                       title={isCopiedPage ? "이 복사본을 삭제할까요?" : `${labels.pageLabel}를 삭제할까요?`}
                       description={
                         isCopiedPage
@@ -9806,7 +9802,7 @@ export default function MenuManagementSection({
               <div>
                 <PanelHeader
                   title="위젯"
-                  description="위젯은 카테고리와 같은 최상위 콘텐츠입니다. 수정 내용은 하단의 최종 저장 후 공개 메뉴판에 반영됩니다."
+                  description="위젯은 카테고리와 같은 최상위 콘텐츠입니다. 수정 내용은 하단의 메뉴판 구성 저장 후 공개 메뉴판에 반영됩니다."
                 />
                 <div className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <DetailValue label="위젯 유형">{selectedWidgetDraft.type === "image" ? "이미지" : selectedWidgetDraft.type === "text" ? "텍스트" : "이미지 + 텍스트"}</DetailValue>
@@ -9837,7 +9833,7 @@ export default function MenuManagementSection({
                     disabled={widgetCountForVisiblePage >= maxMenuWidgetsPerPage}
                     className="site-button site-button-outline mr-auto"
                   >
-                    복사
+                    위젯 복사
                   </button>
                   <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-outline">
                     수정
@@ -9845,12 +9841,12 @@ export default function MenuManagementSection({
                   {confirmingDeleteKey === `widget:${selectedWidgetDraft.id}` ? (
                     <span className="flex flex-wrap items-center justify-end gap-2">
                       <span className="text-support font-medium text-red-600">이 위젯을 삭제할까요?</span>
-                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger">삭제</button>
+                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger">위젯 삭제</button>
                       <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-outline">취소</button>
                     </span>
                   ) : (
                     <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-outline-danger">
-                      삭제
+                      위젯 삭제
                     </button>
                   )}
                 </div>
@@ -9941,14 +9937,13 @@ export default function MenuManagementSection({
                   onCancel={resetModes}
                   cancelLabel={isCopiedCategory ? "목록으로" : "취소"}
                   beforeActions={basicEditor ? registeredItems : undefined}
-                  resetAction={basicEditor ? sampleResetButton : undefined}
                   copyAction={basicEditor ? (
                     <button type="button" className="site-button site-button-outline" disabled={reachedCategoryLimit || reachedItemsPerSiteLimit} onClick={() => copyCategoryDraft(selectedCategory.id)}>
-                      복사
+                      {labels.categoryLabel} 복사
                     </button>
                   ) : undefined}
                   deleteAction={
-                    <DraftDeleteConfirmButton
+                    <DraftDeleteConfirmButton label={`${labels.categoryLabel} 삭제`}
                       title={isCopiedCategory ? "이 복사본을 삭제할까요?" : `${labels.categoryLabel}을 삭제할까요?`}
                       description={
                         isCopiedCategory
@@ -10148,9 +10143,9 @@ export default function MenuManagementSection({
                     }
                     className="site-button site-button-outline"
                   >
-                    복사
+                    {labels.categoryLabel} 복사
                   </button>
-                  <DraftDeleteConfirmButton
+                  <DraftDeleteConfirmButton label={`${labels.categoryLabel} 삭제`}
                     title={`${labels.categoryLabel}을 삭제할까요?`}
                     description={`이 ${labels.categoryLabel}에 포함된 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`}
                     isConfirming={confirmingDeleteKey === `category:${selectedCategory.id}`}
@@ -10259,9 +10254,9 @@ export default function MenuManagementSection({
                     className="site-button site-button-outline"
                     title={selectedPageCopyDisabledReason || undefined}
                   >
-                    복사
+                    {labels.pageLabel} 복사
                   </button>
-                  <DraftDeleteConfirmButton
+                  <DraftDeleteConfirmButton label={`${labels.pageLabel} 삭제`}
                     title={`${labels.pageLabel}를 삭제할까요?`}
                     description={`이 페이지에 포함된 ${labels.categoryLabel}과 ${labels.itemLabel}도 함께 삭제됩니다. 저장 전까지 실제 데이터에는 반영되지 않습니다.`}
                     disabledReason={sortedPages.length <= 1 ? `최소 1개의 ${labels.pageLabel}는 필요합니다.` : undefined}
@@ -10327,7 +10322,6 @@ export default function MenuManagementSection({
             ) : null}
 
             {(!basicEditor || (!showCategorySettings && !editingItemId && !isCreatingCategory && !isCreatingItem && !activeWidgetEditor)) && <FinalActionRow>
-              {sampleResetButton}
               <SubmitButton tone="final" disabled={!menuManagementDirty || timeSaleLimitExceeded} onSuccessfulSubmit={markMenuManagementApplied}>
                 {finalSaveLabel}
               </SubmitButton>
@@ -10562,11 +10556,11 @@ export default function MenuManagementSection({
               className="site-dialog site-dialog-panel w-full max-w-md p-6"
             >
               <h2 id="menu-sample-reset-title" className="type-content-title break-keep text-zinc-950">
-                메뉴 관리 내용을 샘플 메뉴로 되돌릴까요?
+                메뉴판 구성을 템플릿 샘플로 되돌릴까요?
               </h2>
               <div className="mt-3 space-y-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                <p>현재 메뉴 관리 탭에서 편집 중인 페이지, 카테고리, 메뉴 아이템 내용이 선택한 템플릿의 샘플 데이터로 바뀝니다.</p>
-                <p>오브커피 템플릿은 위젯, 표시 순서, 타임세일 draft도 함께 샘플 상태로 복원됩니다.</p>
+                <p>현재 메뉴판 구성에서 편집 중인 페이지, 카테고리, 메뉴 아이템 내용이 선택한 템플릿의 샘플 데이터로 바뀝니다.</p>
+                <p>오브커피 템플릿은 위젯, 표시 순서, 타임세일 설정도 함께 샘플 상태로 복원됩니다.</p>
                 <p>저장 전까지 미리보기와 공개 메뉴판에는 반영되지 않습니다.</p>
               </div>
               <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
@@ -10593,6 +10587,7 @@ export default function MenuManagementSection({
         )}
       </section>
     </div>
+    </MenuEditorWorkspaceActionsContext.Provider>
     </MenuEditorDirtyContext.Provider>
   );
 }
@@ -10767,7 +10762,7 @@ function MenuItemCard({
             onCancel={onCancel}
             cancelLabel={isCopiedDraftItem ? "목록으로" : cancelLabel}
             deleteAction={
-              <DraftDeleteConfirmButton
+              <DraftDeleteConfirmButton label={`${labels.itemLabel} 삭제`}
                 title={isCopiedDraftItem ? "이 복사본을 삭제할까요?" : `이 ${labels.itemLabel}을 삭제할까요?`}
                 description={
                   isCopiedDraftItem
@@ -10818,9 +10813,9 @@ function MenuItemCard({
             수정
           </button>
           <SubmitButton type="button" tone="light" onClick={() => onCopy()}>
-            복사
+            {labels.itemLabel} 복사
           </SubmitButton>
-          <DraftDeleteConfirmButton
+          <DraftDeleteConfirmButton label={`${labels.itemLabel} 삭제`}
             title={`이 ${labels.itemLabel}을 삭제할까요?`}
             description={labels.itemLabel === "서비스" ? "저장을 누르기 전까지는 실제 가격표에 반영되지 않습니다." : "저장을 누르기 전까지는 실제 메뉴판에 반영되지 않습니다."}
             isConfirming={isConfirmingDelete}
