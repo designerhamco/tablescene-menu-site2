@@ -50,7 +50,9 @@ test("mypage menu cards use compact shared work panels and keep owner and staff 
   assert.match(card, /<ContentPanel as="article" aria-labelledby=/);
   assert.match(card, /className="site-menu-card"/);
   assert.match(card, /className="site-menu-card-media"/);
-  assert.match(card, /className="site-menu-card-meta"/);
+  assert.doesNotMatch(card, /site-menu-card-meta|이용 기간 종료일|복구 기한/);
+  assert.match(mypageSource, /<MenuRecoveryGuide menuName=\{card.title\} deadlineLabel=\{card.recoveryDeadlineLabel\}/);
+  assert.match(mypageSource, /className="site-button site-button-outline">결제내역<\/Link>/);
   assert.match(card, /supportingDetails.map/);
   assert.doesNotMatch(card, /publicPath|MenuLinkCopyButton/);
   assert.match(card, /className="site-action-row site-menu-card-actions"/);
@@ -62,7 +64,6 @@ test("mypage menu cards use compact shared work panels and keep owner and staff 
   assert.match(mypageSource, /card.section === "deleted" \? undefined/);
   assert.match(mypageSource, /billingQuery: publicPath.startsWith/);
   assert.match(siteDesignSource, /aspect-ratio: 4 \/ 3/);
-  assert.doesNotMatch(siteDesignSource, /\.site-menu-card-meta \{[^}]*background:/);
   assert.doesNotMatch(siteDesignSource, /\.site-menu-card-actions \{[^}]*border-left/);
 });
 

@@ -777,17 +777,14 @@
 .site-menu-card-header > .site-stack-detail { max-inline-size: 100%; }
 .site-menu-card-title { max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-menu-card-badges { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); }
-.site-menu-card-meta, .site-menu-card-supporting { display: grid; gap: var(--site-space-copy); margin: 0; padding: 0; min-width: 0; }
-.site-menu-card-meta > div, .site-menu-card-supporting > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy); min-width: 0; max-width: 100%; }
-.site-menu-card-meta dt, .site-menu-card-meta dd { font-size: var(--type-body-sm-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-body); letter-spacing: var(--site-tracking-reading); }
-.site-menu-card-meta dt { color: var(--ui-text-subtle); }
-.site-menu-card-meta dd { color: var(--ui-text-muted); overflow-wrap: anywhere; }
+.site-menu-card-supporting { display: grid; gap: var(--site-space-copy); margin: 0; padding: 0; min-width: 0; }
+.site-menu-card-supporting > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy); min-width: 0; max-width: 100%; }
 .site-menu-card-supporting dt, .site-menu-card-supporting dd { color: var(--ui-text-subtle); font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); overflow-wrap: anywhere; }
 .site-menu-card-toolbar, .site-menu-card-state-row { margin-block-start: auto; }
 .site-menu-card-toolbar { min-width: 0; }
-.site-menu-card-toolbar > .site-button-link { justify-self: end; }
+.site-menu-card-toolbar > .site-button-outline { justify-self: end; }
 .site-menu-card-state-row { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); }
-.site-menu-card-state-row > .site-button-link { align-self: end; }
+.site-menu-card-state-row > .site-button-outline { align-self: end; }
 .site-menu-card :is(.site-menu-card-actions, .site-menu-card-secondary-actions) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
 .site-menu-card .site-menu-card-actions:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
 .site-menu-card-actions .site-button { min-width: 0; width: 100%; max-width: 100%; white-space: normal; word-break: keep-all; flex-wrap: wrap; text-align: center; }
