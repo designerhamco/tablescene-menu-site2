@@ -92,10 +92,18 @@ try {
     const stateList = page.getByRole("tablist", { name: "상태값 변경 예시" });
     await expect(stateList).toHaveAttribute("data-purpose", "state");
     await expect(stateList).toHaveClass(/site-tabs-outline/);
-    await stateList.getByRole("tab", { name: "보관 중", exact: true }).click();
+    await stateList.getByRole("tab", { name: /^만료·보관/ }).click();
     await page.mouse.move(0, 0);
-    await expect(stateList.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
-    await expect(stateList.getByRole("tab", { selected: true })).toHaveCSS("border-top-width", "2px");
+    const activeState = stateList.getByRole("tab", { selected: true });
+    await expect(activeState).toHaveCSS("background-color", "rgb(21, 24, 30)");
+    await expect(activeState).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(activeState).toHaveCSS("border-top-width", "0px");
+    const activeCount = activeState.locator(".site-tab-count");
+    await expect(activeCount).toHaveCSS("color", "rgb(219, 222, 227)");
+    assert.ok(await activeState.evaluate(tab =>
+      parseFloat(getComputedStyle(tab.querySelector(".site-tab-count")).fontSize) <
+      parseFloat(getComputedStyle(tab).fontSize)
+    ));
     const roleSection = page.locator('#selection-hierarchy-title').locator('xpath=../..');
     await roleSection.screenshot({ path: `${output}/roles-${width}.png` });
     const section = page.locator('#shaped-tabs');

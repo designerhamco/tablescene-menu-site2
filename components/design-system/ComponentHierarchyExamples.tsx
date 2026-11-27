@@ -7,7 +7,7 @@ function WorkExample() {
   return <Tabs purpose="state" defaultValue="active">
     <TabsList size="lg" aria-label="위계 예시 메뉴판 상태">
       <TabsTrigger value="active" count={8}>이용 중</TabsTrigger>
-      <TabsTrigger value="holding" count={0}>보관 중</TabsTrigger>
+      <TabsTrigger value="holding" count={0}>만료·보관</TabsTrigger>
       <TabsTrigger value="ended" count={13}>종료됨</TabsTrigger>
     </TabsList>
     {(["active", "holding", "ended"] as const).map(value => <TabsContent key={value} value={value}>

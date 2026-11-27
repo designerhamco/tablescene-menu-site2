@@ -30,7 +30,7 @@ export const SITE_CONTENT_COMPOSITION = [
 export const SITE_COMPONENT_HIERARCHY = [
   { role: "화면 탐색", desktop: "18px / 최소44px", icon: "20px", api: 'Tabs·NavigationTabs purpose="page" / md·lg', rule: "아래 주요 화면 전체를 전환. 관리 화면도 동일하며 작은 보조 버튼보다 우선" },
   { role: "콘텐츠 영역·목록 분류", desktop: "16px / 최소44px", icon: "20px", api: 'purpose="section|category" / md·lg', rule: "영역 안의 콘텐츠 전환·분류. 문서형도 같은 글자 크기, lg 영역·문서형은48px" },
-  { role: "목록 상태", desktop: "16px / 레일44·48px", icon: "20px", api: 'purpose="state" / md·lg', rule: "이용 중·보관 중·종료됨처럼 결과 목록을 분류. lg 항목40px·레일48px" },
+  { role: "목록 상태", desktop: "16px / 레일44·48px", icon: "20px", api: 'purpose="state" / md·lg', rule: "이용 중·만료·보관·종료됨처럼 결과 목록을 분류. lg 항목40px·레일48px" },
   { role: "주요 실행·완료", desktop: "16px / 44·48px", icon: "20px", api: 'Button 기본 primary / size="lg" / data-purpose="primary-action"', rule: "저장·등록 등 현재 작업의 주요 실행44px, 가입·결제 같은 큰 완료48px" },
   { role: "보조 실행", desktop: "14px / 44px", icon: "16px", api: 'Button variant="outline|secondary"', rule: "복사·취소 등 보조 실행. 주요 실행과 나란할 때 같은 기본 높이 유지" },
   { role: "헤더 하위 탐색", desktop: "14px / 행40·44px", icon: "16px", api: "--type-menu-nav-size", rule: "주메뉴16px보다 작은 고객센터·계정 레이어14px·500. 계정 이름은 type-menu-title16px·600" },
@@ -63,7 +63,7 @@ export const SITE_CONTROL_DENSITY = [
   { role: "입력·버튼 좌우", value: "12px / 큰 행동16px", token: "--ui-control-padding-inline/lg", rule: "일반 컨트롤 내부. 검색의 원형 실행은 높이에서 여백을 계산" },
   { role: "체크박스·라디오", value: "16px", token: "--ui-choice-size", rule: "시각 크기. 클릭은 라벨 행 전체로 확장" },
   { role: "일반 탭 높이", value: "32 / 36 / 40px", token: "--site-tab-height", rule: "모바일·태블릿 기본값. PC는 위계에 따라 화면 탐색18px·영역/분류16px, sm 보조14px. 영역형·문서형·룸 선택은40·44·48px" },
-  { role: "마이페이지 상태 탭", value: "PC 탭40px / 레일48px / 글자16px", token: "purpose=state / size=lg", rule: "이용 중·보관 중·종료됨을 전환. 모바일·태블릿은 탭36px·레일44px·글자14px 유지" },
+  { role: "마이페이지 상태 탭", value: "PC 탭40px / 레일48px / 글자16px", token: "purpose=state / size=lg", rule: "이용 중·만료·보관·종료됨을 전환. 모바일·태블릿은 탭36px·레일44px·글자14px 유지" },
   { role: "탭 선택 밑줄", value: "3px", token: "--site-tab-indicator-width", rule: "주요 화면·분류·알림 공통. 높이·여백·선택선 너비와 위치는 유지" },
   { role: "알림 분류 탭", value: "최소48px · 상하8px · 글자14px", token: "--ui-control-height-lg / --site-space-copy", rule: "NotificationPanel 공통 규격. 팝업·알림 이력·컴포넌트 예시에 동일 적용" },
   { role: "룸 선택·추가", value: "40 / 44 / 48px · 글자16px", token: "--site-room-control-height / --site-type-16", rule: "sm·md·lg. 같은 묶음의 추가와 선택이 한 크기 설정을 공유. 너비는 정사각 아이콘/내용 기준 텍스트로 구분" },

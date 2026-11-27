@@ -19,8 +19,9 @@ export default function MenuCardList({ tabs, cards, emptyState, description, not
 }) {
   const [query, setQuery] = useState("");
   const [requestedPage, setRequestedPage] = useState(1);
-  const resultsRef = useRef<HTMLParagraphElement>(null);
+  const resultsRef = useRef<HTMLElement>(null);
   const pageMovePending = useRef(false);
+  const hasQuery = Boolean(query.trim());
   const result = getMenuCardPage(cards, query, requestedPage);
   const changeQuery = (value: string) => { setQuery(value); setRequestedPage(1); };
   const selectPage = (page: number) => {
@@ -43,13 +44,13 @@ export default function MenuCardList({ tabs, cards, emptyState, description, not
     </div>
     {notices}
     {description ? <p className="type-body-sm site-copy-muted">{description}</p> : null}
-    <section className="site-stack-block site-menu-results" aria-label="메뉴판 목록">
-      <p ref={resultsRef} tabIndex={-1} className="type-caption site-copy-muted site-menu-result-count" role="status" aria-live="polite" aria-atomic="true">
-        {query.trim() ? `검색 결과 ${result.totalResults.toLocaleString("ko-KR")}개 · 전체 ${cards.length.toLocaleString("ko-KR")}개` : `전체 ${cards.length.toLocaleString("ko-KR")}개`}
-        {result.totalPages > 1 ? <span className="sr-only"> · {result.page}/{result.totalPages}페이지</span> : null}
+    <section ref={resultsRef} tabIndex={-1} className="site-stack-block site-menu-results" aria-label="메뉴판 목록">
+      <p className={hasQuery ? "type-caption site-copy-muted" : "sr-only"} role="status" aria-live="polite" aria-atomic="true">
+        {hasQuery ? `검색 결과 ${result.totalResults.toLocaleString("ko-KR")}개` : null}
+        {result.totalPages > 1 ? <span className="sr-only">{hasQuery ? " · " : ""}{result.page}/{result.totalPages}페이지</span> : null}
       </p>
       {result.cards.length ? <div className="site-menu-card-list">{result.cards.map(card => <div key={card.key}>{card.content}</div>)}</div>
-        : query.trim() ? <EmptyState headingLevel={2} icon={<Search />} title="검색한 메뉴판이 없습니다" description="메뉴판 이름을 확인하거나 검색어를 지워 주세요."
+        : hasQuery ? <EmptyState headingLevel={2} icon={<Search />} title="검색한 메뉴판이 없습니다" description="메뉴판 이름을 확인하거나 검색어를 지워 주세요."
           action={<button type="button" className="site-button site-button-outline" onClick={() => changeQuery("")}>검색어 지우기</button>} />
           : emptyState}
       <SitePagination currentPage={result.page} totalPages={result.totalPages} onSelect={selectPage} label="메뉴판 목록 페이지" />
