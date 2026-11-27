@@ -8,7 +8,7 @@ import {
   normalizeCatalogFilters,
   type CatalogFilters,
   type CatalogKind,
-  type CatalogServiceFilter,
+  type CatalogService,
 } from "@/lib/catalog-designs";
 import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
@@ -39,10 +39,10 @@ const colorOptions = CATALOG_COLORS.map(item => ({ ...item, icon: item.swatch
   : <Palette aria-hidden="true" /> }));
 
 export default function TemplateGallery({
-  initialService = "all", initialKind = "designer", initialFilter = "all", initialLayoutFilter = "all",
+  initialService = "basic", initialKind = "designer", initialFilter = "all", initialLayoutFilter = "all",
   initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize,
 }: {
-  initialService?: CatalogServiceFilter;
+  initialService?: CatalogService;
   initialKind?: CatalogKind;
   initialFilter?: string | string[];
   initialLayoutFilter?: string | string[];
@@ -70,9 +70,9 @@ export default function TemplateGallery({
   const totalPages = Math.ceil(visibleTemplates.length / TEMPLATES_PER_PAGE);
   const currentPage = Math.min(page, Math.max(totalPages, 1));
   const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
-  const hasFilters = service !== "all" || Object.values(filters).some(value => value.length > 0) || Boolean(query.trim());
+  const hasFilters = Object.values(filters).some(value => value.length > 0) || Boolean(query.trim());
 
-  function keepUrl(serviceFilter: CatalogServiceFilter, nextKind: CatalogKind, next: CatalogFilters, search = query, size = thumbnailSize) {
+  function keepUrl(serviceFilter: CatalogService, nextKind: CatalogKind, next: CatalogFilters, search = query, size = thumbnailSize) {
     const url = new URL(location.href);
     url.searchParams.set("category", nextKind);
     for (const [key, value] of Object.entries({ plan: serviceFilter, filter: next.industry.join(","), layout: next.layout.join(","), mood: next.mood.join(","), color: next.color.join(","), q: search.trim(), view: size })) {
@@ -81,7 +81,7 @@ export default function TemplateGallery({
     }
     history.replaceState(null, "", url);
   }
-  function selectService(nextService: CatalogServiceFilter) {
+  function selectService(nextService: CatalogService) {
     const nextFilters = normalizeCatalogFilters(filters, nextService === "display" ? "designer" : kind);
     setService(nextService); setFilters(nextFilters); setPage(1); keepUrl(nextService, kind, nextFilters);
   }
@@ -99,7 +99,7 @@ export default function TemplateGallery({
     setThumbnailSize(next); keepUrl(service, kind, filters, query, next);
   }
   function clearFilters() {
-    setService("all"); setFilters(DEFAULT_FILTERS); setQuery(""); setPage(1); keepUrl("all", kind, DEFAULT_FILTERS, "");
+    setFilters(DEFAULT_FILTERS); setQuery(""); setPage(1); keepUrl(service, kind, DEFAULT_FILTERS, "");
   }
 
   function renderFilters(presentation: "popover" | "accordion") {
@@ -116,7 +116,7 @@ export default function TemplateGallery({
   return <Tabs ref={galleryStartRef} purpose="section" value={effectiveKind} onValueChange={value => selectKind(value as CatalogKind)} className="scroll-mt-24">
     <div className="site-stack-group">
       {service !== "display" && (
-        <TabsList size="md" distribution="equal" aria-label="템플릿 종류 선택">
+        <TabsList size="md" distribution="equal" className="mx-auto" aria-label="템플릿 종류 선택">
           {KIND_TABS.map(({ key, label, description }) => (
             <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}
               aria-label={label} aria-describedby={`${tabsId}-${key}-description`}>
@@ -144,19 +144,18 @@ export default function TemplateGallery({
               <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
               <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
             </ToggleGroup>
-          } summary={
+          } />
+          <div className="site-stack-block">
             <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
               전체 <span>{visibleTemplates.length}개</span>
             </p>
-          } />
-          <div className="site-stack-group">
             {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
             {paginatedTemplates.length ? (
               <div className="site-template-grid" data-thumbnail-size={resolvedThumbnailSize} data-thumbnail-default={thumbnailSize === undefined || undefined}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
             ) : (
               <EmptyState icon={<PanelsTopLeft />} title={hasFilters ? "조건에 맞는 템플릿이 없습니다" : "템플릿 준비 중"}
                 description={hasFilters ? "이름이나 필터 조건을 바꿔 다시 찾아보세요." : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
-                action={hasFilters ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+                action={hasFilters ? <Button variant="outline" size="lg" onClick={clearFilters}>검색·필터 초기화</Button> : undefined} />
             )}
           </div>
           <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {

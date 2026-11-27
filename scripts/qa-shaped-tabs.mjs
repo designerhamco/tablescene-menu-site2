@@ -127,7 +127,7 @@ try {
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "domcontentloaded" });
     const serviceFilter = page.getByRole("group", { name: "메뉴판 유형", exact: true });
-    await expect(serviceFilter.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect(serviceFilter.getByRole("radio", { name: "베이직", exact: true })).toHaveAttribute("aria-checked", "true");
     await serviceFilter.getByRole("radio", { name: "베이직", exact: true }).click();
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await assertArea(catalogTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));

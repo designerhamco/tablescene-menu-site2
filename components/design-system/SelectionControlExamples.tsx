@@ -6,7 +6,7 @@ import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import CatalogServiceButtons from "@/components/templates/CatalogServiceButtons";
 import { SERVICE_CATEGORY_LABELS } from "@/lib/service-categories";
-import type { CatalogServiceFilter } from "@/lib/catalog-designs";
+import type { CatalogService } from "@/lib/catalog-designs";
 import styles from "./SiteComponentGallery.module.css";
 import SupportNavigation from "@/components/layout/SupportNavigation";
 
@@ -22,7 +22,7 @@ const options = [
 
 export default function SelectionControlExamples() {
   const [kind, setKind] = useState("designer");
-  const [service, setService] = useState<CatalogServiceFilter>("all");
+  const [service, setService] = useState<CatalogService>("basic");
   const [industry, setIndustry] = useState("all");
   const [topic, setTopic] = useState("all");
   const [nativeValue, setNativeValue] = useState("all");
@@ -42,19 +42,19 @@ export default function SelectionControlExamples() {
       </tbody></table></div>
       <div className={styles.hierarchyMap}>
         <section className={styles.hierarchyLevel} aria-label="템플릿 페이지 포함 관계 예시">
-          <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">템플릿 종류 전환 → 메뉴판 유형·업종 필터 → 결과</p></div>
+          <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">템플릿 종류 전환 → 메뉴판 유형 → 업종 필터 → 결과</p></div>
           <Tabs purpose="section" value={service === "display" ? "designer" : kind} onValueChange={setKind}>
             {service !== "display" ? <TabsList size="md" distribution="equal" aria-label="템플릿 구조 영역 선택">
               <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
             </TabsList> : null}
             {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
-              <div className="site-filter-group">
+              <div className="site-stack-block">
                 <CatalogServiceButtons value={service} onValueChange={setService} />
                 <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">
                   {[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}
                 </div>
               </div>
-              <p className="type-body-sm mt-5" role="status">{service === "all" ? "전체 유형" : SERVICE_CATEGORY_LABELS[service]} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
+              <p className="type-body-sm mt-5" role="status">{SERVICE_CATEGORY_LABELS[service]} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
             </TabsContent>)}
           </Tabs>
         </section>

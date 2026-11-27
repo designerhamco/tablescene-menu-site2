@@ -163,7 +163,7 @@ async function verifyLibrary(page, width) {
 async function verifyCatalog(page, width) {
     await open(page, '/templates');
     const service = page.getByRole('group', { name: '메뉴판 유형', exact: true });
-    await expect(service.getByRole('radio', { name: '전체', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(service.getByRole('radio', { name: '베이직', exact: true })).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('.site-template-media').first()).toHaveCSS('border-top-left-radius', '16px');
     const columns = await page.locator('.site-template-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
     assert.equal(columns, width < 640 ? 1 : width < 768 ? 2 : width < 1024 ? 3 : 4);

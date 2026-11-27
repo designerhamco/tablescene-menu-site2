@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import SitePage from "@/components/layout/SitePage";
 import TemplateGallery from "@/components/apply/TemplateGallery";
-import { normalizeCatalogServiceFilter } from "@/lib/catalog-designs";
+import { normalizeCatalogService } from "@/lib/catalog-designs";
 
 export const metadata: Metadata = {
   title: "디자인 템플릿 | ArtiMenu",
@@ -17,7 +17,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
     <SitePage title="매장에 맞는 디자인 선택">
 
     <TemplateGallery
-      initialService={normalizeCatalogServiceFilter(query.plan)}
+      initialService={normalizeCatalogService(query.plan)}
       initialKind={query.category === "standard" ? "standard" : "designer"}
       initialFilter={query.filter ?? "all"}
       initialLayoutFilter={query.layout ?? "all"}

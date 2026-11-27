@@ -20,7 +20,7 @@
 
 ## 템플릿 검색·필터 표면 (2026-11-13)
 
-2026-11-13 사용자 승인: 템플릿 선택 화면의 검색·필터·썸네일 크기 도구·결과 개수를 하나의 밝은 회색 영역으로 묶는다. 공통 FilterToolbar의 명시적 surface="muted"만 사용하며 기본값은 배경 없는 구성이다. 표면은 --ui-surface-muted, 모서리는 --ui-radius-surface, 무테·무그림자다. 안쪽 여백은 --site-panel-inset(모바일20px)/--site-panel-inset-wide(768px 이상24px), 내부 행 간격16px(--site-space-block), 옵션 사이8px(--site-space-copy), 다음 썸네일 목록과24px(--site-space-group)를 한 번만 적용한다. 결과 개수 아래 구분선과 그 전용 여백은 제거한다. 썸네일·페이지네이션은 회색 영역 밖이며 기존 검색/선택/보기 전환·모바일 필터 동작은 유지한다. 다른 일반 필터에 표면을 자동 추가하지 않는다. 공통 구현과 실제 예시는 FilterToolbar 및 /design-system#composed-fields를 따른다.
+템플릿 선택 화면의 메뉴판 유형·검색·필터·썸네일 크기 도구를 하나의 밝은 회색 영역으로 묶는다. 유형은 첫 행을 독립해 공통 대형 세그먼트의 44px 클릭 높이와 16px 글자로 표시한다. 종류 탭은 페이지 가운데에 두고 결과 개수는 회색 영역 밖의 썸네일 목록 왼쪽에 놓는다. 공통 FilterToolbar의 명시적 surface="muted"만 사용하며 기본값은 배경 없는 구성이다. 표면은 --ui-surface-muted, 모서리는 --ui-radius-surface, 무테·무그림자다. 안쪽 여백은 --site-panel-inset(모바일20px)/--site-panel-inset-wide(768px 이상24px), 내부 행 간격16px(--site-space-block), 옵션 사이8px(--site-space-copy), 다음 썸네일 목록과24px(--site-space-group)를 한 번만 적용한다. 결과 개수 아래 구분선과 그 전용 여백은 제거한다. 썸네일·페이지네이션은 회색 영역 밖이며 기존 검색/선택/보기 전환·모바일 필터 동작은 유지한다. 다른 일반 필터에 표면을 자동 추가하지 않는다. 공통 구현과 실제 예시는 FilterToolbar 및 /design-system#composed-fields를 따른다.
 
 ## 검색창 경계 (2026-11-13)
 

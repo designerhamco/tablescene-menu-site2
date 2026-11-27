@@ -6,6 +6,7 @@ export function FilterToolbar({ search, filters, primaryFilter, tools, summary, 
   surface?: "muted";
   search: ReactNode;
   filters: ReactNode[];
+  /** A prominent first row above search and the other filters. */
   primaryFilter?: ReactNode;
   tools?: ReactNode;
   summary?: ReactNode;
