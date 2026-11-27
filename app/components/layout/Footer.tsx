@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/app/components/ui/dropdown-menu";
 import { ArrowUpRight, ChevronDown } from "@/app/components/ui/site-arrow";
 import styles from "./Footer.module.css";
 import ServiceHomeLink from "@/components/layout/ServiceHomeLink";
@@ -25,6 +26,9 @@ const mobileGroups = groups.map(group => ({
 }));
 
 const supportEmail = "admin@dndcommerce.co.kr";
+const familySites = [
+  { label: "디앤디커머스", href: "https://www.dndcommerce.co.kr/" },
+] as const;
 
 function BusinessDetails() {
   return (
@@ -68,7 +72,7 @@ const Footer = () => {
               <section className={`${styles.business} ${styles.support}`} aria-labelledby="footer-support-title">
                 <h2 id="footer-support-title" className="type-content-title">고객지원</h2>
                 <a href="tel:01036460642">010-3646-0642</a>
-                <Link href="/mypage/inquiries" className="site-button site-button-outline site-button-pill">1:1 문의하기 <ArrowUpRight size={16} aria-hidden="true" /></Link>
+                <Link href="/mypage/inquiries" className={styles.inquiry}>1:1 문의하기 <ArrowUpRight size={16} aria-hidden="true" /></Link>
               </section>
             </div>
             <div className={styles.mobileSections} aria-label="푸터 상세 메뉴">
@@ -97,7 +101,24 @@ const Footer = () => {
                 <Link href="/privacy">개인정보 처리방침</Link>
                 {showAdminLink ? <Link href="/admin">Admin</Link> : null}
               </nav>
-              <p className={`type-body-sm uppercase tracking-wide ${styles.copyright}`}>© 2026 ArtiMenu Studio.</p>
+              <div className={styles.utilities}>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger className={`type-control ${styles.familyTrigger}`}>
+                    패밀리 사이트 <ChevronDown size={16} aria-hidden="true" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="top" align="end" aria-label="패밀리 사이트">
+                    {familySites.map(({ label, href }) => (
+                      <DropdownMenuItem key={href} asChild>
+                        <a href={href} target="_blank" rel="noopener noreferrer">
+                          {label}<ArrowUpRight size={16} aria-hidden="true" />
+                          <span className="sr-only"> (새 탭에서 열기)</span>
+                        </a>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <p className={`type-body-sm uppercase tracking-wide ${styles.copyright}`}>© 2026 ArtiMenu Studio.</p>
+              </div>
             </div>
           </div>
           <div className={styles.wordmark} aria-hidden="true">ArtiMenu</div>
