@@ -47,11 +47,13 @@ function TabsList({
   distribution = "content",
   children,
   action,
+  actionPlacement = "end",
   tools,
   ref,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & {
   action?: React.ReactNode;
+  actionPlacement?: "start" | "end";
   tools?: React.ReactNode;
   size?: TabsSize | "default";
   distribution?: "content" | "equal";
@@ -60,19 +62,21 @@ function TabsList({
   const purpose = React.useContext(TabsPurposeContext);
   const scrollRef=React.useRef<HTMLDivElement>(null);
   const [overflowRight,setOverflowRight]=React.useState(false);
+  const leadingDocumentAction = variant === "document" && actionPlacement === "start";
+  const showOverflow = variant === "rooms" || leadingDocumentAction;
   React.useEffect(()=>{
     const node=scrollRef.current;
-    if(variant!=="rooms"||!node)return;
+    if(!showOverflow||!node)return;
     let active=true;
     const measure=()=>{if(active)setOverflowRight(node.clientWidth>0&&node.scrollWidth-node.scrollLeft>node.clientWidth+1);};
     measure();const observer=new ResizeObserver(measure);observer.observe(node);
     for(const child of node.children)observer.observe(child);
     node.addEventListener("scroll",measure,{passive:true});void document.fonts.ready.then(measure);
     return()=>{active=false;observer.disconnect();node.removeEventListener("scroll",measure);};
-  },[variant,children]);
+  },[showOverflow,children]);
   const list = <TabsPrimitive.List
     ref={node=>{scrollRef.current=node;if(typeof ref==="function")ref(node);else if(ref)ref.current=node;}}
-    data-overflow-right={variant==="rooms"&&overflowRight||undefined}
+    data-overflow-right={showOverflow&&overflowRight||undefined}
     data-slot="tabs-list" data-variant={variant} data-purpose={purpose}
     data-size={size === "default" ? "md" : size}
     className={cn(
@@ -82,8 +86,12 @@ function TabsList({
       `site-tab-size-${size === "default" ? "md" : size}`, className,
     )} {...props}>{children}</TabsPrimitive.List>;
   if(variant==="rooms")return <div className="site-room-tabs-header" data-size={size === "default" ? "md" : size}>{action}{list}</div>;
-  return variant === "document" ? <div className={`site-document-tabs-header site-tab-size-${size === "default" ? "md" : size}`}>
-    <div className="site-document-tabs-bar">{React.Children.count(children) ? list : null}{action}</div>
+  return variant === "document" ? <div className={`site-document-tabs-header site-tab-size-${size === "default" ? "md" : size}`} data-action-placement={actionPlacement}>
+    <div className="site-document-tabs-bar">
+      {leadingDocumentAction ? action : null}
+      {React.Children.count(children) ? list : null}
+      {leadingDocumentAction ? null : action}
+    </div>
     {tools ? <div className="site-document-tabs-tools">{tools}</div> : null}
   </div> : list;
 }

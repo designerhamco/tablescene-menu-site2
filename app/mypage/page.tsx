@@ -2424,7 +2424,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             {activeTab === "menus" ? (
               <section id="my-menus" className="site-stack-group scroll-mt-28">
                 <MenuCardList key={activeMenuTab} allowVisibilityFilter={activeMenuTab === "active"}
-                  tabs={<NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" items={[
+                  tabs={<NavigationTabs label="메뉴판 이용 상태 필터" purpose="state" size="lg" items={[
                     { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
                     { label: "만료·보관", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
                     { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
@@ -2452,7 +2452,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
             {activeTab === "payments" ? (
               <section id="payment-history" className="site-stack-group">
-                <NavigationTabs purpose="section" label="구독/결제 내역 탭" items={[
+                <NavigationTabs purpose="page" label="구독/결제 내역 탭" items={[
                   { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history", disabledReason: canShowOwnerCommerce ? undefined : "구독과 결제 내역은 사장 계정에서 관리합니다." },
                   { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits", disabledReason: canShowOwnerCommerce ? undefined : "AI 충전·사용내역은 사장 계정에서 관리합니다." },
                   { label: "알림톡 충전/사용내역", href: "/mypage?tab=payments&billingTab=alimtalk", active: activeBillingTab === "alimtalk" },

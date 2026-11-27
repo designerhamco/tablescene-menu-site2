@@ -1632,7 +1632,8 @@ svg.site-edit-icon {
 @media (max-width: 639px) { .site-registration-row { grid-template-columns: minmax(0, 1fr); } .site-registration-kind > select { flex: 1; } }
 /* The room manager groups its editing rows and floor in one white workspace. */
 .site-floor-room-tabs { display: grid; min-width: 0; }
-.site-floor-room-tabs > [role="tablist"] { z-index: 1; }
+.site-floor-room-tabs > .site-document-tabs-header { z-index: 1; }
+.site-floor-room-tabs [data-floor-room-management] { border-block-start: 0; border-start-start-radius: 0; border-start-end-radius: 0; }
 [data-floor-room-management] > :is(.site-floor-workspace-tools, .site-floor-workspace-footer) {
   padding: var(--site-panel-inset-compact);
   gap: var(--site-space-copy);

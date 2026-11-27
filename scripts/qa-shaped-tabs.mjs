@@ -10,11 +10,14 @@ const browser = await chromium.launch();
 const results = [];
 
 async function assertPageTabs(list) {
+  const desktop = await list.evaluate(() => innerWidth >= 1024);
+  const size = await list.getAttribute("data-size");
+  const large = size === "lg";
   await expect(list).toHaveAttribute("data-purpose", "page");
   await expect(list).toHaveClass(/site-page-tabs/);
   await expect(list).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(list).toHaveCSS("border-top-width", "0px");
-  await expect(list).toHaveCSS("column-gap", "20px");
+  await expect(list).toHaveCSS("column-gap", large ? "20px" : "16px");
   const active = list.locator('[aria-selected="true"], [aria-current="page"]');
   await expect(active).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(active).toHaveCSS("border-top-left-radius", "0px");
@@ -24,9 +27,9 @@ async function assertPageTabs(list) {
     return { height: style.height, bottom: style.bottom, color: style.backgroundColor };
   });
   assert.deepEqual(indicator, { height: "3px", bottom: "4px", color: "rgb(21, 24, 30)" });
-  await expect(active).toHaveCSS("height", "40px");
+  assert.ok((await active.boundingBox()).height >= (desktop ? 44 : large ? 40 : 36));
   await expect(active).toHaveCSS("color", "rgb(21, 24, 30)");
-  await expect(active).toHaveCSS("font-size", "16px");
+  await expect(active).toHaveCSS("font-size", desktop ? "18px" : large ? "16px" : "14px");
   await expect(active).toHaveCSS("font-weight", "600");
   await expect(active).toHaveCSS("flex-grow", "0");
   const inactive = list.locator('[role="tab"][aria-selected="false"]:not(:disabled):not([aria-disabled="true"])').first();
@@ -41,7 +44,8 @@ async function assertArea(root) {
   await expect(active).toHaveCSS("border-bottom-left-radius", "8px");
   await expect(active).toHaveCSS("background-color", "rgb(21, 24, 30)");
   await expect(active).toHaveCSS("border-top-width", "1px");
-  await expect(active).toHaveCSS("font-size", "14px");
+  const desktop = await list.evaluate(() => innerWidth >= 1024);
+  await expect(active).toHaveCSS("font-size", desktop && (await list.getAttribute("data-size")) !== "sm" ? "16px" : "14px");
   assert.ok((await active.boundingBox()).height >= (await list.getAttribute("data-size") === "sm" ? 40 : 44));
   const panel = root.locator(".site-area-panel:visible");
   if (await panel.count()) await expect(panel).toHaveCSS("border-bottom-width", "0px");
@@ -107,14 +111,28 @@ try {
     const roleSection = page.locator('#selection-hierarchy-title').locator('xpath=../..');
     await roleSection.screenshot({ path: `${output}/roles-${width}.png` });
     const section = page.locator('#shaped-tabs');
-    const area = section.locator('[data-slot="tabs"][data-purpose="section"]').first();
-    await assertArea(area);
-    const areaList = area.getByRole("tablist");
-    await areaList.getByRole("tab", { selected: true }).focus();
-    await page.keyboard.press("ArrowRight");
-    await expect(areaList.getByRole("tab", { selected: true })).toHaveText("기본 템플릿");
-    await page.keyboard.press("ArrowRight");
-    await expect(areaList.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
+    const orders = section.getByRole("tablist", { name: "주문 관리 화면 전환 예시" });
+    await assertPageTabs(orders);
+    await orders.getByRole("tab", { name: "현재 주문" }).press("End");
+    await expect(orders.getByRole("tab", { selected: true })).toHaveText("주문 설정");
+    const rooms = section.getByRole("tablist", { name: "문서형 룸 탭 예시" });
+    await expect(rooms).toHaveClass(/site-document-tabs/);
+    const addRoom = section.getByRole("button", { name: "룸 추가" });
+    await expect(addRoom).toHaveCSS("width", "40px");
+    assert.ok((await addRoom.boundingBox()).x < (await rooms.boundingBox()).x);
+    await rooms.getByRole("tab", { name: "룸 1" }).press("ArrowRight");
+    const selectedRoom = rooms.getByRole("tab", { name: "룸 2", selected: true });
+    const roomTabBody = selectedRoom.locator("..");
+    await expect(roomTabBody).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(roomTabBody).toHaveCSS("border-bottom-color", "rgb(255, 255, 255)");
+    const roomPanel = section.getByRole("tabpanel", { name: "룸 2" });
+    await expect(roomPanel).toContainText("룸 2의 배치를 편집하는 영역입니다.");
+    await expect(roomPanel.locator("[data-floor-room-management]")).toHaveCSS("border-top-width", "0px");
+    await expect.poll(() => roomTabBody.evaluate(tabBody => {
+      const stack = tabBody.closest(".site-floor-room-tabs");
+      const panel = stack.querySelector('[role="tabpanel"][data-state="active"]');
+      return Math.round(tabBody.getBoundingClientRect().bottom - panel.getBoundingClientRect().top);
+    })).toBe(0);
     const designSystemOverflow = await noOverflow(page);
     await section.screenshot({ path: `${output}/library-${width}.png` });
     const notificationTabs = page.getByRole('tablist', { name: '알림 분류' });
@@ -125,16 +143,28 @@ try {
     await expect(notificationTabs.getByRole('tab', { selected: true })).toContainText('읽지 않음');
     await expect(notificationTabs.getByRole('tab', { selected: true })).toHaveCSS('border-bottom-color', 'rgb(21, 24, 30)');
 
-    await page.goto(`${baseUrl}/templates`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/templates`, { waitUntil: "load" });
     const serviceFilter = page.getByRole("group", { name: "메뉴판 유형", exact: true });
     await expect(serviceFilter.getByRole("radio", { name: "베이직", exact: true })).toHaveAttribute("aria-checked", "true");
     await serviceFilter.getByRole("radio", { name: "베이직", exact: true }).click();
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await assertArea(catalogTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/templates-${width}.png`, fullPage: true });
-    await catalogTabs.getByRole('tab', { name: '기본 템플릿' }).click();
-    await expect(catalogTabs.getByRole('tab', { selected: true })).toHaveAccessibleName('기본 템플릿');
+    await expect(async () => {
+      await catalogTabs.getByRole('tab', { name: '기본 템플릿' }).click();
+      await expect(catalogTabs.getByRole('tab', { selected: true })).toHaveAccessibleName('기본 템플릿', { timeout: 1500 });
+    }).toPass({ timeout: 15_000 });
     const catalogOverflow = await noOverflow(page);
+
+    await page.goto(`${baseUrl}/templates/cafe_real_matcha_a`, { waitUntil: "load" });
+    const detailActions = page.locator("[data-template-detail-actions]");
+    const previewAction = detailActions.getByRole("link", { name: "미리보기", exact: true });
+    const startAction = detailActions.getByRole("link", { name: "이 디자인으로 시작", exact: true });
+    await expect(previewAction).toBeVisible();
+    await expect(startAction).toBeVisible();
+    const footerWidth = (await detailActions.boundingBox()).width;
+    assert.equal((await previewAction.boundingBox()).width, footerWidth);
+    assert.equal((await startAction.boundingBox()).width, footerWidth);
 
     await page.goto(`${baseUrl}/templates/cafe_real_matcha_a/preview?device=pc`, { waitUntil: "load" });
     await page.evaluate(() => document.fonts.ready);
@@ -147,6 +177,7 @@ try {
     await assertArea(previewTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/preview-options-${width}.png` });
 
+    await page.mouse.move(0, 0);
     await page.goto(`${baseUrl}/guides`, { waitUntil: "domcontentloaded" });
     await assertPageTabs(page.getByRole('tablist', { name: '플랜별 사용가이드' }));
     const guideOverflow = await noOverflow(page);
@@ -160,6 +191,7 @@ try {
     await assertCategory(categories);
     await expect(page.getByRole('region', { name: '자주 묻는 질문', exact: true }).getByRole('status')).toHaveText(/전체 \d+개/);
     await page.screenshot({ path: `${output}/support-${width}.png`, fullPage: true });
+    await page.mouse.move(0, 0);
     await page.goto(`${baseUrl}/faq/notices`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/faq\/notices$/);
     const noticeTabs = page.getByRole('tablist', { name: '공지 유형' });

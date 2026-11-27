@@ -1,27 +1,53 @@
-import { PanelsTopLeft, Rows3, Plus } from "@/app/components/ui/site-icon";
-import { Tabs, TabsContent, TabsList, TabsTrigger, TabsAction } from "@/app/components/ui/tabs";
+import { Button } from "@/app/components/ui/button";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { Plus } from "@/app/components/ui/site-icon";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import HintBubble from "@/components/ui/HintBubble";
 import styles from "./SiteComponentGallery.module.css";
 
-function ExampleContent({ standard = false }: { standard?: boolean }) {
-  return <div className={styles.shapedContent}>
-    <div className={styles.shapedRow}><span className={styles.shapedIcon}>{standard ? <Rows3 aria-hidden="true" size={22} /> : <PanelsTopLeft aria-hidden="true" size={22} />}</span><div><h3 className="type-item-title">{standard ? "우리 매장에 맞게 직접 꾸미기" : "완성된 디자인으로 시작하기"}</h3><p className="type-body-sm mt-1 text-zinc-600">{standard ? "레이아웃을 고르고 색상과 서체를 설정해 보세요." : "스타일을 고르고 매장의 메뉴와 사진을 담아보세요."}</p></div></div>
-    <p className="type-body-sm text-zinc-600">선택한 항목의 내용이 같은 영역 안에서 자연스럽게 이어집니다.</p>
-  </div>;
-}
-
 export default function ShapedTabExamples() {
   return <section className={styles.section} id="shaped-tabs" aria-labelledby="shaped-tabs-title">
-    <div className={styles.heading}><h2 className="type-section-title" id="shaped-tabs-title">영역 안에서 전환하는 탭</h2><p className="type-body text-zinc-600">하나의 작업·목록 영역 안에서 내용을 바꿀 때 사용하는 공식 영역형 탭입니다. 상위 서비스 탐색과 실제 페이지의 기존 탭은 각자의 역할과 디자인을 유지합니다.</p></div>
+    <h2 className="type-section-title" id="shaped-tabs-title">화면·작업 영역·목록 전환 예시</h2>
+    <div className="site-stack-block">
+      <div className={styles.heading}><h3 className="type-content-title">주문 관리 · 밑줄 탭</h3><p className="type-body-sm site-copy-muted">화면을 바꾸는 탭에는 글자 너비의 3px 선택선을 씁니다.</p></div>
+      <Tabs purpose="page" defaultValue="current">
+        <TabsList aria-label="주문 관리 화면 전환 예시">
+          <TabsTrigger value="current">현재 주문</TabsTrigger>
+          <TabsTrigger value="history">주문 이력</TabsTrigger>
+          <TabsTrigger value="settings">주문 설정</TabsTrigger>
+        </TabsList>
+        <TabsContent value="current" className="type-body-sm">접수한 주문과 진행 상태를 확인합니다.</TabsContent>
+        <TabsContent value="history" className="type-body-sm">처리된 주문을 기간별로 확인합니다.</TabsContent>
+        <TabsContent value="settings" className="type-body-sm">주문 접수와 알림을 설정합니다.</TabsContent>
+      </Tabs>
+    </div>
+    <div className="site-stack-block">
+      <div className={styles.heading}><h3 className="type-content-title">룸 관리 · 콘텐츠 연결형 탭</h3><p className="type-body-sm site-copy-muted">선택한 룸의 흰 바탕이 아래 작업 영역과 이어집니다.</p></div>
+      <Tabs purpose="section" appearance="document" defaultValue="room1">
+        <div className="site-floor-room-tabs">
+          <TabsList size="sm" aria-label="문서형 룸 탭 예시" actionPlacement="start"
+            action={<Button variant="outline" shape="rounded" size="icon" iconAppearance="framed" disabled aria-label="룸 추가"><Plus aria-hidden="true" /></Button>}>
+            <TabsTrigger value="room1">룸 1</TabsTrigger>
+            <TabsTrigger value="room2">룸 2</TabsTrigger>
+          </TabsList>
+          <TabsContent value="room1"><ContentPanel data-floor-room-management><p className="type-body-sm">룸 1의 배치를 편집하는 영역입니다.</p></ContentPanel></TabsContent>
+          <TabsContent value="room2"><ContentPanel data-floor-room-management><p className="type-body-sm">룸 2의 배치를 편집하는 영역입니다.</p></ContentPanel></TabsContent>
+        </div>
+      </Tabs>
+    </div>
+    <div className="site-stack-block">
+      <div className={styles.heading}><h3 className="type-content-title">내 메뉴판 · 상태 필터</h3><p className="type-body-sm site-copy-muted">같은 메뉴판 목록의 조회 범위를 바꿉니다. 현재 값은 검정 채움으로 표시하고 건수는 보조 크기로 둡니다.</p></div>
+      <Tabs purpose="state" defaultValue="active">
+        <TabsList size="lg" aria-label="상태값 변경 예시">
+          <TabsTrigger value="active" count={8}>이용 중</TabsTrigger>
+          <TabsTrigger value="holding" count={0}>만료·보관</TabsTrigger>
+          <TabsTrigger value="ended" count={13}>종료됨</TabsTrigger>
+        </TabsList>
+        <TabsContent value="active" className="type-body-sm">이용 중인 메뉴판</TabsContent>
+        <TabsContent value="holding" className="type-body-sm">보관 중인 메뉴판</TabsContent>
+        <TabsContent value="ended" className="type-body-sm">종료된 메뉴판</TabsContent>
+      </Tabs>
+    </div>
     <div><HintBubble>완성된 디자인으로 시작</HintBubble><p className="type-body-sm mt-4 text-zinc-600">상시 안내는 공통 말풍선의 한 줄형을 사용합니다. 같은 둥근 모서리·꼬리·그림자를 공유하며, 조작 없이 계속 보이고 설명할 버튼과 연결합니다.</p></div>
-    <div className={styles.shapedExample}>
-      <div className={styles.heading}><h3 className="type-content-title">영역형 탭</h3><p className="type-body-sm text-zinc-600">사각형 버튼을 하나의 줄로 연결하고 바깥 네 모서리만 8px로 둥글립니다. 선택은 검정 바탕과 흰 글자, 비선택은 흰 바탕과 중성 회색 글자로 구분합니다.</p></div>
-      <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역형 디자인 탭 예시"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="designer"><ExampleContent /></TabsContent><TabsContent value="standard"><ExampleContent standard /></TabsContent></Tabs>
-    </div>
-    <div className={styles.shapedExample}>
-      <div className={styles.heading}><h3 className="type-content-title">문서형 탭</h3><p className="type-body-sm text-zinc-600">흰 선택 탭의 아래쪽을 기준선에 연결합니다. 룸처럼 추가 가능한 작업 영역에 사용하며, ‘추가’는 탭 옆의 별도 버튼입니다. 공통 크기와 작은 위쪽 모서리를 사용합니다.</p></div>
-      <Tabs purpose="section" appearance="document" defaultValue="room1"><TabsList aria-label="문서형 룸 탭 예시" action={<TabsAction disabled><Plus aria-hidden="true" />룸 추가</TabsAction>}><TabsTrigger value="room1">룸 1</TabsTrigger><TabsTrigger value="room2">룸 2</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="room1"><p className="type-body-sm">룸 1의 작업 영역입니다. 실제 추가·이름 수정은 아래 룸 배치도 편집 예시에서 확인할 수 있습니다.</p></TabsContent><TabsContent value="room2"><p className="type-body-sm">룸 2의 작업 영역입니다.</p></TabsContent></Tabs>
-    </div>
-    <p className="type-body-sm text-zinc-600">영역형은 독립 콘텐츠를 전환하는 역할에 사용합니다. 일반 md는 최소 높이 44px·상하 8px·좌우 20px, 밀집 sm은 최소 높이 40px입니다. 버튼 경계는 한 줄로 공유하며 콘텐츠까지 이어지는 긴 기준선은 넣지 않습니다. 업종 필터에는 작은 필터 버튼을 사용하며, Tab과 방향키·Home·End로 조작할 수 있습니다.</p>
   </section>;
 }
