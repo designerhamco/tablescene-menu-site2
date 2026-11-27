@@ -15,7 +15,7 @@ export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:C
   const category = designer && design.categoryLabel !== serviceLabel ? `${serviceLabel} · ${design.categoryLabel}` : serviceLabel;
   return <article className="site-template-card site-template-selection-card" data-catalog-design={design.id} data-catalog-service={design.service}>
     <div className="site-catalog-media-wrap">
-      <div className="site-template-media"><ImageCarousel images={design.images} name={design.name} href={design.detailHref} controls="on-interaction" /></div>
+      <div className="site-template-media"><ImageCarousel images={design.images} name={design.name} href={design.detailHref} arrowVisibility="on-interaction" /></div>
     </div>
     <div className="site-template-details site-stack-title">
       <div className="site-stack-copy">

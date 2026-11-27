@@ -26,7 +26,7 @@ test("media tools have guarded states, focus contrast and shared typography", ()
   assert.match(css, /\.site-image-carousel-arrows \{[^}]*display: none/);
   assert.match(css, /@media \(min-width: 768px\) \{ \.site-image-carousel-arrows \{ display: flex/);
   const card = readFileSync("components/templates/CatalogDesignCard.tsx", "utf8");
-  assert.match(card, /<ImageCarousel[^>]*controls="on-interaction"/);
-  assert.match(css, /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\[data-controls="on-interaction"\]:not\(:hover, :focus-visible, :has\(:focus-visible\)\)[\s\S]*?site-image-carousel-count\) \{ opacity: 0/);
+  assert.match(card, /<ImageCarousel[^>]*arrowVisibility="on-interaction"/);
+  assert.match(css, /@media \(hover: hover\) and \(pointer: fine\) \{[\s\S]*?\[data-arrow-visibility="on-interaction"\]:not\(:hover, :focus-visible, :has\(:focus-visible\)\)[\s\S]*?\.site-image-carousel-arrows \{ opacity: 0/);
   assert.match(css, /filter: drop-shadow\(var\(--ui-media-arrow-shadow\)\)/);
 });
