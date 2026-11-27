@@ -20,17 +20,35 @@ async function columns(grid) {
   return grid.evaluate(element => ({ columns: getComputedStyle(element).gridTemplateColumns.split(" ").length, gap: parseFloat(getComputedStyle(element).columnGap), viewport: innerWidth, overflow: document.documentElement.scrollWidth - innerWidth }));
 }
 try {
-  for (const [width, hasTouch] of [[1440, false], [390, true]]) {
+  for (const [width, hasTouch] of [[1440, false], [820, false], [390, true], [320, true]]) {
     const page = await pageAt(width, true, hasTouch);
     await page.goto(`${base}/templates`, { waitUntil: "domcontentloaded" });
     const service = page.getByRole("group", { name: "메뉴판 유형", exact: true });
     const kinds = page.getByRole("tablist", { name: "템플릿 종류 선택" });
-    await expect(service.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
-    await expect(service.getByRole("radio")).toHaveCount(4);
+    await expect(service.getByRole("radio", { name: "베이직", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect(service.getByRole("radio")).toHaveText(["베이직", "다이닝", "디스플레이"]);
     await expect(page.getByRole("button", { name: /좋아요/ }).first()).toBeEnabled();
-    for (const type of ["basic", "dining", "display"]) {
-      await expect(page.locator(`[data-catalog-service="${type}"]`).first()).toBeVisible();
-    }
+    await expect(page.locator('[data-catalog-service="basic"]').first()).toBeVisible();
+    await expect(page.locator('[data-catalog-service]:not([data-catalog-service="basic"])')).toHaveCount(0);
+    const geometry = await page.locator(".site-catalog-results").evaluate(results => {
+      const rect = selector => results.querySelector(selector).getBoundingClientRect();
+      const box = rect(".site-filter-toolbar");
+      const type = rect(".site-filter-toolbar-primary [aria-label='메뉴판 유형']");
+      const search = rect(".site-filter-toolbar-search");
+      const count = rect(".site-catalog-count");
+      const cards = rect(".site-template-grid");
+      const tabs = results.closest("[data-slot='tabs']").querySelector("[role='tablist']").getBoundingClientRect();
+      return {
+        typesAboveSearch: type.bottom < search.top,
+        countOutsideFilter: count.top >= box.bottom && count.bottom <= cards.top,
+        countAlignedWithCards: Math.abs(count.left - cards.left) <= 1,
+        centeredTabs: Math.abs(tabs.left + tabs.width / 2 - innerWidth / 2) <= 1,
+        resultCount: results.querySelector(".site-catalog-count").innerText.replace(/\s+/g, ""),
+        cardCount: results.querySelectorAll("[data-catalog-design]").length,
+      };
+    });
+    assert.ok(geometry.typesAboveSearch && geometry.countOutsideFilter && geometry.countAlignedWithCards && geometry.centeredTabs, JSON.stringify(geometry));
+    assert.equal(geometry.resultCount, `전체${geometry.cardCount}개`);
     await expect(page.locator(".site-catalog-kind-hint")).toHaveCount(0);
     await expect(kinds.getByRole("tab", { name: "디자인 템플릿", exact: true })).toHaveAccessibleDescription("완성된 디자인으로 시작");
     await service.getByRole("radio", { name: "다이닝", exact: true }).click();
@@ -45,7 +63,7 @@ try {
     await expect(kinds).toHaveCount(0);
     await expect(page.locator('[data-catalog-service="display"]')).toHaveCount(1);
     await expect(page.getByRole("navigation", { name: "템플릿 페이지" })).toHaveCount(0);
-    await service.getByRole("radio", { name: "전체", exact: true }).click();
+    await service.getByRole("radio", { name: "베이직", exact: true }).click();
     await expect(kinds.getByRole("tab", { selected: true })).toHaveAccessibleName("기본 템플릿");
     await expect(page.locator('[data-catalog-service="display"]')).toHaveCount(0);
     await kinds.getByRole("tab", { name: "디자인 템플릿", exact: true }).click();
@@ -153,13 +171,13 @@ try {
   for (const width of [390, 820, 1440]) {
     const page = await pageAt(width);
     await page.goto(`${base}/templates/cafe_real_matcha_a`, { waitUntil: "domcontentloaded" });
-    const gallery = page.getByRole("region", { name: "REAL MATCHA 디자인 갤러리", exact: true });
+    const gallery = page.getByRole("region", { name: /^REAL MATCHA.* 디자인 갤러리$/ });
     await gallery.locator('.site-image-carousel-slide[aria-hidden="false"] img').click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await gallery.getByRole("group", { name: "REAL MATCHA 이미지 선택", exact: true }).getByRole("button").nth(1).click();
+    await gallery.getByRole("group", { name: /^REAL MATCHA.* 이미지 선택$/ }).getByRole("button").nth(1).click();
     await expect(gallery.getByRole("status")).toHaveText("2/3");
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await gallery.getByRole("region", { name: "REAL MATCHA 이미지", exact: true }).press("ArrowRight");
+    await gallery.getByRole("region", { name: /^REAL MATCHA.* 이미지$/ }).press("ArrowRight");
     await expect(gallery.getByRole("status")).toHaveText("3/3");
     const hero = page.locator('[data-template-story] img').first();
     await hero.click();

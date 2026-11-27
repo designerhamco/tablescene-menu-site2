@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { catalogDesigns, filterCatalogDesigns, normalizeCatalogFilters } from "./catalog-designs";
+import { catalogDesigns, filterCatalogDesigns, normalizeCatalogFilters, normalizeCatalogService } from "./catalog-designs";
 import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogColor, normalizeCatalogMood, normalizeCatalogSearch, normalizeCatalogThumbnailSize, normalizeCatalogSelections } from "./catalog-facets";
 
 const ids = (items: typeof catalogDesigns) => items.map(item => item.id);
@@ -28,12 +28,11 @@ test("industry, mood, color, layout and name intersect instead of broadening the
   assert.equal(filterCatalogDesigns("basic", "designer", "all", "all", { query: "칵테일" }).length, 0); // Name search, not description search.
 });
 
-test("all menu types respect the current template kind and combine with filters", () => {
-  assert.deepEqual(new Set(filterCatalogDesigns("all", "designer").map(design => design.service)), new Set(["basic", "dining", "display"]));
-  const standards = filterCatalogDesigns("all", "standard");
-  assert.ok(standards.every(design => design.kind === "standard" && design.service !== "display"));
-  assert.deepEqual(new Set(standards.map(design => design.service)), new Set(["basic", "dining"]));
-  assert.deepEqual(ids(filterCatalogDesigns("all", "designer", "cafe_bakery", "list", { mood: "lively", color: "blue", query: "썸머" })), ["display_menu_a"]);
+test("menu types default to Basic and still recognize deep links to Dining and Display", () => {
+  for (const value of [undefined, "basic", "all", "unknown", ["dining"]]) assert.equal(normalizeCatalogService(value), "basic");
+  assert.equal(normalizeCatalogService("dining"), "dining");
+  assert.equal(normalizeCatalogService("display"), "display");
+  assert.ok(filterCatalogDesigns(normalizeCatalogService(undefined), "designer").every(design => design.service === "basic"));
 });
 
 test("search handles Korean, case and whitespace while preserving service and design-kind scope", () => {

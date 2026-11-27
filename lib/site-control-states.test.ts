@@ -207,7 +207,7 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.doesNotMatch(catalog, /서비스 선택|HintBubble/);
   assert.match(catalog, /ref=\{galleryStartRef\} purpose="section"/);
   assert.match(catalog, /className="site-catalog-panel"/);
-  assert.match(catalog, /distribution="equal" aria-label="템플릿 종류 선택"/);
+  assert.match(catalog, /distribution="equal" className="mx-auto" aria-label="템플릿 종류 선택"/);
   assert.match(catalog, /site-catalog-panel[\s\S]*<FilterToolbar[\s\S]*<TemplatePagination/);
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs purpose="category"/);

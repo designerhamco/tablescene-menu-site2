@@ -7,10 +7,8 @@ import { getMenuPlanMonthlyPrice } from './menu-plan-pricing';
 import { getTemplatePreviewRouteKey, templateCatalog, type TemplateCategoryKey } from './templates';
 
 export type CatalogService = 'basic' | 'dining' | 'display';
-export type CatalogServiceFilter = CatalogService | "all";
-
-export function normalizeCatalogServiceFilter(value: unknown): CatalogServiceFilter {
-  return value === "basic" || value === "dining" || value === "display" ? value : "all";
+export function normalizeCatalogService(value: unknown): CatalogService {
+  return value === "dining" || value === "display" ? value : "basic";
 }
 
 export type CatalogKind = 'standard' | 'designer';
@@ -148,11 +146,11 @@ export function normalizeCatalogFilters(input: { industry?: unknown; layout?: un
     color: kind === "standard" ? [] : normalizeCatalogSelections(input.color, CATALOG_COLORS),
   };
 }
-export function filterCatalogDesigns(service: CatalogServiceFilter, kind: CatalogKind, filter: string | readonly string[] = 'all', layout: CatalogLayoutFilter | readonly CatalogLayoutFilter[] = 'all', facets: { mood?: CatalogMoodFilter | readonly CatalogMoodFilter[]; color?: CatalogColorFilter | readonly CatalogColorFilter[]; query?: string } = {}) {
+export function filterCatalogDesigns(service: CatalogService, kind: CatalogKind, filter: string | readonly string[] = 'all', layout: CatalogLayoutFilter | readonly CatalogLayoutFilter[] = 'all', facets: { mood?: CatalogMoodFilter | readonly CatalogMoodFilter[]; color?: CatalogColorFilter | readonly CatalogColorFilter[]; query?: string } = {}) {
   const search = normalizeCatalogSearch(facets.query);
   const effectiveKind = service === "display" ? "designer" : kind;
   const selections = normalizeCatalogFilters({ industry: filter, layout: layout === "all" ? undefined : layout, ...facets }, effectiveKind);
-  return catalogDesigns.filter(design => (service === "all" || design.service === service) && design.kind === effectiveKind)
+  return catalogDesigns.filter(design => design.service === service && design.kind === effectiveKind)
     .filter(design => !selections.industry.length || selections.industry.some(key => CATALOG_INDUSTRIES.find(industry => industry.key === key)!.categories.some(category => design.categories.includes(category as TemplateCategoryKey))))
     .filter(design => !selections.layout.length || selections.layout.includes(design.itemLayout))
     .filter(design => !selections.mood.length || selections.mood.some(mood => design.moods.includes(mood)))

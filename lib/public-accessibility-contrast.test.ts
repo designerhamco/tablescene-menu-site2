@@ -13,7 +13,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
 
   assert.doesNotMatch(gallery, /border-transparent text-zinc-400/);
   assert.match(gallery, /primaryFilter=\{<CatalogServiceButtons/);
-  assert.match(readSource("../components/templates/CatalogServiceButtons.tsx"), /<ToggleGroup type="single" appearance="segmented" size="sm" aria-label="메뉴판 유형"/);
+  assert.match(readSource("../components/templates/CatalogServiceButtons.tsx"), /<ToggleGroup type="single" appearance="segmented" size="lg" aria-label="메뉴판 유형"/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /site-filter/);
   const controls = readSource("../styles/ui-system.css");

@@ -94,10 +94,10 @@ try {
 
         if (route === "/templates") {
           const service = page.getByRole("group", { name: "메뉴판 유형", exact: true });
-          await expect(service.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
+          await expect(service.getByRole("radio", { name: "베이직", exact: true })).toHaveAttribute("aria-checked", "true");
           await service.getByRole("radio", { name: "다이닝", exact: true }).click();
           await expect(page.locator('[data-catalog-service]:not([data-catalog-service="dining"])')).toHaveCount(0);
-          await service.getByRole("radio", { name: "전체", exact: true }).click();
+          await service.getByRole("radio", { name: "베이직", exact: true }).click();
         }
       }
 
