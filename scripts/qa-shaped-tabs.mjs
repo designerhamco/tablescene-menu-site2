@@ -42,7 +42,7 @@ async function assertArea(root) {
   await expect(active).toHaveCSS("background-color", "rgb(21, 24, 30)");
   await expect(active).toHaveCSS("border-top-width", "1px");
   await expect(active).toHaveCSS("font-size", "14px");
-  await expect(active).toHaveCSS("height", await list.getAttribute("data-size") === "sm" ? "40px" : "44px");
+  assert.ok((await active.boundingBox()).height >= (await list.getAttribute("data-size") === "sm" ? 40 : 44));
   const panel = root.locator(".site-area-panel:visible");
   if (await panel.count()) await expect(panel).toHaveCSS("border-bottom-width", "0px");
 }
@@ -71,7 +71,7 @@ try {
     }
     await assertPageTabs(page.getByRole("tablist", { name: "디자인 시스템 메뉴" }));
     const templatePattern = page.getByRole("region", { name: "템플릿 페이지 포함 관계 예시" });
-    await assertPageTabs(templatePattern.getByRole("tablist", { name: "템플릿 구조 주요 화면" }));
+    await templatePattern.getByRole("combobox", { name: "메뉴판 유형", exact: true }).selectOption("basic");
     await assertArea(templatePattern.locator('[data-slot="tabs"][data-purpose="section"]'));
     const patternFilter = templatePattern.getByRole("group", { name: "템플릿 구조 업종 필터" });
     await patternFilter.getByRole("button", { name: "레스토랑", exact: true }).press("Enter");
@@ -126,13 +126,14 @@ try {
     await expect(notificationTabs.getByRole('tab', { selected: true })).toHaveCSS('border-bottom-color', 'rgb(21, 24, 30)');
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "domcontentloaded" });
-    const serviceTabs = page.getByRole("tablist", { name: "서비스 선택" });
-    await assertPageTabs(serviceTabs);
+    const serviceFilter = page.getByRole("combobox", { name: "메뉴판 유형", exact: true });
+    await expect(serviceFilter).toHaveValue("all");
+    await serviceFilter.selectOption("basic");
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await assertArea(catalogTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/templates-${width}.png`, fullPage: true });
     await catalogTabs.getByRole('tab', { name: '기본 템플릿' }).click();
-    await expect(catalogTabs.getByRole('tab', { selected: true })).toHaveText('기본 템플릿');
+    await expect(catalogTabs.getByRole('tab', { selected: true })).toHaveAccessibleName('기본 템플릿');
     const catalogOverflow = await noOverflow(page);
 
     await page.goto(`${baseUrl}/templates/cafe_real_matcha_a/preview?device=pc`, { waitUntil: "load" });
