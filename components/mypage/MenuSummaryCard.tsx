@@ -21,7 +21,7 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
   lifecycle: "active" | "holding" | "deleted";
 }) {
   const headingId = `menu-card-${cardKey}`;
-  return <ContentPanel as="article" aria-labelledby={headingId} data-menu-lifecycle={lifecycle}>
+  return <ContentPanel as="article" aria-labelledby={headingId} data-menu-lifecycle={lifecycle} density="compact">
     <div className="site-menu-card">
       <div className="site-menu-card-media">{thumbnail}</div>
       <div className="site-menu-card-body">
