@@ -55,9 +55,10 @@ test("page-level floor-plan guidance moves into the existing help without removi
 });
 
 
-test("catalog counts show only kind and result count without repeated introductions or selected filter prose", () => {
+test("catalog counts show only result count and keep kind descriptions in the tabs", () => {
   const catalog = read("components/apply/TemplateGallery.tsx");
   assert.doesNotMatch(catalog, /완성된 스타일에 우리 매장 메뉴|기본 레이아웃에서 색상과 글꼴|site-catalog-kind-description|activeLabels/);
-  assert.match(catalog, /selectedKind.label} · <span>{visibleTemplates.length}개/);
+  assert.match(catalog, /전체 <span>{visibleTemplates.length}개/);
   assert.match(catalog, /hasFilters.*Object.values\(filters\)/);
+  assert.doesNotMatch(catalog, /HintBubble/);
 });

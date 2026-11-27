@@ -4,6 +4,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import CatalogServiceSelect from "@/components/templates/CatalogServiceSelect";
+import { SERVICE_CATEGORY_LABELS } from "@/lib/service-categories";
+import type { CatalogServiceFilter } from "@/lib/catalog-designs";
 import styles from "./SiteComponentGallery.module.css";
 import SupportNavigation from "@/components/layout/SupportNavigation";
 
@@ -18,6 +21,8 @@ const options = [
 ] as const;
 
 export default function SelectionControlExamples() {
+  const [kind, setKind] = useState("designer");
+  const [service, setService] = useState<CatalogServiceFilter>("all");
   const [industry, setIndustry] = useState("all");
   const [topic, setTopic] = useState("all");
   const [nativeValue, setNativeValue] = useState("all");
@@ -37,15 +42,19 @@ export default function SelectionControlExamples() {
       </tbody></table></div>
       <div className={styles.hierarchyMap}>
         <section className={styles.hierarchyLevel} aria-label="템플릿 페이지 포함 관계 예시">
-          <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">주요 화면 전환 → 독립 콘텐츠 영역 전환 → 영역 안의 업종 필터 → 결과</p></div>
-          <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="템플릿 구조 주요 화면"><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger><TabsTrigger value="display" disabled>준비 중</TabsTrigger></TabsList>
-            {["basic", "dining"].map(service => <TabsContent key={service} value={service} className="pt-4">
-              <Tabs purpose="section" defaultValue="designer"><TabsList size="md" distribution="equal" aria-label="템플릿 구조 영역 선택"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger></TabsList>
-                {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
-                  <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">{[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}</div>
-                  <p className="type-body-sm mt-5" role="status">{service === "basic" ? "베이직" : "다이닝"} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
-                </TabsContent>)}
-              </Tabs>
+          <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">템플릿 종류 전환 → 메뉴판 유형·업종 필터 → 결과</p></div>
+          <Tabs purpose="section" value={service === "display" ? "designer" : kind} onValueChange={setKind}>
+            {service !== "display" ? <TabsList size="md" distribution="equal" aria-label="템플릿 구조 영역 선택">
+              <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
+            </TabsList> : null}
+            {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
+              <div className="site-filter-group">
+                <CatalogServiceSelect value={service} onValueChange={setService} />
+                <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">
+                  {[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}
+                </div>
+              </div>
+              <p className="type-body-sm mt-5" role="status">{service === "all" ? "전체 유형" : SERVICE_CATEGORY_LABELS[service]} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
             </TabsContent>)}
           </Tabs>
         </section>

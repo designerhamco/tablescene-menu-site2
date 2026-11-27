@@ -28,6 +28,14 @@ test("industry, mood, color, layout and name intersect instead of broadening the
   assert.equal(filterCatalogDesigns("basic", "designer", "all", "all", { query: "칵테일" }).length, 0); // Name search, not description search.
 });
 
+test("all menu types respect the current template kind and combine with filters", () => {
+  assert.deepEqual(new Set(filterCatalogDesigns("all", "designer").map(design => design.service)), new Set(["basic", "dining", "display"]));
+  const standards = filterCatalogDesigns("all", "standard");
+  assert.ok(standards.every(design => design.kind === "standard" && design.service !== "display"));
+  assert.deepEqual(new Set(standards.map(design => design.service)), new Set(["basic", "dining"]));
+  assert.deepEqual(ids(filterCatalogDesigns("all", "designer", "cafe_bakery", "list", { mood: "lively", color: "blue", query: "썸머" })), ["display_menu_a"]);
+});
+
 test("search handles Korean, case and whitespace while preserving service and design-kind scope", () => {
   assert.deepEqual(ids(filterCatalogDesigns("dining", "designer", "all", "all", { query: "오브 테" })), ["dining_aube_table_a"]);
   assert.equal(filterCatalogDesigns("basic", "designer", "all", "all", { query: "오브" }).length, 0);

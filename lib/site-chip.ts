@@ -1,5 +1,5 @@
 /** Site UI only. Customer menu artwork owns its own badges and palette. */
-export type SiteChipTone = "neutral" | "new" | "best" | "create" | "draft" | "private" | "active" | "paid" | "settled" | "pending" | "trial" | "ending" | "ended" | "error" | "role" | "basic" | "dining" | "display";
+export type SiteChipTone = "neutral" | "tag" | "new" | "best" | "create" | "draft" | "private" | "active" | "paid" | "settled" | "pending" | "trial" | "ending" | "ended" | "error" | "role" | "basic" | "dining" | "display";
 
 export function getSiteChipTone(label: string): SiteChipTone {
   const value = label.replace(/\s+/g, "").toLowerCase();

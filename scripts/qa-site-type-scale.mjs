@@ -84,7 +84,7 @@ try {
         for (const button of await primaryActions.all()) await expect(button).toHaveCSS("font-size", "16px");
 
         const mainTabs = page.locator('.site-page-tabs[data-purpose="page"] > .site-tab:visible');
-        if (["/templates", "/guides", "/faq/notices"].includes(route)) {
+        if (["/guides", "/faq/notices"].includes(route)) {
           await expect(mainTabs.first(), `${route} has visible principal tabs`).toBeVisible();
         }
         for (const tab of await mainTabs.all()) await expect(tab).toHaveCSS("font-size", "16px");
@@ -93,14 +93,11 @@ try {
         for (const tab of await sections.all()) await expect(tab).toHaveCSS("font-size", "14px");
 
         if (route === "/templates") {
-          const service = page.getByRole("tablist", { name: "서비스 선택" });
-          const basic = service.getByRole("tab", { name: "베이직", exact: true });
-          await page.waitForLoadState("load");
-          await basic.click();
-          await basic.press("ArrowRight");
-          await expect(service.getByRole("tab", { name: "다이닝", exact: true })).toHaveAttribute("aria-selected", "true");
-          await service.getByRole("tab", { name: "베이직", exact: true }).click();
-          await expect(basic).toHaveAttribute("aria-selected", "true");
+          const service = page.getByRole("combobox", { name: "메뉴판 유형", exact: true });
+          await expect(service).toHaveValue("all");
+          await service.selectOption("dining");
+          await expect(page.locator('[data-catalog-service]:not([data-catalog-service="dining"])')).toHaveCount(0);
+          await service.selectOption("all");
         }
       }
 

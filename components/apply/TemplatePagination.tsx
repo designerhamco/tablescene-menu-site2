@@ -7,5 +7,5 @@ export default function TemplatePagination(props: {
   totalPages: number;
   onSelect: (page: number) => void;
 }) {
-  return <SitePagination {...props} label="템플릿 페이지" showSingle />;
+  return <SitePagination {...props} label="템플릿 페이지" />;
 }

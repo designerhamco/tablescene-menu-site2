@@ -86,8 +86,9 @@ try {
       await open("/sign-in");
       await verifyControl(page.getByRole("button", { name: "로그인", exact: true }), 48, font.primary);
       await open("/templates");
-      await verifyControl(page.getByRole("tablist", { name: "서비스 선택" }).getByRole("tab", { selected: true }), 40, font.primary);
-      await verifyControl(page.getByRole("tablist", { name: "템플릿 종류 선택" }).getByRole("tab", { selected: true }), 44, font.control);
+      await verifyControl(page.getByRole("combobox", { name: "메뉴판 유형", exact: true }), 44, font.primary);
+      const catalogKind = page.getByRole("tablist", { name: "템플릿 종류 선택" }).getByRole("tab", { selected: true });
+      assert.ok((await catalogKind.boundingBox()).height >= 44);
       const preview = page.getByRole("link", { name: /REAL MATCHA.*미리보기/ });
       await verifyControl(preview, 44, font.control);
       await expect(preview).toHaveAttribute("target", "_blank");

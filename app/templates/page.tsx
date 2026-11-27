@@ -3,21 +3,21 @@ import Link from "next/link";
 
 import SitePage from "@/components/layout/SitePage";
 import TemplateGallery from "@/components/apply/TemplateGallery";
+import { normalizeCatalogServiceFilter } from "@/lib/catalog-designs";
 
 export const metadata: Metadata = {
   title: "디자인 템플릿 | ArtiMenu",
-  description: "아티메뉴 베이직과 다이닝의 기본 디자인과 디자인 템플릿을 둘러보세요.",
+  description: "아티메뉴 베이직, 다이닝, 디스플레이에 맞는 템플릿을 둘러보세요.",
 };
 
 export default async function TemplatesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;
-  const initialProduct = query.plan === "dining" ? "dining_multi" : query.plan === "display" ? "display" : "dining_single";
 
   return (
     <SitePage title="매장에 맞는 디자인 선택">
 
     <TemplateGallery
-      initialProduct={initialProduct}
+      initialService={normalizeCatalogServiceFilter(query.plan)}
       initialKind={query.category === "standard" ? "standard" : "designer"}
       initialFilter={query.filter ?? "all"}
       initialLayoutFilter={query.layout ?? "all"}

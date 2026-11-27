@@ -183,7 +183,6 @@ test("underline tab rails stop at their tab boundary without changing full-width
   assert.ok(tab, "missing underline tab");
   assert.match(rail, /padding-inline: 0;/);
   assert.match(tab, /padding-inline: \.25rem;/);
-  assert.match(tabCss, /\.site-catalog-services \{[^}]*width: fit-content;/);
   assert.match(read("components/guides/usage-guide.module.css"), /\.planTabs \{[^}]*width: fit-content;[^}]*max-width: 100%;/);
   assert.match(tabCss, /\.site-notification-tabs\.site-topic-tabs \{[^}]*width: 100%;/);
   assert.match(tabCss, /\.site-offer-tabs\.site-area-tabs \{[^}]*width: 100%;/);
@@ -204,9 +203,9 @@ test("native and custom selects reserve a common chevron gutter without affectin
 
 test("tab hierarchy keeps service navigation, embedded catalog lists and notification tabs in their scopes", () => {
   const catalog = read("components/apply/TemplateGallery.tsx");
-  assert.match(catalog, /<Tabs purpose="page"[^>]*value=\{product\}/);
+  assert.match(catalog, /primaryFilter=\{<CatalogServiceSelect/);
+  assert.doesNotMatch(catalog, /서비스 선택|HintBubble/);
   assert.match(catalog, /ref=\{galleryStartRef\} purpose="section"/);
-  assert.doesNotMatch(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
   assert.match(catalog, /className="site-catalog-panel"/);
   assert.match(catalog, /distribution="equal" aria-label="템플릿 종류 선택"/);
   assert.match(catalog, /site-catalog-panel[\s\S]*<FilterToolbar[\s\S]*<TemplatePagination/);
