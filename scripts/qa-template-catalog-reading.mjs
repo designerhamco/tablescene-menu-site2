@@ -64,7 +64,7 @@ try {
       await expect(counter).toHaveCSS("opacity", "1");
     } else {
       await page.mouse.move(0, 0);
-      await expect(counter).toHaveCSS("opacity", "0");
+      await expect(counter).toHaveCSS("opacity", "1");
       await expect(carousel.locator(".site-image-carousel-arrows")).toHaveCSS("opacity", "0");
       await page.screenshot({ path: `${output}/catalog-desktop.jpg` });
       await carousel.hover();
@@ -73,6 +73,8 @@ try {
       await carousel.getByRole("button", { name: /다음 이미지/ }).click();
       await expect(counter).toHaveText('2/4');
       await page.mouse.move(0, 0);
+      await expect(carousel.locator(".site-image-carousel-arrows")).toHaveCSS("opacity", "0");
+      await expect(counter).toHaveCSS("opacity", "1");
       await carousel.press("ArrowRight");
       await expect(counter).toHaveText('3/4');
       await expect(counter).toHaveCSS("opacity", "1");
@@ -140,7 +142,7 @@ try {
   }
   for (const width of [390, 640, 768]) {
     const page = await pageAt(width, false);
-    await page.goto(catalog, { waitUntil: "domcontentloaded" });
+    await page.goto(catalog, { waitUntil: "load" });
     const actual = await columns(gridOn(page));
     assert.equal(actual.columns, width < 640 ? 1 : width < 768 ? 2 : 3);
     assert.equal(actual.overflow, 0);

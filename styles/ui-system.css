@@ -1892,10 +1892,10 @@ svg.site-edit-icon {
 .site-image-carousel-thumbnail:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 @media (min-width: 768px) { .site-image-carousel-arrows { display: flex; } }
 @media (hover: hover) and (pointer: fine) {
-  .site-image-carousel[data-controls="on-interaction"] .site-image-carousel-arrows { display: flex; }
-  .site-image-carousel[data-controls="on-interaction"]:not(:hover, :focus-visible, :has(:focus-visible))
-    :is(.site-image-carousel-arrows, .site-image-carousel-count) { opacity: 0; }
-  .site-image-carousel[data-controls="on-interaction"]:not(:hover, :focus-visible, :has(:focus-visible))
+  .site-image-carousel[data-arrow-visibility="on-interaction"] .site-image-carousel-arrows { display: flex; }
+  .site-image-carousel[data-arrow-visibility="on-interaction"]:not(:hover, :focus-visible, :has(:focus-visible))
+    .site-image-carousel-arrows { opacity: 0; }
+  .site-image-carousel[data-arrow-visibility="on-interaction"]:not(:hover, :focus-visible, :has(:focus-visible))
     .site-image-carousel-arrows > button { pointer-events: none; }
 }
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }

@@ -14,12 +14,12 @@ type ImageCarouselProps = {
   href?: string;
   presentation?: "catalog" | "gallery";
   showThumbnails?: boolean;
-  controls?: "always" | "on-interaction";
+  arrowVisibility?: "always" | "on-interaction";
   sizes?: string;
 };
 
 /** Actual registered images only; navigation tools never live inside a link. */
-export function ImageCarousel({ images, name, href, presentation = "catalog", showThumbnails = false, controls = "always", sizes }: ImageCarouselProps) {
+export function ImageCarousel({ images, name, href, presentation = "catalog", showThumbnails = false, arrowVisibility = "always", sizes }: ImageCarouselProps) {
   const multiple = images.length > 1;
   const [viewportRef, api] = useEmblaCarousel({ loop: multiple, watchDrag: multiple, breakpoints: { "(prefers-reduced-motion: reduce)": { duration: 0 } } });
   const [selected, setSelected] = useState(0);
@@ -52,7 +52,7 @@ export function ImageCarousel({ images, name, href, presentation = "catalog", sh
   };
   if (!images.length) return null;
 
-  return <div className="site-image-carousel" data-presentation={presentation} data-controls={controls} ref={rootRef}
+  return <div className="site-image-carousel" data-presentation={presentation} data-arrow-visibility={arrowVisibility} ref={rootRef}
     role={multiple ? "region" : undefined} aria-roledescription={multiple ? "캐러셀" : undefined}
     aria-label={multiple ? `${name} 이미지` : undefined} tabIndex={multiple ? 0 : undefined} onKeyDown={onKeyDown}>
     <div className="site-image-carousel-stage">
