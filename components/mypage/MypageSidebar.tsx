@@ -1,4 +1,9 @@
 import Link from "next/link";
+import { signOutAction } from "@/app/auth/actions";
+import { Badge } from "@/app/components/ui/badge";
+import { Button } from "@/app/components/ui/button";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import ProfileAvatar from "@/components/account/ProfileAvatar";
 
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import { MypageNavigationRail } from "@/components/mypage/MypageNavigationRail";
@@ -34,6 +39,48 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
       <span>{label}</span>
       <span className="text-support font-medium">권한 없음</span>
     </span>
+  );
+}
+
+export function MypageAccountCard({ userId, avatarUrl, name, email, role, aiCredits, staffCount }: {
+  userId: string;
+  avatarUrl?: string | null;
+  name: string;
+  email?: string;
+  role: "사장" | "직원" | null;
+  aiCredits?: number;
+  staffCount?: number;
+}) {
+  return (
+    <ContentPanel surface="muted" density="compact" aria-label="회원정보 요약" data-mypage-account-summary>
+      <Link href="/mypage?tab=account" className="site-mypage-account-identity" aria-label={`${name} 회원정보 수정`}>
+        <ProfileAvatar userId={userId} imageUrl={avatarUrl} name={name} email={email} size="identity" />
+        <div className="site-stack-detail">
+          <div className="site-action-row">
+            <strong className="type-menu-title">{name}</strong>
+            {role ? <Badge>{role}</Badge> : null}
+          </div>
+          {email ? <span className="type-body-sm site-copy-muted">{email}</span> : null}
+        </div>
+      </Link>
+      {aiCredits !== undefined || staffCount !== undefined ? (
+        <div>
+          {aiCredits !== undefined ? (
+            <Link href="/mypage?tab=payments&billingTab=ai-credits" className="site-account-menu-row">
+              <span>AI 크레딧</span><strong>{aiCredits.toLocaleString("ko-KR")}개</strong>
+            </Link>
+          ) : null}
+          {staffCount !== undefined ? (
+            <Link href="/mypage/staff" className="site-account-menu-row">
+              <span>직원 계정</span><strong>{staffCount.toLocaleString("ko-KR")}명</strong>
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
+      <form action={signOutAction}>
+        <Button type="submit" variant="outline" className="w-full">로그아웃</Button>
+      </form>
+    </ContentPanel>
   );
 }
 

@@ -8,11 +8,16 @@ const billingPanelSource = readFileSync(new URL("../components/mypage/BillingHis
 const mypageSource = readFileSync(new URL("../app/mypage/page.tsx", import.meta.url), "utf8");
 const siteDesignSource = readFileSync(new URL("../styles/site-design.css", import.meta.url), "utf8");
 
-test("account identity lives in the header while mypage and operations keep their navigation", () => {
+test("My Menu restores its account summary above desktop and tablet navigation", () => {
   const operations = readFileSync(new URL("../components/mypage/StoreOperationsShell.tsx", import.meta.url), "utf8");
   const staff = readFileSync(new URL("../app/mypage/staff/page.tsx", import.meta.url), "utf8");
   const menu = readFileSync(new URL("../components/account/AccountMenuPanel.tsx", import.meta.url), "utf8");
-  for (const source of [sidebarSource, mypageSource, operations, staff]) assert.doesNotMatch(source, /MypageAccountCard/);
+  for (const source of [operations, staff]) assert.doesNotMatch(source, /MypageAccountCard/);
+  assert.match(mypageSource, /activeTab === "menus" \? \(\s*<MypageAccountCard[\s\S]*?<MypageNavigation/);
+  assert.match(mypageSource, /aiCredits=\{canShowOwnerCommerce \?/);
+  assert.match(mypageSource, /from\("menu_site_members"\)\.select\("user_id"\)\s*\.in\("menu_site_id", menuSiteIds\)\.eq\("status", "active"\)/);
+  assert.match(sidebarSource, /<ContentPanel surface="muted"[^>]+data-mypage-account-summary/);
+  assert.match(siteDesignSource, /@media \(max-width: 767px\) \{\s*\.site-content-panel\[data-mypage-account-summary\] \{ display: none; \}/);
   assert.match(menu, /account\.name/);
   assert.match(menu, /account\.email/);
   assert.match(menu, /AI 크레딧/);
