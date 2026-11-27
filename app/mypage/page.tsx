@@ -2243,11 +2243,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         metaItems.push({ label: "이용 종료일", value: formatDate(periodEnd) });
       }
     } else if (isOneTimeBusinessService && hasActiveEntitlement && !isAccessRestricted) {
-      primaryMessage = site.status === "published"
-        ? "현재 손님에게 공개 중입니다."
-        : site.status === "draft"
-          ? "아직 공개 전입니다. 편집 후 공개할 수 있습니다."
-          : `${serviceBadge.label} 일회성 결제로 이용 중입니다.`;
       if (accessExpiresAt) {
         metaItems.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
       } else {
@@ -2257,16 +2252,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
       const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
-      metaItems.push({ label: "최근 결제일", value: isFreeTrial ? "첫 결제 전" : formatDate(activeBusinessSubscription.last_paid_at) });
+      metaItems.push({ label: "최근 결제일", value: formatDate(activeBusinessSubscription.last_paid_at) });
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
         : isFreeTrial
           ? "30일 무료체험으로 이용 중입니다. 종료일에 첫 월결제가 진행됩니다."
-        : site.status === "published"
-          ? "현재 손님에게 공개 중입니다."
-          : site.status === "draft"
-            ? "아직 공개 전입니다. 편집 후 공개할 수 있습니다."
-            : `${serviceBadge.label}으로 이용 중입니다.`;
+          : "";
       if (cancelAtPeriodEnd && periodEnd) {
         metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
       } else if (activeBusinessSubscription.next_billing_at) {
@@ -2302,11 +2293,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           ? isCancelScheduledEnded
             ? "해지 예약에 따라 이용이 종료되었습니다. 보관 기간 안에 재구독하면 기존 링크와 QR을 다시 사용할 수 있습니다."
             : "보관 기간 동안 미리보기만 가능하며, 재구독하면 기존 메뉴판을 복구할 수 있습니다."
-          : site.status === "published"
-            ? "현재 손님에게 공개 중입니다."
-            : site.status === "private" || site.status === "unpublished"
-              ? "현재 공개되지 않은 메뉴판입니다. 편집 후 다시 공개할 수 있습니다."
-              : "아직 공개 전입니다. 편집 후 공개할 수 있습니다.";
+          : "";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isAccessRestricted) {
         metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
@@ -2445,23 +2432,30 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
-    function renderActionButton({ label, href, enabled, disabledReason, primary = false, newWindow = false, icon }: {
+    function renderActionButton({ label, accessibleLabel = label, href, enabled, disabledReason, primary = false, newWindow = false, icon }: {
       label: string; href: string | null; enabled: boolean; disabledReason: string | null;
-      primary?: boolean; newWindow?: boolean; icon?: React.ReactNode;
+      accessibleLabel?: string; primary?: boolean; newWindow?: boolean; icon?: React.ReactNode;
     }) {
       const className = primary ? "site-button site-button-primary" : "site-button site-button-outline";
-      if (enabled && href) return <Link href={href} target={newWindow ? "_blank" : undefined} rel={newWindow ? "noopener noreferrer" : undefined} className={className}>{icon}{label}</Link>;
+      if (enabled && href) return <Link href={href} aria-label={accessibleLabel === label ? undefined : accessibleLabel} target={newWindow ? "_blank" : undefined} rel={newWindow ? "noopener noreferrer" : undefined} className={className}>{icon}{label}</Link>;
       const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
-      return <button type="button" disabled title={reason} aria-label={`${label} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
+      return <button type="button" disabled title={reason} aria-label={`${accessibleLabel} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
     }
     const supportingLabels = new Set(["결제수단", "결제방식", "인증 사업자"]);
     const details = card.metaItems.filter(item => !supportingLabels.has(item.label));
-    const showStatus = card.section !== "active" || !card.actions.canViewPublic || card.badges.some(badge => badge.key.startsWith("subscription:") || badge.key.startsWith("plan:"));
+    if (card.section === "active" && !card.isPersonalTrial) {
+      if (details[0]?.label !== "최근 결제일") {
+        details.unshift({ label: "최근 결제일", value: "-" });
+      }
+      if (details.length === 1) {
+        details.push({ label: "다음 결제 예정일", value: "-" });
+      }
+    }
     return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle={card.section}
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
       badges={card.badges.map(badge => <Badge key={badge.key}>{badge.label}</Badge>)}
       details={details}
-      status={showStatus ? card.primaryMessage : undefined}
+      status={card.primaryMessage || undefined}
       billingHref={card.section === "active" ? undefined : menuBillingHref(card.publicPath, card.title)}
       billingLabel={card.section === "holding" ? "재구독·복구 안내" : card.section === "deleted" ? "결제내역" : "구독 정보"}
       actions={card.section === "deleted" ? undefined : <>
@@ -2469,7 +2463,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         {renderActionButton({ label: "미리보기", href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null, enabled: card.actions.canOwnerPreview, disabledReason: card.actions.previewDisabledReason, newWindow: true, icon: <Eye aria-hidden="true" /> })}
       </>}
       secondaryActions={card.section === "active" ? <>
-        {renderActionButton({ label: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true })}
+        {renderActionButton({ label: "공개 메뉴판", accessibleLabel: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true })}
         <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} />
       </> : undefined} />;
   }
@@ -2480,15 +2474,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       badges={<><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge><Badge>{card.statusLabel}</Badge></>}
       details={[{ label: "템플릿", value: card.templateLabel }, { label: "최근 업데이트", value: formatDate(card.updatedAt) }]}
       supportingDetails={[{ label: "사용 가능한 기능", value: card.permissionSummary }]}
-      status={!card.canViewPublic ? "현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다." : undefined}
       actions={<>
         {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
           : <button type="button" disabled title="현재 직원 역할에는 메뉴 편집 권한이 없습니다." aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다." className="site-button site-button-outline"><EditIcon />메뉴 편집</button>}
         <Link href={`/mypage/menus/${card.siteId}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><Eye aria-hidden="true" />미리보기</Link>
       </>}
       secondaryActions={<>
-        {card.canViewPublic ? <Link href={card.publicPath} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">공개 메뉴판 보기</Link>
-          : <button type="button" disabled title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다." aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다." className="site-button site-button-outline">공개 메뉴판 보기</button>}
+        {card.canViewPublic ? <Link href={card.publicPath} aria-label="공개 메뉴판 보기" target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">공개 메뉴판</Link>
+          : <button type="button" disabled title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다." aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다." className="site-button site-button-outline">공개 메뉴판</button>}
         <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
       </>} />;
   }
