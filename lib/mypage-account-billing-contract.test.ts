@@ -23,6 +23,7 @@ test("My Menu restores its account summary above desktop and tablet navigation",
   assert.match(menu, /AI 크레딧/);
   assert.match(menu, /billingTab=ai-credits/);
   assert.match(menu, /직원 계정/);
+  assert.match(sidebarSource, /<form action=\{signOutAction\} className="site-action-row" data-distribution="end">\s*<Button type="submit" variant="link" data-purpose="navigation">로그아웃/);
   assert.match(sidebarSource, /<MypageNavigationRail/);
 });
 
@@ -57,13 +58,21 @@ test("mypage menu cards use compact shared work panels and keep owner and staff 
   const list = readFileSync(new URL("../components/mypage/MenuCardList.tsx", import.meta.url), "utf8");
   assert.match(card, /<ContentPanel as="article" aria-labelledby=/);
   assert.match(card, /className="site-menu-card"/);
-  assert.match(card, /className="site-menu-card-media"/);
+  assert.match(card, /className="site-menu-card-media">\{thumbnail\}/);
+  assert.match(card, /className="site-menu-card-title-row">\s*<h2[^>]*>\{name\}<\/h2>\s*\{titleAction\}/);
+  const connectionDialog = readFileSync(new URL("../components/mypage/MenuConnectionDialog.tsx", import.meta.url), "utf8");
+  assert.match(connectionDialog, /size="icon" iconSize="compact" variant="ghost"/);
+  assert.match(connectionDialog, /data-menu-linked=\{linked\}/);
   assert.doesNotMatch(card, /site-menu-card-meta|이용 기간 종료일|복구 기한/);
   assert.match(mypageSource, /<MenuRecoveryGuide menuName=\{card.title\} deadlineLabel=\{card.recoveryDeadlineLabel\}/);
   assert.match(mypageSource, /className="site-button site-button-outline">결제내역<\/Link>/);
   assert.match(card, /supportingDetails.map/);
   assert.doesNotMatch(card, /publicPath|MenuLinkCopyButton/);
-  assert.match(card, /className="site-action-row site-menu-card-actions"/);
+  assert.match(card, /className="site-menu-card-actions"/);
+  assert.match(siteDesignSource, /\.site-menu-card-actions \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);[^}]*grid-auto-rows: 1fr/);
+  assert.match(siteDesignSource, /\.site-menu-card-media \{[^}]*overflow: hidden;[^}]*border-radius: calc\(var\(--ui-radius-surface\) - var\(--site-space-detail\)\)/);
+  assert.match(mypageSource, /label: "공개 메뉴판"[^}]*icon: <Globe/);
+  assert.doesNotMatch(mypageSource, /<MenuQrDownloadModal showIcon=\{false\}/);
   assert.match(list, /className="site-menu-card-list"/);
   assert.match(list, /getMenuCardPage\(cards, query, requestedPage, filters\)/);
   assert.match(readFileSync(new URL("../lib/menu-card-pagination.ts", import.meta.url), "utf8"), /matchesMenuName\(card.title, query\)/);
