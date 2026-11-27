@@ -83,7 +83,7 @@ export function AllMenuOperationsDashboardContent({ sites, orders, calls, overvi
   const orderSites = allMenuOperationSites(sites, "orders"), callSites = allMenuOperationSites(sites, "calls");
   const callStatuses: Record<string, string> = { pending: "대기", acknowledged: "확인", completed: "완료", cancelled: "취소" };
   return <div className="site-stack-group">
-      <SectionHeader title="운영 대시보드"/>
+      <SectionHeader titleHidden title="운영 대시보드"/>
       <LoadNotice failures={[...new Set([...orders.failures, ...calls.failures])]}/>
       {overviews.some(item => item.failed) ? <ContentPanel surface="notice" density="compact"><p role="alert" className="type-body-sm break-words">{overviews.filter(item => item.failed).map(item => item.site.name || "이름 없는 메뉴판").join(", ")}의 운영 상태 일부를 불러오지 못했습니다. 확인 가능한 정보만 표시합니다. 새로고침해 주세요.</p></ContentPanel> : null}
       <AllMenuStatusOverview overviews={overviews} activity={{

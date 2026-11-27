@@ -25,7 +25,7 @@ export default async function CallSettingsPage({ params, searchParams }: { param
   const items = itemsPanel && canManageCallItems ? await listStaffCallItems({ menuSiteId: menuId, includeInactive: true }) : [];
   return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection={itemsPanel ? "call-items" : "call-settings"}>
     <div className="site-stack-content">
-      <SectionHeader title="호출 관리"/>
+      <SectionHeader titleHidden title="호출 관리"/>
       <OperationFeatureNavigation menuId={menuId} feature="calls" settings historyAvailable={site.operationAccess.calls} canConfigure={site.isOwner} canManageDevices={canManageDevices} panel={itemsPanel ? "items" : "settings"} callItemsAvailable={canManageCallItems} />
       {!itemsPanel ? <>
       {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="calls" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel>

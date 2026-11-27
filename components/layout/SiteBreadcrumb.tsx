@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Fragment } from "react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/app/components/ui/breadcrumb";
 
-export default function SiteBreadcrumb({ items }: { items: readonly { label: string; href?: string }[] }) {
+export type SiteBreadcrumbItem = { label: string; href?: string };
+
+export default function SiteBreadcrumb({ items }: { items: readonly SiteBreadcrumbItem[] }) {
   return <Breadcrumb aria-label="현재 위치" className="site-breadcrumb">
     <BreadcrumbList>
       {items.map((item, index) => <Fragment key={`${item.label}:${index}`}>

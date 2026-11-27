@@ -60,7 +60,7 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
             removeFloorRoomAction={removeFloorRoomAction.bind(null,menuId)} saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
         ) : (
           <div className="site-stack-content">
-        <SectionHeader title={`${noun} 관리`}/>
+        <SectionHeader titleHidden title={`${noun} 관리`}/>
           <ContentPanel>
             <div className="site-stack-title">
             <h3 className="type-subsection-title">{noun} 관리를 사용할 수 없습니다</h3>

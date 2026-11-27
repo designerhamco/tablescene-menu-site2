@@ -32,7 +32,7 @@ export default async function OrderSettingsPage({ params, searchParams }: { para
   const wallet = site.isOwner ? await loadAlimtalkWallet(menuId).catch(() => null) : null;
   return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection="order-settings">
     <div className="site-stack-content">
-      <SectionHeader title="주문 관리"/>
+      <SectionHeader titleHidden title="주문 관리"/>
       <OperationFeatureNavigation menuId={menuId} feature="orders" settings historyAvailable={site.operationAccess.orders} canConfigure={site.isOwner} canManageDevices={canManageDevices} />
       <OrderSettingsCategories initialCategory={query?.tab === "ready" ? "ready" : "payment"} payment={<>
       {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">주문 사용 설정은 사장님이 변경할 수 있습니다. {canManageDevices ? "기기 연결은 ‘테이블·키오스크 관리’에서 관리하세요." : "이 브라우저의 주문 알림음은 ‘주문 알림’에서 설정할 수 있습니다."}</p></ContentPanel>}

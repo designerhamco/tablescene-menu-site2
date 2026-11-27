@@ -728,45 +728,47 @@
 .site-empty-state-description { max-width: 32rem; color: var(--ui-text-muted); }
 .site-empty-state-action { margin-top: .5rem; }
 
-/* My Menu composition: shared panels, compact artwork and content-width controls. */
+/* My Menu: the available content width owns the vertical card columns. */
 .site-menu-list-toolbar { display: flex; flex-direction: column; gap: var(--site-space-block); min-width: 0; }
 .site-menu-list-search { width: 100%; min-width: 0; }
-.site-menu-card-list { display: grid; gap: var(--site-space-block); }
-.site-menu-card { display: grid; min-width: 0; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--site-space-block); align-items: start; }
-.site-menu-card-media { grid-column: 1; grid-row: 1; min-width: 0; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--ui-radius-button); background: var(--ui-surface-muted); }
+.site-menu-results { container-type: inline-size; }
+.site-menu-result-count { scroll-margin-top: calc(var(--site-header-height) + var(--site-space-group)); }
+.site-menu-card-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--site-space-group); align-items: stretch; }
+.site-menu-card-list > div { display: flex; min-width: 0; }
+.site-menu-card-list > div > article { width: 100%; }
+.site-menu-card { display: flex; flex-direction: column; min-width: 0; height: 100%; gap: var(--site-space-block); }
+.site-menu-card-media { min-width: 0; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--ui-radius-button); background: var(--ui-surface-muted); }
 .site-menu-card-media :is(.site-template-artwork, .site-template-artwork > *) { height: 100%; }
 .site-menu-card-media .site-template-artwork > * { aspect-ratio: auto; border: 0; border-radius: 0; }
 .site-menu-card-media img { width: 100%; height: 100%; object-fit: cover; }
-.site-menu-card-body { display: contents; min-width: 0; }
-.site-menu-card-header { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); min-width: 0; }
+.site-menu-card-body { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: var(--site-space-block); }
+.site-menu-card-header { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); min-width: 0; }
 .site-menu-card-path, .site-menu-card-header .type-content-title { overflow-wrap: anywhere; }
 .site-menu-card-badges { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); }
-.site-menu-card-meta, .site-menu-card-supporting { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy) var(--site-space-group); margin: 0; padding: 0; min-width: 0; }
+.site-menu-card-meta, .site-menu-card-supporting { display: grid; gap: var(--site-space-copy); margin: 0; padding: 0; min-width: 0; }
 .site-menu-card-meta > div, .site-menu-card-supporting > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy); min-width: 0; max-width: 100%; }
 .site-menu-card-meta dt, .site-menu-card-meta dd { font-size: var(--type-body-sm-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-body); letter-spacing: var(--site-tracking-reading); }
 .site-menu-card-meta dt { color: var(--ui-text-subtle); }
 .site-menu-card-meta dd { color: var(--ui-text-muted); overflow-wrap: anywhere; }
 .site-menu-card-supporting dt, .site-menu-card-supporting dd { color: var(--ui-text-subtle); font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); overflow-wrap: anywhere; }
-.site-menu-card-status { grid-column: 1 / -1; }
-.site-menu-card-toolbar { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--site-space-block); }
-.site-menu-card-toolbar:has(> .site-button-link:only-child) { justify-content: flex-end; }
-.site-menu-card-state-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--site-space-copy) var(--site-space-block); }
-.site-menu-card-state-row > p { flex: 1 1 12rem; }
-.site-menu-card-state-row > .site-button-link { margin-inline-start: auto; }
-.site-menu-card-actions { min-width: 0; }
-.site-menu-card-actions .site-button { min-width: 0; max-width: 100%; }
+.site-menu-card-toolbar { display: flex; flex-direction: column; align-items: stretch; gap: var(--site-space-block); margin-top: auto; }
+.site-menu-card-toolbar > .site-button-link { align-self: end; }
+.site-menu-card-state-row { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); margin-top: auto; }
+.site-menu-card-state-row > .site-button-link { align-self: end; }
+.site-menu-card .site-menu-card-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; }
+.site-menu-card-actions .site-button { min-width: 0; width: 100%; max-width: 100%; white-space: normal; text-align: center; }
+.site-breadcrumb { text-align: start; }
 .site-breadcrumb [data-slot="breadcrumb-list"] { font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .site-breadcrumb [data-slot="breadcrumb-page"] { color: var(--ui-text-muted); }
 @media (min-width: 640px) {
   .site-menu-list-toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
   .site-menu-list-search { flex: 0 1 18rem; }
 }
-@media (min-width: 768px) {
-  .site-menu-card { grid-template-columns: 10rem minmax(0, 1fr); gap: var(--site-space-group); }
-  .site-menu-card-body { display: flex; flex-direction: column; gap: var(--site-space-block); }
-  .site-menu-card-header { flex-flow: row wrap; justify-content: space-between; gap: var(--site-space-block); }
-  .site-menu-card-header > .site-stack-detail { flex: 1 1 12rem; }
-  .site-menu-card-badges { justify-content: flex-end; max-width: 100%; }
+@container (min-width: 42rem) {
+  .site-menu-card-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (min-width: 72rem) {
+  .site-menu-card-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .site-account-page .site-empty-state-spacious { margin-top: var(--site-space-group); }
 

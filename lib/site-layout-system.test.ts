@@ -157,6 +157,7 @@ test("content layout examples and documented spacing match the canonical token c
     ["--site-panel-inset-compact", "--site-panel-inset-compact"],
     ["--site-space-group", "--site-space-group"],
     ["--site-space-title-copy", "--site-space-title-copy"],
+    ["--site-space-title-copy", "--site-space-title-copy"],
     ["--site-space-block", "--site-space-block"],
     ["--site-space-copy", "--site-space-copy"],
     ["--site-space-group", "--site-space-group"],

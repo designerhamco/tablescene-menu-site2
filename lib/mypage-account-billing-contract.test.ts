@@ -51,7 +51,8 @@ test("mypage menu cards use compact shared work panels and keep owner and staff 
   assert.match(card, /supportingDetails.map/);
   assert.match(card, /className="site-action-row site-menu-card-actions"/);
   assert.match(list, /className="site-menu-card-list"/);
-  assert.match(list, /matchesMenuName\(card.title, query\)/);
+  assert.match(list, /getMenuCardPage\(cards, query, requestedPage\)/);
+  assert.match(readFileSync(new URL("../lib/menu-card-pagination.ts", import.meta.url), "utf8"), /matchesMenuName\(card.title, query\)/);
   assert.match(mypageSource, /content: renderMenuCard\(card\)/);
   assert.match(mypageSource, /content: renderStaffMenuCard\(card\)/);
   assert.match(mypageSource, /card.section === "deleted" \? undefined/);

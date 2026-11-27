@@ -72,7 +72,7 @@ test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사�
   const shellSource = readSource("components/mypage/StoreOperationsShell.tsx");
   const dashboardSource = readSource("app/mypage/operations/page.tsx");
 
-  assert.match(shellSource, /<SitePage title="매장 운영"/);
+  assert.match(shellSource, /<SitePage title=\{pageTitle\} breadcrumbs=\{breadcrumbs\}/);
   assert.match(shellSource, /<OperationSiteSelector/);
   assert.match(shellSource, /getNavigationClassName\(activeSection === "dashboard"\)/);
   assert.doesNotMatch(shellSource, /shadow-sm/);

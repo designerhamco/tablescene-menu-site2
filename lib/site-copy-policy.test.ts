@@ -34,7 +34,7 @@ test("requested notices, boxed explanations, real data and empty/error states su
   const page = read("app/mypage/page.tsx");
   assert.doesNotMatch(page, /생성한 메뉴판을 편집하고 공개 상태를 확인|현재 편집과 공개가 가능한 메뉴판입니다/);
   assert.match(page, /이용이 종료되었지만 보관 기간 안에/);
-  assert.match(read("components/mypage/MenuCardList.tsx"), /filtered.length.toLocaleString/);
+  assert.match(read("components/mypage/MenuCardList.tsx"), /result.totalResults.toLocaleString/);
   assert.match(page, /<EmptyState/);
   assert.match(read("components/mypage/OperationsHistoryViews.tsx"), /표시할 \{noun\} 내역이 없습니다/);
   assert.match(read("components/mypage/DeleteOrderPoint.tsx"), /복원할 수 없습니다/);
