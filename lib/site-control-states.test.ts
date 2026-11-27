@@ -173,7 +173,7 @@ test("content and view controls share three sizes without promoting nested guide
   assert.match(guide, /aria-current="location"/);
   assert.doesNotMatch(guide, /className="site-topic-tab"/);
   assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
-  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /purpose="state"[\s\S]*?purpose="section"/);
+  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /purpose="state"[\s\S]*?purpose="category"/);
 });
 
 test("underline tab rails stop at their tab boundary without changing full-width navigation", () => {
@@ -185,7 +185,7 @@ test("underline tab rails stop at their tab boundary without changing full-width
   assert.match(tab, /padding-inline: \.25rem;/);
   assert.match(read("components/guides/usage-guide.module.css"), /\.planTabs \{[^}]*width: fit-content;[^}]*max-width: 100%;/);
   assert.match(tabCss, /\.site-notification-tabs\.site-topic-tabs \{[^}]*width: 100%;/);
-  assert.match(tabCss, /\.site-offer-tabs\.site-area-tabs \{[^}]*width: 100%;/);
+  assert.match(tabCss, /\.site-offer-tabs\.site-page-tabs \{[^}]*margin-inline: var\(--site-panel-inset\);/);
 });
 
 test("native and custom selects reserve a common chevron gutter without affecting listboxes or menu renderers", () => {

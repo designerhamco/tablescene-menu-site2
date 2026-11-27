@@ -123,7 +123,7 @@ export default function ResetTabActionButton({ menuId, kind, disabled: readOnly 
                 type="button"
                 onClick={handleReset}
                 disabled={isPending}
-                className="site-button site-button-danger w-full sm:w-auto"
+                className="site-button site-button-danger"
               >
                 {isPending ? (
                   <>

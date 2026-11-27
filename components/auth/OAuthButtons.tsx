@@ -78,7 +78,8 @@ export default function OAuthButtons({
         type="button"
         onClick={handleKakaoSignIn}
         disabled={isLoading}
-        className={`${showDivider ? "mt-5" : ""} site-button site-button-kakao site-button-lg w-full`}
+        data-button-width="full"
+        className={`${showDivider ? "mt-5" : ""} site-button site-button-kakao site-button-lg`}
       >
         {isLoading ? loadingLabel : buttonLabel}
       </button>

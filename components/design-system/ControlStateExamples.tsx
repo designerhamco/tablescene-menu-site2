@@ -32,7 +32,7 @@ export default function ControlStateExamples() {
   const [viewerPage, setViewerPage] = useState(2);
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">밀집 텍스트 버튼은 최소 32px, 헤더 이동 버튼은 36px, 일반 실행은 44px, 로그인·결제 같은 주요 완료 버튼은 48px입니다. 주요 실행의 기본 글자는 16px, 보조 실행은 14px입니다.</p>
+      <p className="type-body text-zinc-600">일반 실행·이동 버튼은 문구와 아이콘을 감쌉니다. 크기는 소 32px·터치 40px, 중 44px, 대 48px입니다. 로그인 폼과 템플릿 상세의 가격·시작 버튼은 각 영역의 전체 폭을 사용합니다.</p>
     </div>
     <p className="type-body-sm site-copy-muted">아이콘의 표현과 클릭 영역은 분리합니다. 불필요한 장식은 생략하고 버튼 식별에 필요한 형태·중앙 정렬·포커스는 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
@@ -54,7 +54,7 @@ export default function ControlStateExamples() {
       <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div></div>
     </div>
     <div id="button-surface-boundaries" className="site-stack-group" role="group" aria-labelledby="button-surface-boundaries-title">
-      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">흰색 outline 버튼은 테두리로 모양을 드러냅니다. 회색 보조 버튼과 비활성 버튼은 작업 배경보다 진한 회색으로 구분합니다. 비활성 버튼은 흐린 문구로 표시하며 마우스를 올리거나 눌러도 색이 바뀌지 않습니다.</p></div>
+      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">주요 실행은 검정 채움, 일반 보조 실행과 이동은 흰 바탕에 공용 1px 테두리를 사용합니다. 회색 채움과 흐린 문구는 비활성 상태를 표시합니다.</p></div>
       <ContentPanel surface="muted" density="compact" aria-label="회색 배경의 비활성 이동 예시">
         <div className="site-field-stack"><label className="type-label" htmlFor="button-boundary-room">다른 룸으로 이동</label><fieldset disabled className="site-form-row" data-alignment="center"><legend className="sr-only">비활성 룸 이동 예시</legend><div className="site-field-stack"><select id="button-boundary-room" className="site-field w-full" defaultValue=""><option value="">이동할 다른 룸이 없습니다</option></select></div><Button variant="outline">이동</Button></fieldset></div>
         <div className="site-action-row"><Button variant="outline">사용 가능한 이동 예시</Button><Button variant="secondary">초기화 예시</Button><Button variant="secondary" disabled>초기화 · 비활성</Button></div>
@@ -67,17 +67,17 @@ export default function ControlStateExamples() {
       <tbody>{actions.map(([variant,label]) => <tr key={variant}><th scope="row">{label}</th>{states.map(([state,stateLabel]) => <td key={state}>
         <Button variant={variant} size={variant === "ghost" || variant === "danger-ghost" ? "icon" : undefined} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{variant === "ghost" ? <Plus aria-hidden="true" /> : variant === "danger-ghost" ? <Trash2 aria-hidden="true" /> : label}</Button>
       </td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·무테를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
+    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·1px 경계를 사용합니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형입니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "목록 주제 분류", "밑줄 탭 · 3px 선택선"],
-      ["area", "독립 콘텐츠 영역 전환", "연결된 사각 버튼 · 검정 선택 면"],
+      ["area", "디자인 템플릿 종류", "카탈로그의 기존 검정 선택 면"],
     ] as const).map(([variant,title,description]) => <div key={variant} className="min-w-0">
       <h3 className="type-content-title mb-2">{title}</h3><p className="type-caption mb-4 text-zinc-600">{description}</p>
       <Tabs variant={variant} defaultValue="first"><TabsList aria-label={`${title} 동작 예시`}>
         <TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger>
       </TabsList><TabsContent value="first" className="type-body-sm">첫 번째 내용</TabsContent><TabsContent value="second" className="type-body-sm">두 번째 내용</TabsContent></Tabs>
     </div>)}</div>
-    <p className="type-body-sm text-zinc-600">아래 표는 위계 선택표가 아니라 각 공통 변형의 상태 회귀 비교표입니다. 실제 화면에서는 주요 화면·독립 영역·목록 주제·상태값의 역할로 형태를 정합니다.</p>
+    <p className="type-body-sm text-zinc-600">기본 화면 전환은 밑줄이며, 선택이 작업 패널에 이어지는 경우에는 콘텐츠 연결형을 사용합니다. 템플릿의 기존 영역형도 상태를 비교할 수 있습니다.</p>
     <div className={styles.usageTable}><table aria-label="탭 상태 기준"><thead><tr><th scope="col">종류</th>{states.map(([key,label]) => <th scope="col" key={key}>{label}</th>)}</tr></thead>
       <tbody>{(["page", "underline", "area", "outline", "document"] as const).map(variant => <tr key={variant}><th scope="row">{{page:"페이지 전환",underline:"밑줄",area:"영역형",outline:"상태값 전환",document:"문서형"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>

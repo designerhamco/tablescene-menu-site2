@@ -2079,6 +2079,89 @@ body:has([data-site-header]) {
   [data-template-artwork], [data-template-artwork] *, [data-preview-device], [data-preview-device] *
 )) option { font-size: var(--site-type-14); }
 
+/* The official site shares one scale across boxed actions and single-line fields.
+ * Catalog, preview and customer menu controls keep their own appearance. */
+body:has([data-site-control-kit="standard"]) {
+  --ui-box-height-sm: clamp(2rem, calc(1.6rem + .4vw), 2.25rem);
+  --ui-box-height-md: clamp(2.75rem, calc(2.2rem + .55vw), 3.09375rem);
+  --ui-box-height-lg: clamp(3rem, calc(2.4rem + .6vw), 3.375rem);
+  --ui-box-action-boundary: var(--ui-border-strong);
+}
+
+@media (pointer: coarse) {
+  body:has([data-site-control-kit="standard"]) { --ui-box-height-sm: var(--ui-control-height-md); }
+}
+
+:where(body:has([data-site-control-kit="standard"])) {
+  & .site-button:not(:where(.site-button-icon, .site-button-link, .site-button-ghost, .site-button-danger-ghost, .site-button-header, .site-preview-control, .site-button-notification-read-all, .menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)) {
+    min-height: var(--ui-box-action-height, var(--ui-box-height-md));
+    inline-size: fit-content;
+    border-radius: var(--ui-radius-control-rounded);
+  }
+
+  & .site-button[data-button-width="full"] { inline-size: 100%; }
+  & .site-button-compact { --ui-box-action-height: var(--ui-box-height-sm); }
+  & .site-button-lg { --ui-box-action-height: var(--ui-box-height-lg); padding-inline: var(--ui-control-padding-inline-lg); }
+
+  & :is(.site-button-outline, .site-button-secondary):not(:where(.site-scroll-top-control, .menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)):not(:disabled, [aria-disabled="true"], fieldset:disabled *) {
+    border-color: var(--ui-outline-boundary, var(--ui-box-action-boundary));
+    background: var(--ui-surface);
+    color: var(--ui-text);
+  }
+  & :is(.site-button-outline, .site-button-secondary):not(:where(.site-scroll-top-control, .menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)):not(:disabled, [aria-disabled="true"], fieldset:disabled *):is(:hover, [data-ui-state="hover"]) {
+    background: var(--ui-surface-soft);
+  }
+  & :is(.site-button-outline, .site-button-secondary):not(:where(.site-scroll-top-control, .menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)):not(:disabled, [aria-disabled="true"], fieldset:disabled *):is(:active, [data-ui-state="pressed"]) {
+    background: var(--ui-action-soft-pressed);
+  }
+
+  & .site-chip:not(:where(.menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)) {
+    border-radius: var(--ui-radius-control);
+  }
+
+  & :is(.site-field, :where(input, textarea, select):not(:where([type="checkbox"], [type="radio"], [type="file"], [type="color"], [type="range"], [type="hidden"], .site-input-group-control))):not(:where(.menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *, .site-select-icon)) {
+    --ui-field-height-sm: var(--ui-box-height-sm);
+    --ui-field-height-md: var(--ui-box-height-md);
+    --ui-field-height-lg: var(--ui-box-height-lg);
+    --ui-field-height-search: var(--ui-box-height-lg);
+  }
+  & :is(.site-field, input, select)[data-field-size="sm"]:not(:where(.menu-typography *, .aube-table-root *, [data-template-artwork] *, [data-preview-device] *)) {
+    --ui-field-font-size: var(--ui-compact-field-font-size);
+  }
+
+  & :is(.site-field.site-input-group.site-search-field, .site-field.site-field-search, input[data-field-size="search"]):not(:where([data-preview-device] *, [data-template-artwork] *)) {
+    border-radius: var(--ui-radius-field);
+  }
+  & .site-search-field:not(:where([data-preview-device] *, [data-template-artwork] *)):not(:hover, :focus-within, :has(:disabled, [aria-invalid="true"])) {
+    border-color: var(--ui-border);
+  }
+  & .site-field.site-input-group.site-search-field[data-field-size="sm"]:not(:where([data-preview-device] *, [data-template-artwork] *)) {
+    --site-input-height: var(--ui-box-height-sm);
+    --ui-search-action-size: calc(var(--site-input-height) - 2px);
+  }
+  & .site-search-field[data-field-size="sm"]:not(:where([data-preview-device] *, [data-template-artwork] *)) > .site-input-group-action {
+    min-height: var(--ui-search-action-size);
+  }
+  & .site-search-field[data-field-size="sm"]:not(:where([data-preview-device] *, [data-template-artwork] *)) .site-button-icon {
+    --ui-icon-control-size: var(--ui-search-action-size);
+  }
+
+  & :is(.site-field-action-row, .site-form-row[data-alignment="center"]):not(:where([data-preview-device] *, [data-template-artwork] *)) {
+    --ui-field-action-height: var(--ui-box-height-md);
+  }
+  & :is(.site-field-action-row, .site-form-row[data-alignment="center"]):has(:is(.site-field, input, select)[data-field-size="sm"]):not(:has(:is(.site-field, input, select)[data-field-size="md"], :is(.site-field, input, select)[data-field-size="lg"])) {
+    --ui-field-action-height: var(--ui-box-height-sm);
+    --ui-field-action-padding: .25rem;
+  }
+  & :is(.site-field-action-row, .site-form-row[data-alignment="center"]):has(:is(.site-field, input, select)[data-field-size="lg"]):not(:has(:is(.site-field, input, select)[data-field-size="sm"], :is(.site-field, input, select)[data-field-size="md"])) {
+    --ui-field-action-height: var(--ui-box-height-lg);
+  }
+  & :is(.site-field-action-row, .site-form-row[data-alignment="center"]):has(:is(.site-field, input:not([type="hidden"]), select)) > .site-button:not(:where(.site-button-icon, .site-button-link, .site-button-ghost)) {
+    --ui-box-action-height: var(--ui-field-action-height);
+    padding-block: var(--ui-field-action-padding, .5rem);
+  }
+}
+
 /* Font specimens alone use menu font families; surrounding site UI stays unchanged. */
 .site-select-trigger[data-font-select] > [data-slot="select-value"] { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-slot="select-content"].site-font-select-content { z-index: 250; width: max(var(--radix-select-trigger-width), 16rem); max-width: calc(100vw - var(--site-space-block)); max-height: min(20rem, var(--radix-select-content-available-height)); }

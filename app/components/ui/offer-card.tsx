@@ -10,8 +10,8 @@ export function OfferCard({ label, options, note }: { label: string; options: Of
     const option = options[0];
     return <div className="site-offer"><article className="site-offer-card" aria-label={label}><div className="site-offer-body"><p className="site-offer-price">{option.price}</p><p className="site-offer-note">{option.priceNote}</p><h3 className="type-content-title mt-6">{option.title}</h3><p className="type-body mt-2 text-zinc-600">{option.description}</p><KeyValueList items={option.features} /><div className="site-offer-actions">{option.actions}</div></div></article>{note ? <div className="site-offer-footnote">{note}</div> : null}</div>;
   }
-  return <div className="site-offer"><Tabs purpose="section" defaultValue={options[0]?.id} className="site-offer-card gap-0">
-    <TabsList size="md" distribution="equal" className="site-offer-tabs" aria-label={label}>{options.map(option=><TabsTrigger key={option.id} value={option.id}>{option.label}</TabsTrigger>)}</TabsList>
+  return <div className="site-offer"><Tabs purpose="page" defaultValue={options[0]?.id} className="site-offer-card gap-0">
+    <TabsList size="md" className="site-offer-tabs" aria-label={label}>{options.map(option=><TabsTrigger key={option.id} value={option.id}>{option.label}</TabsTrigger>)}</TabsList>
     {options.map(option=><TabsContent key={option.id} value={option.id} className="site-offer-body"><p className="site-offer-price">{option.price}</p><p className="site-offer-note">{option.priceNote}</p><h3 className="type-content-title mt-6">{option.title}</h3><p className="type-body mt-2 text-zinc-600">{option.description}</p><KeyValueList items={option.features} /><div className="site-offer-actions">{option.actions}</div></TabsContent>)}
   </Tabs>{note ? <div className="site-offer-footnote">{note}</div> : null}</div>;
 }

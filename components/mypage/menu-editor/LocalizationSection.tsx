@@ -1051,7 +1051,7 @@ function LocalizationSectionContent({
                             retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
                           })
                         }
-                        className={basic ? "site-button site-button-ai site-button-compact" : "site-button site-button-outline mt-2 inline-flex w-full items-center justify-center"}
+                        className={basic ? "site-button site-button-ai site-button-compact" : "site-button site-button-outline mt-2"}
                       >
                         {isPending ? (
                           <>
@@ -1138,7 +1138,7 @@ function LocalizationSectionContent({
               ))}
             </TabsList>
             <TabsContent value={activeLocale}>
-              <Tabs purpose="section" value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="mt-4">
+              <Tabs purpose="category" value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="mt-4">
                 <TabsList size="sm" aria-label="번역 항목 선택">
                   {translationTargetGroups.map((group) => (
                     <TabsTrigger key={group} value={group}>{translationTargetLabels[group]}</TabsTrigger>

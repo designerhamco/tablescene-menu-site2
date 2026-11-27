@@ -2886,7 +2886,7 @@ export default function ApplyOrderForm({
                   !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
                   (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
                 }
-                className="site-button site-button-outline mt-3 inline-flex w-full items-center justify-center"
+                className="site-button site-button-outline mt-3"
               >
                 결제창 없이 후처리만 재시도
               </button>
@@ -2909,7 +2909,7 @@ export default function ApplyOrderForm({
             onClick={handlePayment}
             disabled={paymentButtonDisabled}
             data-purpose="primary-action"
-            className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
+            data-button-width="full" className="site-button site-button-primary mt-6"
           >
             {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 첫 달 체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
           </button>
@@ -3171,7 +3171,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
           ))}
         </div>
         <div className="border-t border-zinc-100 p-6">
-          <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center">
+          <button type="button" onClick={onClose} className="site-button site-button-primary">
             확인
           </button>
         </div>

@@ -69,7 +69,7 @@ export default function PricingPage() {
                     <Link
                       href={plan.href}
                       data-purpose="primary-action"
-                      className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
+                      className="site-button site-button-primary mt-6"
                     >
                       {plan.cta}
                     </Link>

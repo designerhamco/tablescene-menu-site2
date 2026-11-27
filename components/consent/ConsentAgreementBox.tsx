@@ -112,7 +112,7 @@ export function ConsentAgreementBox<T extends string>({
               {activeItem.detail}
             </div>
             <div className="border-t border-zinc-100 p-6">
-              <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center">
+              <button type="button" onClick={onClose} className="site-button site-button-primary">
                 확인
               </button>
             </div>

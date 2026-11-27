@@ -96,7 +96,7 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
             autoComplete="name"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
+            className="site-field w-full"
             placeholder="강남 비스트로"
           />
         </div>
@@ -113,7 +113,7 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
+            className="site-field w-full"
             placeholder="owner@example.com"
           />
         </div>
@@ -147,7 +147,8 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
         <button
           type="submit"
           disabled={!canSubmit}
-          className="site-button site-button-primary site-button-lg w-full"
+          data-button-width="full"
+          className="site-button site-button-primary site-button-lg"
         >
           이메일로 가입하기
         </button>

@@ -132,7 +132,7 @@ function ItemDialog({ item, remaining, close, add, restoreFocus }: {
             <span className="type-label">수량</span>
             <Quantity name={item.name} value={quantity} maximum={Math.min(POSTPAY_ORDER_MAX_LINE_UNITS, remaining)} change={setQuantity} />
           </div>
-          <Button type="submit" disabled={!valid || remaining < quantity} className="w-full">담기 · {won(unitPrice * quantity)}</Button>
+          <Button type="submit" disabled={!valid || remaining < quantity} buttonWidth="full">담기 · {won(unitPrice * quantity)}</Button>
         </form>
       </DialogContent>
     </Dialog>

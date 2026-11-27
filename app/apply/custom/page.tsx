@@ -54,7 +54,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="site-field mt-2 w-full"
       />
     </label>
   );
@@ -83,7 +83,7 @@ function SelectField({
         name={name}
         required={required}
         defaultValue=""
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="site-field mt-2 w-full"
       >
         <option value="">{label === "업종" ? "업종을 선택해주세요" : "선택해주세요"}</option>
         {options.map((option) => (
@@ -170,7 +170,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                   required
                   rows={7}
                   placeholder="브랜드 방향, 필요한 화면, 메뉴 구성, 인터랙션 아이디어, 제작 범위 등을 자유롭게 남겨주세요."
-                  className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold leading-relaxed text-zinc-950 outline-none transition focus:border-zinc-950"
+                  className="site-field mt-2 w-full"
                 />
               </label>
             </section>
@@ -184,7 +184,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                 <button
                   type="submit"
                   data-purpose="primary-action"
-                  className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
+                  data-button-width="full" className="site-button site-button-primary mt-6"
                 >
                   견적 문의하기
                 </button>

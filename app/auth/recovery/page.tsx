@@ -33,7 +33,8 @@ export default async function PasswordRecoveryVerificationPage({
                 <input type="hidden" name="type" value="recovery" />
                 <button
                   type="submit"
-                  className="site-button site-button-primary site-button-lg w-full"
+                  data-button-width="full"
+                  className="site-button site-button-primary site-button-lg"
                 >
                   비밀번호 재설정 계속하기
                 </button>
@@ -45,7 +46,7 @@ export default async function PasswordRecoveryVerificationPage({
                 </div>
                 <Link
                   href="/forgot-password"
-                  className="site-button site-button-primary site-button-lg w-full"
+                  className="site-button site-button-primary site-button-lg"
                 >
                   재설정 메일 다시 받기
                 </Link>

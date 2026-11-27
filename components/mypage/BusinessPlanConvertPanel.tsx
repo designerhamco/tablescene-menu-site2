@@ -460,7 +460,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           type="button"
           onClick={startConversionBilling}
           disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
-          className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
+          data-button-width="full" className="site-button site-button-primary mt-6"
         >
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
