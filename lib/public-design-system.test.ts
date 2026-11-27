@@ -189,8 +189,9 @@ test("mobile footer keeps contact entry points while shortening its disclosure l
   assert.match(footerSource, /\["1:1 문의", "\/mypage\/inquiries"\]/);
   assert.match(footerSource, /className=\{styles\.businessContact\}/);
   assert.match(footerSource, /href="tel:01036460642"/);
-  assert.match(footerSource, /href="mailto:admin@dndcommerce\.co\.kr"/);
+  assert.match(footerSource, /const supportEmail = "admin@dndcommerce\.co\.kr"/);
+  assert.match(footerSource, /href=\{`mailto:\$\{supportEmail\}`\}/);
   assert.match(css, /\.group ul \{ grid-template-columns: minmax\(0, 1fr\); gap: 0;/);
-  assert.match(css, /\.group li a, \.legal a, \.businessContact a \{ min-height: var\(--ui-control-height-header\);/);
+  assert.match(css, /\.group li a, \.legal a, \.businessContact a, \.companyLink \{ min-height: var\(--ui-control-height-header\);/);
   assert.match(css, /padding: var\(--site-space-detail\) 0 var\(--site-space-title-copy\)/);
 });
