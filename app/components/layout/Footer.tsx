@@ -22,7 +22,9 @@ function FooterLinkList({ links }: { links: readonly (readonly [string, string])
 
 const mobileGroups = groups.map(group => ({
   ...group,
-  links: group.title === "이용 안내" ? [...group.links.filter(([, href]) => href !== "/mypage"), ["1:1 문의", "/mypage/inquiries"] as const] : group.links,
+  links: group.title === "이용 안내"
+    ? [...group.links.filter(([, href]) => href !== "/mypage"), ["1:1 문의", "/mypage/inquiries"] as const, ["AI 상담", "/support/chat"] as const]
+    : group.links,
 }));
 
 const supportEmail = "admin@dndcommerce.co.kr";
@@ -72,7 +74,10 @@ const Footer = () => {
               <section className={`${styles.business} ${styles.support}`} aria-labelledby="footer-support-title">
                 <h2 id="footer-support-title" className="type-content-title">고객지원</h2>
                 <a href="tel:01036460642">010-3646-0642</a>
-                <Link href="/mypage/inquiries" className={styles.inquiry}>1:1 문의하기 <ArrowUpRight size={16} aria-hidden="true" /></Link>
+                <nav className="site-action-row" aria-label="고객지원 바로가기">
+                  <Link href="/mypage/inquiries" className={styles.supportLink}>1:1 문의하기 <ArrowUpRight size={16} aria-hidden="true" /></Link>
+                  <Link href="/support/chat" className={styles.supportLink}>AI 상담 <ArrowUpRight size={16} aria-hidden="true" /></Link>
+                </nav>
               </section>
             </div>
             <div className={styles.mobileSections} aria-label="푸터 상세 메뉴">
