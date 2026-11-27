@@ -11,7 +11,7 @@ import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
 import RoomNameForm from "./RoomNameForm";
 import FloorPlanDesktopNotice from "./FloorPlanDesktopNotice";
-import {RoomLabel} from "@/app/components/ui/room-label";
+import { RoomTabs } from "@/app/components/ui/room-tabs";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
@@ -19,7 +19,6 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/app/components/ui/alert-dialog";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Button } from "@/app/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import { type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { EmptyState } from "@/app/components/ui/empty-state";
@@ -64,7 +63,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const [roomAddPending, setRoomAddPending] = useState(false);
   const [focusRoomNameId,setFocusRoomNameId]=useState("");
   const pending = layoutPending || renamePending || registrationPending;
-  const gesture = useRef<Gesture | null>(null), boardRef = useRef<HTMLDivElement>(null), roomListRef = useRef<HTMLDivElement>(null);
+  const gesture = useRef<Gesture | null>(null), boardRef = useRef<HTMLDivElement>(null);
   const roomAddRef = useRef<HTMLButtonElement>(null);
   const helpId = useId(), placementHelpId = useId(), transferId = useId();
   const placementSelectRef = useRef<HTMLSelectElement>(null);
@@ -104,15 +103,6 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     : !room ? "‘룸 추가’로 공간을 먼저 만들어 주세요. 룸을 만든 뒤 테이블·키오스크를 배치할 수 있습니다."
       : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 새 ${noun}${objectParticle} 등록하거나 PC에서 기존 영역을 이동해 주세요.`
         : `배치할 ${noun}${objectParticle} 고른 뒤 ‘바로 배치’를 누르세요. 위치 편집은 PC에서 할 수 있으며 모바일에서는 같은 크기의 카드로 확인합니다.`;
-
-  useEffect(() => {
-    const list = roomListRef.current;
-    const item = list?.querySelector('[data-state="active"]');
-    if (!list || !item) return;
-    const bounds = list.getBoundingClientRect(), target = item.getBoundingClientRect();
-    if (target.left < bounds.left || target.width > bounds.width) list.scrollLeft += target.left - bounds.left;
-    else if (target.right > bounds.right) list.scrollLeft += target.right - bounds.right;
-  }, [room?.id]);
 
   useEffect(() => { if (selectedId && !points.some(point => point.id === selectedId)) placementSelectRef.current?.focus(); }, [points, selectedId]);
 
@@ -390,13 +380,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   if (!initial.available) return <div className="site-stack-group">{registrationPanel}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요."}</p></ContentPanel></div>;
   return <>
     <ActionFeedbackToast message={feedback?.error === false ? feedback.message : undefined} eventKey={feedback} />
-    <Tabs purpose="section" appearance={roomManagement ? "document" : "rooms"} value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setTargetRoomId(""); clearSelection(); setEditMode(false); setRemoveRoom(false); }}>
-    <div className={roomManagement ? "site-floor-room-tabs" : "site-stack-group"}>
-      <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" actionPlacement="start" action={<Tooltip><TooltipTrigger asChild><Button iconAppearance="framed" ref={roomAddRef} type="button" variant="outline" shape="rounded" size="icon" onClick={addRoom} disabled={pending || Boolean(layoutLock) || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
-        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={pending} aria-busy={renamePending&&room?.id===r.id}>{<RoomLabel name={r.name || "이름 없는 룸"} emoji={r.emoji}/>}
-        {renamePending&&room?.id===r.id?<LoadingSpinner/>:null}</TabsTrigger>)}
-      </TabsList>
-    <TabsContent value={room?.id ?? ""}>
+    <RoomTabs label="매장 공간" rooms={document.rooms} value={room?.id ?? ""} disabled={pending} busyRoomId={renamePending ? room?.id : undefined}
+      onValueChange={value => { setRoomId(value); setTargetRoomId(""); clearSelection(); setEditMode(false); setRemoveRoom(false); }}
+      action={<Tooltip><TooltipTrigger asChild><Button iconAppearance="framed" ref={roomAddRef} type="button" variant="outline" shape="rounded" size="icon" onClick={addRoom} disabled={pending || Boolean(layoutLock) || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
     <div className="site-stack-group">
     {layoutLock && !registrationContent && <p className="type-body-sm site-copy-muted" role="status">{layoutLock}</p>}
     {!roomManagement && registrationPanel}
@@ -442,7 +428,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       </div>
       <p id={helpId} className={roomManagement ? "sr-only" : "type-footnote site-copy-muted"} role="status">{selectedPoint ? `${selectedPoint.label} 선택됨 · ${mobile ? "모바일에서는 위치를 편집할 수 없습니다." : "영역을 끌거나 방향키로 이동할 수 있습니다. 크기는 모든 테이블·키오스크가 같습니다."}` : "이동할 테이블·키오스크 영역을 선택해 주세요."}</p>
     </>}>
-      {!room ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="배치할 공간을 만들어 주세요" description="‘룸 추가’로 공간을 만들면 등록된 테이블·키오스크의 영역을 배치할 수 있습니다." /> : <FloorPlanViewport name={room.name} inlineTools={roomManagement && Boolean(room.gridSize)}><FloorPlanCanvas ref={boardRef} data-mobile-cards="true" name={room.name} gridSize={room.gridSize} aspectRatio={roomManagement && room.gridSize ? 6 / 5 : FLOOR_PLAN_DISPLAY_ASPECT_RATIO} editing={editing} onPointerDown={event => { if (event.target === event.currentTarget) clearSelection(); }} aria-describedby={helpId} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
+      {!room ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="배치할 공간을 만들어 주세요" description="‘룸 추가’로 공간을 만들면 등록된 테이블·키오스크의 영역을 배치할 수 있습니다." /> : <FloorPlanViewport name={room.name}><FloorPlanCanvas ref={boardRef} data-mobile-cards="true" name={room.name} gridSize={room.gridSize} editing={editing} onPointerDown={event => { if (event.target === event.currentTarget) clearSelection(); }} aria-describedby={helpId} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
         {roomPlacements.map(p => {
           const point = visiblePoints.find(point => point.id === p.pointId)!;
           return <FloorPlanObject key={p.pointId} rect={p} label={point.label} typeLabel={point.kind === "kiosk" ? "키오스크" : "테이블"} labelRole={roomManagement ? "item-title" : undefined} icon={roomManagement ? undefined : point.kind === "kiosk" ? <Monitor /> : <Armchair />} pointKind={point.kind ?? "table"}
@@ -502,8 +488,6 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       {pending ? <LoadingState inline label={roomAddPending ? "룸을 추가하고 있습니다." : renamePending ? "룸 이름을 저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
     </div>
     </div>
-    </TabsContent>
-  </div>
-  </Tabs>
+    </RoomTabs>
   </>;
 }

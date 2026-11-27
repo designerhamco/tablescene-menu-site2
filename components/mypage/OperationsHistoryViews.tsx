@@ -4,7 +4,7 @@ import {readableFloorDocument} from "@/lib/menu-floor-plan";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import {SectionHeader} from "@/app/components/ui/section-header";
 import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
-import {RoomLabel} from "@/app/components/ui/room-label";
+import {RoomTabs} from "@/app/components/ui/room-tabs";
 import {useOperationsView} from "./OperationsViewLayout";
 import { useRef, useState, type ReactNode } from "react";
 import { Armchair, Monitor } from "@/app/components/ui/site-icon";
@@ -14,18 +14,11 @@ import {
   FloorPlanObject,
 } from "@/app/components/ui/floor-plan-canvas";
 import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/app/components/ui/tabs";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/app/components/ui/dialog";
-import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO } from "@/lib/menu-floor-plan";
 import {
   groupOperationHistory,
   getHistoryPlacements,
@@ -125,27 +118,12 @@ export default function OperationsHistoryViews({
                 </div>
               </ContentPanel>
             ) : (
-              <Tabs
-                purpose="section"
-                appearance="rooms"
-                value={room.id}
-                onValueChange={setRoomId}
-              >
-                <div className="site-stack-group">
-                <TabsList size="sm" aria-label={`${noun} 내역 룸`}>
-                  {floorPlan.document.rooms.map((item) => (
-                    <TabsTrigger key={item.id} value={item.id}>
-                      <RoomLabel name={item.name} emoji={item.emoji}/>
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                <TabsContent value={room.id}>
-                  <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
+              <RoomTabs label={`${noun} 내역 룸`} rooms={floorPlan.document.rooms} value={room.id} onValueChange={setRoomId}>
+                  <ContentPanel as="section" layout="canvas" data-room-tabs-surface aria-label={`${room.name} ${noun} 배치도`}>
+                    <div className="site-floor-workspace-canvas">
                     <FloorPlanViewport name={room.name}><FloorPlanCanvas
                       data-mobile-cards="true" gridSize={room.gridSize}
                       name={room.name}
-                      data-order-cards={noun === "주문" || undefined}
-                      aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
                     >
                       {placements
                         .filter((item) => item.roomId === room.id)
@@ -182,6 +160,7 @@ export default function OperationsHistoryViews({
                             <FloorPlanObject
                               key={point.id}
                               rect={placement}
+                              pointKind={point.kind ?? "table"}
                               label={point.label}
                               typeLabel={
                                 point.kind === "kiosk" ? "키오스크" : "테이블"
@@ -214,10 +193,9 @@ export default function OperationsHistoryViews({
                           );
                         })}
                     </FloorPlanCanvas></FloorPlanViewport>
-                  </section>
-                </TabsContent>
-                </div>
-              </Tabs>
+                    </div>
+                  </ContentPanel>
+              </RoomTabs>
             )}
             {unplaced.length ? (
               <ContentPanel aria-label={`배치되지 않은 ${noun} 내역`}>

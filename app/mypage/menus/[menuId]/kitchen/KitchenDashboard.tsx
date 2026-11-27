@@ -9,6 +9,7 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { BarChart3, PrinterFill, X } from "@/app/components/ui/site-icon";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { RoomTabs } from "@/app/components/ui/room-tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import OrderReceipt from "@/components/mypage/OrderReceipt";
 import {
@@ -67,7 +68,7 @@ export default function KitchenDashboard({
   menuSiteId: string;
   menuSiteName: string;
   orders: KitchenOrder[];
-  rooms?: { id: string; name: string }[];
+  rooms?: { id: string; name: string; emoji?: string }[];
   roomIdByTable?: Record<string, string>;
   canManage: boolean;
   receptionControl?: ReactNode;
@@ -197,19 +198,12 @@ export default function KitchenDashboard({
         document.body,
       )}
       <div className="print:hidden">
-        {rooms.length > 0 && (
-          <Tabs purpose="section" appearance="rooms" value={activeRoom} onValueChange={value => {
-            setRoomFilter(value);
-            setMenuFilter(null);
-            setSelection([]);
-          }}>
-            <TabsList aria-label="룸 선택">
-              <TabsTrigger value="all" aria-controls={boardId}>모든 룸</TabsTrigger>
-              {rooms.map(room => <TabsTrigger key={room.id} value={room.id} aria-controls={boardId}>{room.name}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
-        )}
-        <div className={styles.workspace}>
+        <RoomTabs label="룸 선택" rooms={rooms} includeAll value={activeRoom} onValueChange={value => {
+          setRoomFilter(value);
+          setMenuFilter(null);
+          setSelection([]);
+        }}>
+        <div className={styles.workspace} data-room-tabs-surface>
           <div className={styles.viewBar}>
             <div className="site-action-row" data-distribution="between">
               <Tabs purpose="state" value={view} onValueChange={setView}>
@@ -344,6 +338,7 @@ export default function KitchenDashboard({
             </div>
           </footer>
         </div>
+        </RoomTabs>
       </div>
       <AlertDialog open={returnIds.length > 0} onOpenChange={open => { if (!open) setReturnIds([]); }}>
         <AlertDialogContent>

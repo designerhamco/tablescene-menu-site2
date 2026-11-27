@@ -32,7 +32,7 @@ export default function ControlStateExamples() {
   const [viewerPage, setViewerPage] = useState(2);
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">일반 실행·이동 버튼은 문구와 아이콘을 감쌉니다. 크기는 소 32px·터치 40px, 중 44px, 대 48px입니다. 로그인 폼과 템플릿 상세의 가격·시작 버튼은 각 영역의 전체 폭을 사용합니다.</p>
+      <p className="type-body text-zinc-600">일반 실행·이동 버튼은 문구와 아이콘을 감쌉니다. 크기는 소 32px·터치 40px, 중 44px, 대 48px입니다. 로그인 폼과 템플릿 상세의 가격·시작 버튼은 영역 전체 폭을 사용합니다. 내 메뉴판의 카드 작업 네 개는 같은 폭의 두 열로 정렬합니다.</p>
     </div>
     <p className="type-body-sm site-copy-muted">아이콘의 표현과 클릭 영역은 분리합니다. 불필요한 장식은 생략하고 버튼 식별에 필요한 형태·중앙 정렬·포커스는 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>

@@ -1,11 +1,22 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import { RoomTabs } from "@/app/components/ui/room-tabs";
 import { Plus } from "@/app/components/ui/site-icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import HintBubble from "@/components/ui/HintBubble";
 import styles from "./SiteComponentGallery.module.css";
 
+const exampleRooms = [
+  { id: "room1", name: "룸 1" },
+  { id: "room2", name: "룸 2" },
+];
+
 export default function ShapedTabExamples() {
+  const [roomId, setRoomId] = useState(exampleRooms[0].id);
+  const room = exampleRooms.find(item => item.id === roomId) ?? exampleRooms[0];
   return <section className={styles.section} id="shaped-tabs" aria-labelledby="shaped-tabs-title">
     <h2 className="type-section-title" id="shaped-tabs-title">화면·작업 영역·목록 전환 예시</h2>
     <div className="site-stack-block">
@@ -23,17 +34,10 @@ export default function ShapedTabExamples() {
     </div>
     <div className="site-stack-block">
       <div className={styles.heading}><h3 className="type-content-title">룸 관리 · 콘텐츠 연결형 탭</h3><p className="type-body-sm site-copy-muted">선택한 룸의 흰 바탕이 아래 작업 영역과 이어집니다.</p></div>
-      <Tabs purpose="section" appearance="document" defaultValue="room1">
-        <div className="site-floor-room-tabs">
-          <TabsList size="sm" aria-label="문서형 룸 탭 예시" actionPlacement="start"
-            action={<Button variant="outline" shape="rounded" size="icon" iconAppearance="framed" disabled aria-label="룸 추가"><Plus aria-hidden="true" /></Button>}>
-            <TabsTrigger value="room1">룸 1</TabsTrigger>
-            <TabsTrigger value="room2">룸 2</TabsTrigger>
-          </TabsList>
-          <TabsContent value="room1"><ContentPanel data-floor-room-management><p className="type-body-sm">룸 1의 배치를 편집하는 영역입니다.</p></ContentPanel></TabsContent>
-          <TabsContent value="room2"><ContentPanel data-floor-room-management><p className="type-body-sm">룸 2의 배치를 편집하는 영역입니다.</p></ContentPanel></TabsContent>
-        </div>
-      </Tabs>
+      <RoomTabs label="문서형 룸 탭 예시" rooms={exampleRooms} value={room.id} onValueChange={setRoomId}
+        action={<Button variant="outline" shape="rounded" size="icon" iconAppearance="framed" disabled aria-label="룸 추가"><Plus aria-hidden="true" /></Button>}>
+        <ContentPanel data-room-tabs-surface><p className="type-body-sm">{room.name}의 배치를 편집하는 영역입니다.</p></ContentPanel>
+      </RoomTabs>
     </div>
     <div className="site-stack-block">
       <div className={styles.heading}><h3 className="type-content-title">내 메뉴판 · 상태 필터</h3><p className="type-body-sm site-copy-muted">같은 메뉴판 목록의 조회 범위를 바꿉니다. 현재 값은 검정 채움으로 표시하고 건수는 보조 크기로 둡니다.</p></div>

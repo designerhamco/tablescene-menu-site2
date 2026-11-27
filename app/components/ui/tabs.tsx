@@ -6,7 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "./utils";
 
 export type TabsSize = "sm" | "md" | "lg";
-export type TabsVariant = "outline" | "underline" | "area" | "page" | "document" | "rooms";
+export type TabsVariant = "outline" | "underline" | "area" | "page" | "document";
 export type TabsPurpose = "page" | "section" | "category" | "state";
 
 const purposeVariant: Record<TabsPurpose, TabsVariant> = {
@@ -24,7 +24,7 @@ function Tabs({
   purpose,
   appearance,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root> & ({ purpose: "section"; appearance?: "document" | "rooms"; variant?: never } | { purpose: Exclude<TabsPurpose, "section">; appearance?: never; variant?: never } | { purpose?: never; appearance?: never; variant: TabsVariant })) {
+}: React.ComponentProps<typeof TabsPrimitive.Root> & ({ purpose: "section"; appearance?: "document"; variant?: never } | { purpose: Exclude<TabsPurpose, "section">; appearance?: never; variant?: never } | { purpose?: never; appearance?: never; variant: TabsVariant })) {
   const resolvedVariant = appearance ?? variant ?? (purpose ? purposeVariant[purpose] : "underline");
   return (
     <TabsPurposeContext.Provider value={purpose}>
@@ -63,29 +63,27 @@ function TabsList({
   const scrollRef=React.useRef<HTMLDivElement>(null);
   const [overflowRight,setOverflowRight]=React.useState(false);
   const leadingDocumentAction = variant === "document" && actionPlacement === "start";
-  const showOverflow = variant === "rooms" || leadingDocumentAction;
   React.useEffect(()=>{
     const node=scrollRef.current;
-    if(!showOverflow||!node)return;
+    if(!leadingDocumentAction||!node)return;
     let active=true;
     const measure=()=>{if(active)setOverflowRight(node.clientWidth>0&&node.scrollWidth-node.scrollLeft>node.clientWidth+1);};
     measure();const observer=new ResizeObserver(measure);observer.observe(node);
     for(const child of node.children)observer.observe(child);
     node.addEventListener("scroll",measure,{passive:true});void document.fonts.ready.then(measure);
     return()=>{active=false;observer.disconnect();node.removeEventListener("scroll",measure);};
-  },[showOverflow,children]);
+  },[leadingDocumentAction,children]);
   const list = <TabsPrimitive.List
     ref={node=>{scrollRef.current=node;if(typeof ref==="function")ref(node);else if(ref)ref.current=node;}}
-    data-overflow-right={showOverflow&&overflowRight||undefined}
+    data-overflow-right={leadingDocumentAction&&overflowRight||undefined}
     data-slot="tabs-list" data-variant={variant} data-purpose={purpose}
     data-size={size === "default" ? "md" : size}
     className={cn(
-      variant === "rooms" ? "site-room-tabs" : variant === "document" ? "site-document-tabs" : variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
+      variant === "document" ? "site-document-tabs" : variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
       variant === "outline" && "site-tabs-outline", variant === "page" && "site-page-tabs",
       distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant !== "underline" && variant !== "document" && "site-tabs-even"),
       `site-tab-size-${size === "default" ? "md" : size}`, className,
     )} {...props}>{children}</TabsPrimitive.List>;
-  if(variant==="rooms")return <div className="site-room-tabs-header" data-size={size === "default" ? "md" : size}>{action}{list}</div>;
   return variant === "document" ? <div className={`site-document-tabs-header site-tab-size-${size === "default" ? "md" : size}`} data-action-placement={actionPlacement}>
     <div className="site-document-tabs-bar">
       {leadingDocumentAction ? action : null}
@@ -110,7 +108,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       data-purpose={purpose}
       className={cn(
-        variant === "rooms" ? "site-tab site-room-tab" : variant === "document" ? "site-document-tab" : variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
+        variant === "document" ? "site-document-tab" : variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
         "gap-1.5",
         className,
       )}

@@ -127,12 +127,43 @@ try {
     await expect(roomTabBody).toHaveCSS("border-bottom-color", "rgb(255, 255, 255)");
     const roomPanel = section.getByRole("tabpanel", { name: "룸 2" });
     await expect(roomPanel).toContainText("룸 2의 배치를 편집하는 영역입니다.");
-    await expect(roomPanel.locator("[data-floor-room-management]")).toHaveCSS("border-top-width", "0px");
+    await expect(roomPanel.locator("[data-room-tabs-surface]")).toHaveCSS("border-top-width", "0px");
     await expect.poll(() => roomTabBody.evaluate(tabBody => {
       const stack = tabBody.closest(".site-floor-room-tabs");
       const panel = stack.querySelector('[role="tabpanel"][data-state="active"]');
       return Math.round(tabBody.getBoundingClientRect().bottom - panel.getBoundingClientRect().top);
     })).toBe(0);
+    const operationRoomLists = page.getByRole("tablist", { name: /^(매장 공간|주문 내역 룸)$/ });
+    await expect(operationRoomLists).toHaveCount(4);
+    for (const list of await operationRoomLists.all()) await expect(list).toHaveAttribute("data-variant", "document");
+    const multiRoomLists = operationRoomLists.filter({ has: page.getByRole("tab", { name: /^테라스/ }) });
+    await expect(multiRoomLists).toHaveCount(3);
+    const gridAppearance = [];
+    for (const list of await multiRoomLists.all()) {
+      const activeRoom = list.getByRole("tab", { selected: true });
+      await expect(activeRoom).toHaveCSS("font-size", "16px");
+      await expect(activeRoom.locator("..")).toHaveCSS("border-bottom-color", "rgb(255, 255, 255)");
+      const root = list.locator("xpath=ancestor::*[contains(@class,'site-floor-room-tabs')][1]");
+      const panel = root.getByRole("tabpanel");
+      await expect(panel.locator("[data-room-tabs-surface]")).toHaveCSS("border-top-width", "0px");
+      const grid = panel.locator(".site-floor-canvas");
+      await expect(grid).toHaveAttribute("data-floor-grid", "5");
+      gridAppearance.push(await grid.evaluate(el => ({
+        ratio: getComputedStyle(el).aspectRatio,
+        dots: getComputedStyle(el, "::before").backgroundImage,
+        tableRadius: getComputedStyle(el.querySelector('[data-point-kind="table"]')).borderRadius,
+        kioskRadius: getComputedStyle(el.querySelector('[data-point-kind="kiosk"]')).borderRadius,
+      })));
+      const otherRoom = list.getByRole("tab", { name: /^테라스/ });
+      await otherRoom.click();
+      await expect(otherRoom).toHaveAttribute("aria-selected", "true");
+      await expect(panel.getByRole("group", { name: /^테라스.*배치도$/ })).toBeVisible();
+    }
+    assert.deepEqual(gridAppearance[1], gridAppearance[0]);
+    assert.deepEqual(gridAppearance[2], gridAppearance[0]);
+    assert.equal(gridAppearance[0].tableRadius, "0px");
+    assert.equal(gridAppearance[0].kioskRadius, "12px");
+    if (width >= 768) assert.ok(gridAppearance[0].dots.startsWith("repeating-linear-gradient"));
     const designSystemOverflow = await noOverflow(page);
     await section.screenshot({ path: `${output}/library-${width}.png` });
     const notificationTabs = page.getByRole('tablist', { name: '알림 분류' });
