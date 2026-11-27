@@ -4,10 +4,16 @@ import Link from "next/link";
 import { Coins, PanelsTopLeft, QrCode } from "@/app/components/ui/site-icon";
 import { ArrowUp, ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { LoadingState } from "@/app/components/ui/loading-state";
-import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";
+import {
+  AI_SUPPORT_CHAT_ACCESS_PATH,
+  AI_SUPPORT_CHAT_MAX_INPUT_LENGTH,
+  type AiSupportChatAccess,
+  type AiSupportChatResponse,
+} from "@/lib/ai-support-chat";
 import styles from "./ai-support-chat.module.css";
 
 type Message = { role: "user" | "assistant"; text: string };
@@ -18,14 +24,67 @@ const SUGGESTIONS = [
   { icon: Coins, text: "AI 크레딧은 언제, 얼마나 사용되나요?" },
 ] as const;
 
+const resetTime = new Intl.DateTimeFormat("ko-KR", {
+  month: "long",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "Asia/Seoul",
+});
+
+async function readAccess(signal?: AbortSignal): Promise<AiSupportChatAccess> {
+  try {
+    const response = await fetch(AI_SUPPORT_CHAT_ACCESS_PATH, { cache: "no-store", signal });
+    const payload: AiSupportChatResponse = await response.json();
+    if (payload.access) return payload.access;
+  } catch {
+    // An unavailable status keeps the composer closed until a successful retry.
+  }
+  return { status: "unavailable" };
+}
+
 export default function AiSupportChat({ compact = false }: { compact?: boolean }) {
   const inputId = useId();
   const messageViewportRef = useRef<HTMLDivElement>(null);
+  const pendingRequest = useRef(false);
+  const [access, setAccess] = useState<AiSupportChatAccess | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [overseasTransferConsent, setOverseasTransferConsent] = useState(false);
+
+  const refreshAccess = useCallback((signal?: AbortSignal) => {
+    void readAccess(signal).then((currentAccess) => {
+      if (!signal?.aborted) setAccess(currentAccess);
+    });
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    refreshAccess(controller.signal);
+    return () => controller.abort();
+  }, [refreshAccess]);
+
+  const nextCheckAt = access?.status === "limited" ? access.resetAt : access?.status === "busy" ? access.retryAt : null;
+  useEffect(() => {
+    if (!nextCheckAt) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(
+      () => refreshAccess(controller.signal),
+      Math.max(1_000, Date.parse(nextCheckAt) - Date.now() + 1_000),
+    );
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [nextCheckAt, refreshAccess]);
+
+  function retryAccess() {
+    setAccess(null);
+    setError("");
+    refreshAccess();
+  }
 
   useEffect(() => {
     const viewport = messageViewportRef.current;
@@ -39,15 +98,16 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
     });
 
     return () => window.cancelAnimationFrame(animationFrame);
-  }, [error, messages, pending]);
+  }, [access?.status, error, messages, pending]);
 
   const submitQuestion = async (value: string) => {
     const normalized = value.trim();
-    if (!normalized || pending) return;
+    if (!normalized || pendingRequest.current || access?.status !== "ready") return;
     if (!overseasTransferConsent) {
       setError("AI 상담을 이용하려면 국외 이전 안내를 확인하고 동의해 주세요.");
       return;
     }
+    pendingRequest.current = true;
     setPending(true);
     setError("");
     setQuestion("");
@@ -58,18 +118,23 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: normalized, overseasTransferConsent }),
       });
-      const payload = await response.json().catch(() => null) as { answer?: string; error?: string } | null;
+      const payload: AiSupportChatResponse | null = await response.json().catch(() => null);
       const answer = payload?.answer;
+      const nextAccess = payload?.access;
+      if (nextAccess) setAccess(nextAccess);
       if (!response.ok || !answer) {
-        if (response.status === 429) {
-          throw new Error("질문이 잠시 많습니다. 10분 뒤 다시 이용하거나 1:1 문의를 남겨 주세요.");
+        if (nextAccess?.status !== "limited" && nextAccess?.status !== "sign-in" && nextAccess?.status !== "busy") {
+          setError(payload?.error || (response.status === 429
+            ? "질문이 잠시 많습니다. 잠시 후 다시 이용해 주세요."
+            : "답변을 불러오지 못했습니다."));
         }
-        throw new Error(payload?.error || "답변을 불러오지 못했습니다.");
+        return;
       }
       setMessages((current) => [...current, { role: "assistant", text: answer }]);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "AI 상담을 이용하지 못했습니다.");
     } finally {
+      pendingRequest.current = false;
       setPending(false);
     }
   };
@@ -88,43 +153,74 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         aria-label="AI 상담 대화"
         aria-live="polite"
       >
-        {messages.length === 0 ? (
-          <div className={styles.welcome}>
-            <h2 className="type-subsection-title">안녕하세요.<br />무엇을 도와드릴까요?</h2>
-            <p className={`type-body-sm ${styles.subtitle}`}>아티메뉴 이용 방법을 물어보세요.</p>
-            <p className={`type-caption ${styles.suggestionLabel}`}>이런 질문은 어떠세요?</p>
-            <div className={styles.suggestions}>
-              {SUGGESTIONS.map(({ icon: Icon, text }) => (
-                <Button
-                  key={text}
-                  type="button"
-                  variant="outline"
-                  onClick={() => void submitQuestion(text)}
-                  disabled={pending || !overseasTransferConsent}
-                  className={styles.suggestion}
-                >
-                  <Icon size={16} aria-hidden="true" /><span>{text}</span><ArrowUpRight size={14} aria-hidden="true" />
-                </Button>
-              ))}
+        <div className="site-stack-group">
+          {messages.length === 0 && access?.status === "ready" ? (
+            <div className={styles.welcome}>
+              <h2 className="type-subsection-title">안녕하세요.<br />무엇을 도와드릴까요?</h2>
+              <p className={`type-body-sm ${styles.subtitle}`}>아티메뉴 이용 방법을 물어보세요.</p>
+              <p className={`type-caption ${styles.suggestionLabel}`}>이런 질문은 어떠세요?</p>
+              <div className={styles.suggestions}>
+                {SUGGESTIONS.map(({ icon: Icon, text }) => (
+                  <Button
+                    key={text}
+                    type="button"
+                    variant="outline"
+                    onClick={() => void submitQuestion(text)}
+                    disabled={pending || !overseasTransferConsent}
+                    className={styles.suggestion}
+                  >
+                    <Icon size={16} aria-hidden="true" /><span>{text}</span><ArrowUpRight size={14} aria-hidden="true" />
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : <div className={styles.messages}>{messages.map((message, index) => message.role === "user" ? (
-          <p key={`user-${index}`} className={`type-body-sm ${styles.userMessage}`}>{message.text}</p>
-        ) : (
-          <div key={`assistant-${index}`} className={styles.assistantMessage}>
-            <p className={`type-caption ${styles.speaker}`}><SupportSparkleIcon width={18} height={18} />아티메뉴 AI</p>
-            <p className={`type-body-sm ${styles.answer}`}>{message.text}</p>
-          </div>
-        ))}</div>}
-        {pending ? <LoadingState label="답변을 확인하고 있습니다…" inline /> : null}
-        {error ? (
-          <div className={`site-notice site-notice-warning type-label px-4 py-3 ${styles.error}`} role="alert">
-            {error} <Link href="/mypage/inquiries" className="underline underline-offset-4">1:1 문의</Link>
-          </div>
-        ) : null}
+          ) : messages.length > 0 ? <div className={styles.messages}>{messages.map((message, index) => message.role === "user" ? (
+            <p key={`user-${index}`} className={`type-body-sm ${styles.userMessage}`}>{message.text}</p>
+          ) : (
+            <div key={`assistant-${index}`} className={styles.assistantMessage}>
+              <p className={`type-caption ${styles.speaker}`}><SupportSparkleIcon width={18} height={18} />아티메뉴 AI</p>
+              <p className={`type-body-sm ${styles.answer}`}>{message.text}</p>
+            </div>
+          ))}</div> : null}
+          {access === null ? <LoadingState label="상담 가능 여부를 확인 중입니다…" /> : null}
+          {pending ? <LoadingState label="답변을 확인하고 있습니다…" inline /> : null}
+          {error ? (
+            <div className="site-notice site-notice-warning type-label px-4 py-3" role="alert">
+              {error}
+            </div>
+          ) : null}
+          {access?.status === "limited" ? (
+            <div className="site-stack-title">
+              <h2 className="type-content-title">이번 AI 상담은 여기까지예요</h2>
+              <p className="type-body-sm">추가 질문은 카카오톡으로 남겨 주세요.</p>
+              <div className="site-action-row">
+                <Button asChild>
+                  <a href={access.kakaoChatUrl} target="_blank" rel="noopener noreferrer">카카오톡으로 문의하기</a>
+                </Button>
+              </div>
+              <p className="type-caption">AI 상담은 {resetTime.format(new Date(access.resetAt))}부터 다시 이용할 수 있어요.</p>
+            </div>
+          ) : null}
+          {access?.status === "sign-in" ? (
+            <div className="site-stack-title">
+              <h2 className="type-content-title">로그인하고 AI 상담을 이용해 주세요</h2>
+              <div className="site-action-row">
+                <Button asChild><Link href="/sign-in?next=%2Fsupport%2Fchat">로그인</Link></Button>
+              </div>
+            </div>
+          ) : null}
+          {access?.status === "busy" || access?.status === "unavailable" ? (
+            <div className="site-stack-title">
+              <h2 className="type-content-title">{access.status === "busy" ? "이미 질문에 답변하고 있어요" : "상담 가능 여부를 확인하지 못했어요"}</h2>
+              <div className="site-action-row">
+                <Button type="button" variant="outline" onClick={retryAccess}>다시 확인</Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className={styles.form}>
+      {access?.status === "ready" ? <form onSubmit={handleSubmit} className={styles.form}>
         <label className={`type-footnote ${styles.consent}`}>
           <input
             type="checkbox"
@@ -157,7 +253,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             id={inputId}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
-            maxLength={500}
+            maxLength={AI_SUPPORT_CHAT_MAX_INPUT_LENGTH}
             placeholder="궁금한 내용을 입력해 주세요"
             className={styles.input}
           />
@@ -174,7 +270,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         <p className={`type-footnote ${styles.privacyNote}`}>
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
         </p>
-      </form>
+      </form> : null}
     </section>
   );
 }
