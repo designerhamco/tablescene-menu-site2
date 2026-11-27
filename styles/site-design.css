@@ -1201,7 +1201,10 @@
   gap: var(--site-space-copy);
   border-block-end-color: var(--ui-border);
 }
-.site-document-tabs-header[data-action-placement="start"] .site-document-tabs { scrollbar-width: none; }
+.site-document-tabs-header[data-action-placement="start"] .site-document-tabs {
+  --site-tab-font: var(--site-type-16);
+  scrollbar-width: none;
+}
 .site-document-tabs-header[data-action-placement="start"] .site-document-tab-item:not(:has(> [data-state="active"])) {
   border-block-end-color: var(--ui-border);
   background: transparent;
