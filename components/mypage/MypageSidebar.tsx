@@ -77,8 +77,8 @@ export function MypageAccountCard({ userId, avatarUrl, name, email, role, aiCred
           ) : null}
         </div>
       ) : null}
-      <form action={signOutAction}>
-        <Button type="submit" variant="outline" className="w-full">로그아웃</Button>
+      <form action={signOutAction} className="site-action-row" data-distribution="end">
+        <Button type="submit" variant="link" data-purpose="navigation">로그아웃</Button>
       </form>
     </ContentPanel>
   );

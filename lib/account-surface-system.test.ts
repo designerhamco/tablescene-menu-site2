@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { createElement as h } from "react";
+import { Fragment, createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { ContentPanel } from "../app/components/ui/content-panel";
@@ -121,10 +121,10 @@ test("menu card action rows preserve order, public navigation and disabled QR ac
   const html = render(h(MenuSummaryCard, {
     cardKey: "actions", name: "가게", serviceLabel: "다이닝", lifecycle: "active",
     thumbnail: h("span", null, "썸네일"), badges: null,
-    actions: h("div", null, h("button", null, "편집하기"), h("button", null, "미리보기")),
-    secondaryActions: h("div", null,
+    actions: h(Fragment, null,
+      h("button", null, "편집하기"), h("button", null, "미리보기"),
       h("a", { href: "/menu/shop", target: "_blank", rel: "noopener noreferrer" }, "공개 메뉴판 보기"),
-      h(MenuQrDownloadModal, { menuSiteId: "menu", menuName: "가게", showIcon: false, disabled: true, disabledReason: "공개 후 이용할 수 있습니다." })),
+      h(MenuQrDownloadModal, { menuSiteId: "menu", menuName: "가게", disabled: true, disabledReason: "공개 후 이용할 수 있습니다." })),
   }));
   const labels = ["편집하기", "미리보기", "공개 메뉴판 보기", "QR 관리"];
   assert.deepEqual(labels.map(label => html.indexOf(label)), labels.map(label => html.indexOf(label)).sort((a, b) => a - b));
@@ -132,13 +132,14 @@ test("menu card action rows preserve order, public navigation and disabled QR ac
   assert.doesNotMatch(html, /site-menu-card-meta|주소 복사/);
   assert.match(html, /href="\/menu\/shop" target="_blank" rel="noopener noreferrer"/);
   assert.match(html, /disabled="" title="공개 후 이용할 수 있습니다\."/);
+  assert.match(html, /data-site-icon="qr-code-line"/);
   const qr = render(h(MenuQrDownloadModal, { menuSiteId: "menu", menuName: "가게", showIcon: false }));
   assert.match(qr, /QR 관리/);
   assert.match(qr, /aria-haspopup="dialog"/);
   assert.doesNotMatch(qr, /<svg/);
   const ended = render(h(MenuSummaryCard, {
     cardKey: "ended-actions", name: "종료", serviceLabel: "디스플레이", lifecycle: "deleted",
-    thumbnail: null, badges: null, actions: h("button", null, "편집하기"), secondaryActions: h("button", null, "QR 관리"),
+    thumbnail: null, badges: null, actions: h(Fragment, null, h("button", null, "편집하기"), h("button", null, "QR 관리")),
   }));
   assert.doesNotMatch(ended, /편집하기|QR 관리/);
 });

@@ -103,15 +103,14 @@ export default function MenuConnectionDialog(props: ConnectionProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="site-menu-card-media-action">
-        <DialogTrigger asChild>
-          <Button type="button" size="icon" iconAppearance="framed" variant={linked ? "default" : "outline"}
-            aria-label={`${props.menu.name} 메뉴판 연결${linked ? ` (${props.connections.length}개 연결됨)` : ""}`}
-            title={linked ? `메뉴판 ${props.connections.length}개 연결됨` : "메뉴판 연결"}>
-            <LinkIcon aria-hidden="true" />
-          </Button>
-        </DialogTrigger>
-      </div>
+      <DialogTrigger asChild>
+        <Button type="button" size="icon" iconSize="compact" variant="ghost" className="site-menu-card-connection"
+          data-menu-linked={linked}
+          aria-label={`${props.menu.name} 메뉴판 연결${linked ? ` (${props.connections.length}개 연결됨)` : ""}`}
+          title={linked ? `메뉴판 ${props.connections.length}개 연결됨` : "메뉴판 연결"}>
+          <LinkIcon aria-hidden="true" />
+        </Button>
+      </DialogTrigger>
       <DialogContent className="site-management-scope" scrollable>
         <DialogHeader reserveCloseButton>
           <DialogTitle>메뉴판 연결</DialogTitle>
