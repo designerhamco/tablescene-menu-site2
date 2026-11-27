@@ -794,6 +794,9 @@
 .site-breadcrumb { text-align: start; }
 .site-breadcrumb [data-slot="breadcrumb-list"] { font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .site-breadcrumb [data-slot="breadcrumb-page"] { color: var(--ui-text-muted); }
+@media (min-width: 768px) {
+  .site-breadcrumb { display: none; }
+}
 @media (min-width: 640px) {
   .site-menu-list-toolbar { flex-flow: row wrap; align-items: center; justify-content: space-between; }
   .site-menu-list-search { flex: 0 0 min(100%, 22rem); margin-inline-start: auto; }

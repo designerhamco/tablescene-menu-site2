@@ -152,11 +152,11 @@ test("content layout examples and documented spacing match the canonical token c
     const reference = value.match(/^var\((--[\w-]+)\)$/)?.[1];
     return reference ? resolvePx(reference) : Number.parseFloat(value) * 16;
   };
-  const tokens = [
+  const tokens: Array<[mobile: string, wide: string | null]> = [
     ["--site-panel-inset", "--site-panel-inset-wide"],
     ["--site-panel-inset-compact", "--site-panel-inset-compact"],
     ["--site-space-group", "--site-space-group"],
-    ["--site-space-title-copy", "--site-space-title-copy"],
+    ["--site-space-title-copy", null],
     ["--site-space-title-copy", "--site-space-title-copy"],
     ["--site-space-block", "--site-space-block"],
     ["--site-space-copy", "--site-space-copy"],
@@ -166,8 +166,9 @@ test("content layout examples and documented spacing match the canonical token c
   ];
   assert.equal(SITE_CONTENT_COMPOSITION.length, tokens.length);
   SITE_CONTENT_COMPOSITION.forEach((item, index) => {
-    assert.equal(item.mobile, resolvePx(tokens[index][0]), item.role);
-    assert.equal(item.wide, resolvePx(tokens[index][1]), item.role);
+    const [mobileToken, wideToken] = tokens[index];
+    assert.equal(item.mobile, resolvePx(mobileToken), item.role);
+    assert.equal(item.wide, wideToken ? resolvePx(wideToken) : null, item.role);
   });
   assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /SITE_CONTENT_COMPOSITION.map/);
 });
