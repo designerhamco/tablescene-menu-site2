@@ -28,7 +28,7 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
       <div className="site-menu-card-body">
         <div className="site-menu-card-header">
           <div className="site-stack-detail min-w-0">
-            <h2 id={headingId} className="type-content-title">{name}</h2>
+            <h2 id={headingId} className="type-content-title site-menu-card-title" title={name}>{name}</h2>
             <div className="site-action-row site-menu-card-address"><p className="type-caption site-copy-muted site-menu-card-path">{publicPath}</p>
               {lifecycle !== "deleted" && publicPath !== "/menu/" ? <MenuLinkCopyButton path={publicPath} name={name} /> : null}
             </div>
@@ -38,6 +38,9 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
         <dl className="site-menu-card-meta">
           {details.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
         </dl>
+        {supportingDetails.length ? <dl className="site-menu-card-supporting">
+          {supportingDetails.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
+        </dl> : null}
         {lifecycle === "deleted" ? <div className="site-menu-card-state-row">
           {status ? <p className="type-body-sm site-copy-muted">{status}</p> : null}
           {billingHref ? <Link href={billingHref} className="site-button site-button-link">{billingLabel}</Link> : null}
@@ -49,9 +52,6 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
             {billingHref ? <Link href={billingHref} className="site-button site-button-link">{billingLabel}</Link> : null}
           </div> : null}
         </>}
-        {supportingDetails.length ? <dl className="site-menu-card-supporting">
-          {supportingDetails.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
-        </dl> : null}
       </div>
     </div>
   </ContentPanel>;
