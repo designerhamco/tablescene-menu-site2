@@ -1,5 +1,6 @@
 import { isActiveBusinessFreeTrial } from "@/lib/business-free-trial";
 import { getMenuPlanRenewalAmount } from "@/lib/menu-plan-pricing";
+import { Button } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import MenuCardList from "@/components/mypage/MenuCardList";
@@ -8,7 +9,7 @@ import MenuConnectionDialog, { type MenuConnection } from "@/components/mypage/M
 import { canImportIntoMenuCatalogTarget } from "@/lib/menu-catalog";
 import MenuRecoveryGuide from "@/components/mypage/MenuRecoveryGuide";
 import { EditIcon } from "@/app/components/ui/edit-icon";
-import { Eye } from "@/app/components/ui/site-icon";
+import { Eye, Globe } from "@/app/components/ui/site-icon";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
 import AccountAlimtalkSection from "@/components/mypage/AccountAlimtalkSection";
 import { getTemplateByKey } from "@/lib/templates";
@@ -2387,20 +2388,25 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return `/mypage?${new URLSearchParams({ tab: "payments", billingTab: "history", billingQuery: publicPath.startsWith("/menu/") ? publicPath : title })}`;
   }
 
+  function renderActionButton({ label, accessibleLabel = label, href, enabled, disabledReason, primary = false, newWindow = false, icon }: {
+    label: string; href: string | null; enabled: boolean; disabledReason?: string | null;
+    accessibleLabel?: string; primary?: boolean; newWindow?: boolean; icon: React.ReactNode;
+  }) {
+    const content = <>{icon}<span>{label}</span></>;
+    if (enabled && href) return (
+      <Button asChild buttonWidth="full" variant={primary ? "default" : "outline"}>
+        <Link href={href} aria-label={accessibleLabel === label ? undefined : accessibleLabel} target={newWindow ? "_blank" : undefined} rel={newWindow ? "noopener noreferrer" : undefined}>{content}</Link>
+      </Button>
+    );
+    const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
+    return <Button type="button" variant="outline" buttonWidth="full" disabled title={reason} aria-label={`${accessibleLabel} 비활성화: ${reason}`}>{content}</Button>;
+  }
+
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
-    function renderActionButton({ label, accessibleLabel = label, href, enabled, disabledReason, primary = false, newWindow = false, icon }: {
-      label: string; href: string | null; enabled: boolean; disabledReason: string | null;
-      accessibleLabel?: string; primary?: boolean; newWindow?: boolean; icon?: React.ReactNode;
-    }) {
-      const className = primary ? "site-button site-button-primary" : "site-button site-button-outline";
-      if (enabled && href) return <Link href={href} aria-label={accessibleLabel === label ? undefined : accessibleLabel} target={newWindow ? "_blank" : undefined} rel={newWindow ? "noopener noreferrer" : undefined} className={className}>{icon}{label}</Link>;
-      const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
-      return <button type="button" disabled title={reason} aria-label={`${accessibleLabel} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
-    }
     const connections = card.siteId ? menuConnectionsById.get(card.siteId) ?? [] : [];
     return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} serviceLabel={card.service.label} lifecycle={card.section}
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
-      thumbnailAction={card.siteId && menuConnectionsAvailable ? (
+      titleAction={card.siteId && menuConnectionsAvailable ? (
         <MenuConnectionDialog menu={{ id: card.siteId, name: card.title }} connections={connections}
           canConnect={card.canConnect}
           sourceOptions={card.canConnect && !connections.length ? originalMenuOptions.filter(menu => menu.id !== card.siteId) : []} />
@@ -2419,11 +2425,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       actions={card.section === "deleted" ? undefined : <>
         {card.section === "active" ? renderActionButton({ label: "편집하기", href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null, enabled: card.actions.canEdit, disabledReason: card.actions.editDisabledReason, primary: true, icon: <EditIcon /> }) : null}
         {renderActionButton({ label: "미리보기", href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null, enabled: card.actions.canOwnerPreview, disabledReason: card.actions.previewDisabledReason, newWindow: true, icon: <Eye aria-hidden="true" /> })}
-      </>}
-      secondaryActions={card.section === "active" ? <>
-        {renderActionButton({ label: "공개 메뉴판", accessibleLabel: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true })}
-        <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} />
-      </> : undefined} />;
+        {card.section === "active" ? <>
+          {renderActionButton({ label: "공개 메뉴판", accessibleLabel: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true, icon: <Globe aria-hidden="true" /> })}
+          <MenuQrDownloadModal menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} />
+        </> : null}
+      </>} />;
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
@@ -2432,14 +2438,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       badges={<><Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge></>}
       supportingDetails={[{ label: "사용 가능한 기능", value: card.permissionSummary }]}
       actions={<>
-        {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
-          : <button type="button" disabled title="현재 직원 역할에는 메뉴 편집 권한이 없습니다." aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다." className="site-button site-button-outline"><EditIcon />메뉴 편집</button>}
-        <Link href={`/mypage/menus/${card.siteId}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><Eye aria-hidden="true" />미리보기</Link>
-      </>}
-      secondaryActions={<>
-        {card.canViewPublic ? <Link href={card.publicPath} aria-label="공개 메뉴판 보기" target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">공개 메뉴판</Link>
-          : <button type="button" disabled title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다." aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다." className="site-button site-button-outline">공개 메뉴판</button>}
-        <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
+        {renderActionButton({ label: "메뉴 편집", href: `/mypage/menus/${card.siteId}/edit`, enabled: card.canEdit, disabledReason: "현재 직원 역할에는 메뉴 편집 권한이 없습니다.", primary: true, icon: <EditIcon /> })}
+        {renderActionButton({ label: "미리보기", href: `/mypage/menus/${card.siteId}/preview`, enabled: true, newWindow: true, icon: <Eye aria-hidden="true" /> })}
+        {renderActionButton({ label: "공개 메뉴판", accessibleLabel: "공개 메뉴판 보기", href: card.publicPath, enabled: card.canViewPublic, disabledReason: "현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다.", newWindow: true, icon: <Globe aria-hidden="true" /> })}
+        <MenuQrDownloadModal menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
       </>} />;
   }
 

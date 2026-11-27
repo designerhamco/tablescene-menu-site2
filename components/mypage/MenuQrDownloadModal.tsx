@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
@@ -12,7 +13,7 @@ import QrAddressActions from "./QrAddressActions";
 import QrDownloadButton from "./QrDownloadButton";
 
 export default function MenuQrDownloadModal({
-  menuSiteId, menuName, disabled = false, disabledReason, className = "site-button site-button-outline", showIcon = true,
+  menuSiteId, menuName, disabled = false, disabledReason, className, showIcon = true,
 }: {
   menuSiteId: string;
   menuName: string;
@@ -56,7 +57,9 @@ export default function MenuQrDownloadModal({
       else requestRef.current?.abort();
     }}>
       <DialogTrigger asChild>
-        <button type="button" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}>{showIcon ? <QrCode aria-hidden="true" /> : null}QR 관리</button>
+        <Button type="button" variant="outline" buttonWidth="full" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}>
+          {showIcon ? <QrCode aria-hidden="true" /> : null}<span>QR 관리</span>
+        </Button>
       </DialogTrigger>
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
