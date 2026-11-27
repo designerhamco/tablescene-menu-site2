@@ -94,100 +94,97 @@ export default async function StoreOperationsShell({
     { label: pageTitle },
   ];
 
-  return (
-    <SitePage title={pageTitle} breadcrumbs={breadcrumbs} align="start" typography="management">
-      <div className="site-account-page">
-          <div className="site-account-layout">
-            <StoreOperationsNavigation
-              activeKey={`${allMenus ? ALL_MENU_SITE_ID : selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
-              selector={selectedSite || allMenus ? <OperationSiteSelector selectedId={allMenus ? ALL_MENU_SITE_ID : selectedSite!.menuSiteId} items={[
-                ...(activeSection !== "kitchen" && (allOrders.length || allCalls.length || allMenus) ? [{ id: ALL_MENU_SITE_ID, label: "전체 메뉴판", href: allMenuOperationsHref(activeSection) }] : []),
-                ...sites.map(site => ({
-                id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
-              }))]} /> : null}
+  const sidebar = (
+    <StoreOperationsNavigation
+      activeKey={`${allMenus ? ALL_MENU_SITE_ID : selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
+      selector={selectedSite || allMenus ? <OperationSiteSelector selectedId={allMenus ? ALL_MENU_SITE_ID : selectedSite!.menuSiteId} items={[
+        ...(activeSection !== "kitchen" && (allOrders.length || allCalls.length || allMenus) ? [{ id: ALL_MENU_SITE_ID, label: "전체 메뉴판", href: allMenuOperationsHref(activeSection) }] : []),
+        ...sites.map(site => ({
+          id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
+        }))]} /> : null}
+    >
+      {selectedSite || allMenus ? (
+        <Link
+          href={allMenus ? allMenuOperationsHref("dashboard") : `/mypage/operations?site=${encodeURIComponent(selectedSite!.menuSiteId)}`}
+          aria-current={activeSection === "dashboard" ? "page" : undefined}
+          className={getNavigationClassName(activeSection === "dashboard")}
+        >
+          <span className="block truncate">운영 대시보드</span>
+        </Link>
+      ) : (
+        <div className="site-nav-item site-nav-item-disabled">
+          <span className="block">운영 대시보드</span>
+        </div>
+      )}
+
+      <div className="site-operations-feature-navigation">
+        {operationNavigation.map((item) => {
+          const active = activeSection === item.key || (item.key === "tables" && activeSection === "kiosks") || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
+          if (allMenus && item.key !== "orders" && item.key !== "calls") {
+            const targets = operationMenuTargets(sites, item.key === "kiosks" ? "tables" : item.key);
+            if (targets.length) return <OperationMenuTarget key={item.key} label={item.label} items={targets} navigation active={active}/>;
+          }
+          const enabled = allMenus
+            ? (item.key === "orders" && allOrders.length > 0) || (item.key === "calls" && allCalls.length > 0)
+            : Boolean(selectedSite && (
+              item.key === "qr" ? selectedSite.canManageQr
+                : item.key === "tables" || item.key === "kiosks" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")
+                : item.key === "kitchen" ? selectedSite.operationAccess.orders
+                : selectedSite.operationAccess[item.key]
+            ));
+          const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
+          if ((!selectedSite && !allMenus) || (!enabled && !configurationAvailable)) {
+            const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
+            const unavailableLabel = allMenus ? "이용 불가" : selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
+            const unavailableReason = allMenus
+              ? "이 기능을 이용할 수 있는 메뉴판이 없습니다."
+              : !selectedSite
+              ? "먼저 운영할 메뉴판을 선택해 주세요."
+              : !hasRolePermission
+                ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
+                : `${item.label} 기능이 현재 메뉴판에서 활성화되지 않았습니다.`;
+            return (
+              <span
+                key={item.key}
+                aria-disabled="true"
+                aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
+                title={unavailableReason}
+                className="site-nav-item site-nav-item-disabled"
+              >
+                <span>{item.label}</span>
+                <span className="text-support font-medium">{unavailableLabel}</span>
+              </span>
+            );
+          }
+
+          return (
+            <Link
+              key={item.key}
+              href={allMenus ? allMenuOperationsHref(item.key) : `/mypage/menus/${selectedSite!.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
+              aria-current={active ? "page" : undefined}
+              className={getNavigationClassName(active)}
             >
-              {selectedSite || allMenus ? (
-                <Link
-                  href={allMenus ? allMenuOperationsHref("dashboard") : `/mypage/operations?site=${encodeURIComponent(selectedSite!.menuSiteId)}`}
-                  aria-current={activeSection === "dashboard" ? "page" : undefined}
-                  className={getNavigationClassName(activeSection === "dashboard")}
-                >
-                  <span className="block truncate">운영 대시보드</span>
-                </Link>
-              ) : (
-                <div className="site-nav-item site-nav-item-disabled">
-                  <span className="block">운영 대시보드</span>
-                </div>
-              )}
-
-
-              <div className="site-operations-feature-navigation">
-                {operationNavigation.map((item) => {
-                  const active = activeSection === item.key || (item.key === "tables" && activeSection === "kiosks") || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
-                  if (allMenus && item.key !== "orders" && item.key !== "calls") {
-                    const targets = operationMenuTargets(sites, item.key === "kiosks" ? "tables" : item.key);
-                    if (targets.length) return <OperationMenuTarget key={item.key} label={item.label} items={targets} navigation active={active}/>;
-                  }
-                  const enabled = allMenus
-                    ? (item.key === "orders" && allOrders.length > 0) || (item.key === "calls" && allCalls.length > 0)
-                    : Boolean(selectedSite && (
-                      item.key === "qr" ? selectedSite.canManageQr
-                        : item.key === "tables" || item.key === "kiosks" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")
-                        : item.key === "kitchen" ? selectedSite.operationAccess.orders
-                        : selectedSite.operationAccess[item.key]
-                    ));
-                  const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
-                  if ((!selectedSite && !allMenus) || (!enabled && !configurationAvailable)) {
-                    const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
-                    const unavailableLabel = allMenus ? "이용 불가" : selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
-                    const unavailableReason = allMenus
-                      ? "이 기능을 이용할 수 있는 메뉴판이 없습니다."
-                      : !selectedSite
-                      ? "먼저 운영할 메뉴판을 선택해 주세요."
-                      : !hasRolePermission
-                        ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
-                        : `${item.label} 기능이 현재 메뉴판에서 활성화되지 않았습니다.`;
-                    return (
-                      <span
-                        key={item.key}
-                        aria-disabled="true"
-                        aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
-                        title={unavailableReason}
-                        className="site-nav-item site-nav-item-disabled"
-                      >
-                        <span>{item.label}</span>
-                        <span className="text-support font-medium">{unavailableLabel}</span>
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <Link
-                      key={item.key}
-                      href={allMenus ? allMenuOperationsHref(item.key) : `/mypage/menus/${selectedSite!.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
-                      aria-current={active ? "page" : undefined}
-                      className={getNavigationClassName(active)}
-                    >
-                      <span>{item.label}</span>
-                      {!enabled ? <span className="text-support font-medium">설정</span> : null}
-                    </Link>
-                  );
-                })}
-              </div>
-            </StoreOperationsNavigation>
-
-            <section className="min-w-0">
-              {user && (activeSection === "orders" || activeSection === "kitchen") && (
-                <OrderUpdateRefresh userId={user.id} menuSiteId={allMenus ? undefined : selectedSite?.menuSiteId} kitchen={activeSection === "kitchen"} />
-              )}
-              {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "kiosks" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
-                <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
-                  activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} /></div>
-              ) : null}
-              {children}
-            </section>
-          </div>
+              <span>{item.label}</span>
+              {!enabled ? <span className="text-support font-medium">설정</span> : null}
+            </Link>
+          );
+        })}
       </div>
+    </StoreOperationsNavigation>
+  );
+
+  return (
+    <SitePage title={pageTitle} breadcrumbs={breadcrumbs} align="start" typography="management" sidebar={sidebar}>
+      <section className="site-account-page min-w-0">
+        {user && (activeSection === "orders" || activeSection === "kitchen") && (
+          <OrderUpdateRefresh userId={user.id} menuSiteId={allMenus ? undefined : selectedSite?.menuSiteId} kitchen={activeSection === "kitchen"} />
+        )}
+        {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "kiosks" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
+          <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
+            activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} /></div>
+        ) : null}
+        {children}
+      </section>
     </SitePage>
   );
 }

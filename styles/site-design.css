@@ -304,7 +304,13 @@
 .site-supporting-note { border: 0; border-radius: .375rem; padding: .75rem 1rem; background: var(--ui-notice-surface); color: var(--ui-text); font-size: var(--type-body-sm-size); font-weight: var(--font-weight-medium); line-height: 1.6; }
 .site-empty-state { border: 0; background: transparent; }
 .site-detail-section { border-top: 1px solid var(--site-divider); padding-top: 1.5rem; }
-.site-account-layout { display: grid; gap: 1.5rem; align-items: start; }
+.site-account-layout { display: grid; gap: var(--site-space-group); align-items: start; }
+.site-account-layout > .site-page-intro {
+  min-width: 0;
+  /* The grid gap supplies the rest of the existing single-column intro spacing. */
+  margin-block-end: calc(var(--site-page-intro-content-gap) - var(--site-space-group));
+}
+.site-account-content { min-width: 0; }
 .site-account-sidebar { display: contents; }
 .site-account-summary {
   display: grid;
@@ -436,14 +442,28 @@
   .site-operations-site-selector-control .site-loading-state > span:last-child { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .site-operations-feature-navigation { display: flex; flex: none; gap: inherit; border: 0; padding: 0; }
 }
+@media (min-width: 768px) {
+  .site-page-spacing-compact:has(> .site-container > .site-account-layout) {
+    padding-block-start: var(--site-space-content);
+  }
+  .site-account-layout {
+    grid-template-columns: clamp(12rem, 24vw, 15rem) minmax(0, 1fr);
+    grid-template-areas: "heading content" "sidebar content";
+    grid-template-rows: max-content 1fr;
+  }
+  .site-account-layout > .site-page-intro { grid-area: heading; margin-block-end: 0; overflow-wrap: anywhere; }
+  .site-account-layout > .site-account-sidebar { grid-area: sidebar; position: sticky; top: 7rem; display: grid; gap: 1.25rem; min-width: 0; }
+  .site-account-content { grid-area: content; }
+  .site-account-layout .site-account-nav-shell { position: static; }
+  .site-account-layout .site-account-nav { flex-direction: column; overflow: visible; }
+  .site-account-layout .site-account-nav-shell::after, .site-account-layout .site-account-nav-more { display: none; }
+}
 @media (min-width: 768px) and (max-width: 1023px) {
-  .site-operations-navigation .site-account-nav { flex-direction: column; overflow: visible; }
-  .site-operations-navigation .site-account-nav-shell::after, .site-operations-navigation .site-account-nav-more { display: none; }
+  .site-account-layout .site-account-nav .site-nav-item { white-space: normal; overflow-wrap: anywhere; }
 }
 @media (min-width: 1024px) {
   .site-record-layout { grid-template-columns: minmax(0, 1fr) 8rem; gap: 1.5rem; }
-  .site-account-layout { grid-template-columns: clamp(17.5rem, 20vw, 20rem) minmax(0, 1fr); gap: 2rem; }
-  .site-account-sidebar { position: sticky; top: 7rem; display: grid; gap: 1.25rem; }
+  .site-account-layout { grid-template-columns: clamp(17.5rem, 20vw, 20rem) minmax(0, 1fr); column-gap: var(--site-space-content); }
   .site-account-summary { gap: 1rem; padding: 1.25rem; }
   .site-account-nav-shell { position: static; }
   .site-account-nav { flex-direction: column; gap: .375rem; overflow: visible; background: var(--ui-surface); padding: .75rem; }

@@ -21,7 +21,7 @@ test("account identity lives in the header while mypage and operations keep thei
   assert.match(sidebarSource, /<MypageNavigationRail/);
 });
 
-test("mypage navigation uses separate surfaces and a sticky single-line rail before the desktop sidebar", () => {
+test("mypage navigation uses a sticky phone rail and a shared wider-screen sidebar", () => {
   assert.match(sidebarSource, /<MypageNavigationRail activeKey=\{active\}>/);
   assert.match(navigationRailSource, /querySelector<HTMLElement>\('\[aria-current="page"\]'\)/);
   assert.match(navigationRailSource, /nav\.scrollLeft \+= hiddenAtEnd/);
@@ -34,10 +34,11 @@ test("mypage navigation uses separate surfaces and a sticky single-line rail bef
   assert.match(siteDesignSource, /\.site-account-nav-shell \{[\s\S]*?position: sticky/);
   assert.match(siteDesignSource, /\.site-account-nav \{[\s\S]*?flex-wrap: nowrap[\s\S]*?overflow-x: auto/);
   assert.match(siteDesignSource, /\.site-account-nav-shell\[data-has-more="true"\]::after \{[\s\S]*?linear-gradient/);
-  assert.match(siteDesignSource, /@media \(min-width: 1024px\) \{[\s\S]*?\.site-account-sidebar \{ position: sticky; top: 7rem; display: grid/);
+  assert.match(siteDesignSource, /@media \(min-width: 768px\) \{[\s\S]*?\.site-account-layout > \.site-account-sidebar \{ grid-area: sidebar; position: sticky; top: 7rem; display: grid/);
+  assert.match(siteDesignSource, /grid-template-areas: "heading content" "sidebar content";/);
   assert.match(siteDesignSource, /\.site-account-nav-shell \{ position: static; \}/);
   assert.match(siteDesignSource, /\.site-account-nav \{ flex-direction: column; gap: \.375rem; overflow: visible/);
-  assert.match(siteDesignSource, /\.site-account-layout \{ grid-template-columns: clamp\(17\.5rem, 20vw, 20rem\) minmax\(0, 1fr\); gap: 2rem; \}/);
+  assert.match(siteDesignSource, /\.site-account-layout \{ grid-template-columns: clamp\(17\.5rem, 20vw, 20rem\) minmax\(0, 1fr\); column-gap: var\(--site-space-content\); \}/);
   assert.match(siteDesignSource, /\.site-account-nav \.site-nav-item \{ min-height: 3\.25rem;[\s\S]*?padding: \.75rem 1rem; \}/);
 });
 
