@@ -81,11 +81,6 @@
   --ui-surface-muted: #f7f8fa;
   --ui-surface-soft: #f0f1f3;
   --ui-surface-hover: #e6e8ec;
-  --ui-surface-dark: #18181b;
-  --ui-surface-dark-hover: #29292e;
-  --ui-text-on-dark: #fafafa;
-  --ui-text-on-dark-muted: #b4b4be;
-  --ui-border-on-dark: #777780;
   --ui-text: #15181e;
   --ui-text-muted: #4b515b;
   --ui-text-subtle: #686e78;
@@ -362,14 +357,6 @@
 
 .site-button-outline[data-outline-contrast="strong"] {
   --ui-outline-boundary: var(--ui-text);
-}
-
-.site-button-outline[data-control-surface="dark"] {
-  --ui-outline-boundary: var(--ui-border-on-dark);
-  --ui-surface: var(--ui-surface-dark);
-  --ui-surface-soft: var(--ui-surface-dark-hover);
-  --ui-text: var(--ui-text-on-dark);
-  --ui-focus: var(--ui-text-on-dark);
 }
 
 .site-button-outline:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {

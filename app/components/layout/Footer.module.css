@@ -1,7 +1,7 @@
 .footer {
-  --footer-surface: var(--ui-surface-dark);
-  --footer-ink: var(--ui-text-on-dark);
-  --footer-muted: var(--ui-text-on-dark-muted);
+  --footer-surface: #18181b;
+  --footer-ink: #fafafa;
+  --footer-muted: #b4b4be;
   --footer-divider: rgb(255 255 255 / 11%);
   scroll-margin-top: calc(var(--site-header-height) + var(--site-space-block));
   padding-block: var(--site-space-group) var(--site-space-copy);
@@ -13,8 +13,8 @@
 .content { position: relative; z-index: 1; padding: var(--site-space-content); }
 .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--site-space-content); }
 .identity { display: grid; min-width: 0; justify-items: start; align-content: start; gap: var(--site-space-title-copy); }
-.brand { color: var(--footer-muted); }
-.identity h2 { color: var(--footer-ink); word-break: keep-all; }
+.brand { color: var(--footer-ink); }
+.identity p { color: var(--footer-muted); word-break: keep-all; }
 .email {
   display: inline-flex;
   min-height: var(--ui-control-height-header);
@@ -27,7 +27,7 @@
   text-decoration: underline;
   text-underline-offset: .35em;
 }
-.email svg, .companyLink svg { flex: none; }
+.email svg { flex: none; }
 .navigation { display: grid; min-width: 0; grid-template-columns: repeat(2, minmax(8rem, 1fr)); gap: var(--site-space-content); }
 .mobileSections { display: none; }
 .group { display: grid; min-width: 0; align-content: start; gap: var(--site-space-title-copy); }
@@ -35,7 +35,12 @@
 .group ul { display: grid; gap: 0; }
 .group li { min-width: 0; }
 .group li a { display: inline-flex; align-items: center; min-height: var(--ui-control-height-compact); color: var(--footer-ink); font-size: var(--type-body-sm-size); line-height: 1.6; overflow-wrap: anywhere; }
-.footer a:hover { color: var(--footer-ink); text-decoration: underline; text-underline-offset: .25em; }
+.brand:hover, .email:hover, .group li a:hover, .business dd a:hover,
+.businessContact a:hover, .support a[href^="tel:"]:hover, .legal a:hover {
+  color: var(--footer-ink);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
 .desktopBusiness {
   display: grid;
   min-width: 0;
@@ -55,13 +60,7 @@
 
 .businessContact { display: flex; flex-wrap: wrap; gap: 0 var(--site-space-block); min-width: 0; }
 .businessContact a { display: inline-flex; align-items: center; max-inline-size: 100%; overflow-wrap: anywhere; }
-.businessActions {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: start;
-  gap: var(--site-space-copy);
-}
-.businessActions a:hover { text-decoration: none; }
+.support { align-content: start; justify-items: start; }
 .bottom {
   display: flex;
   flex-direction: column;
@@ -101,6 +100,7 @@
   .surface { border-radius: var(--site-space-group); }
   .content { padding: var(--site-space-group); }
   .top { grid-template-columns: minmax(0, 1fr); }
+  .email { display: none; }
   .desktopNavigation, .desktopBusiness { display: none; }
   .mobileSections { display: grid; margin-top: var(--site-space-group); border-top: 1px solid var(--footer-divider); }
   .disclosure { min-width: 0; border-bottom: 1px solid var(--footer-divider); }
@@ -121,12 +121,11 @@
   .disclosure summary svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--footer-muted); transition: transform var(--ui-transition); }
   .disclosure[open] summary svg { transform: rotate(180deg); }
   .disclosureContent, .disclosureBusiness { padding: var(--site-space-detail) 0 var(--site-space-title-copy); }
-  .group li a, .legal a, .businessContact a, .companyLink { min-height: var(--ui-control-height-header); }
+  .group li a, .legal a, .businessContact a { min-height: var(--ui-control-height-header); }
   .group ul { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .group li a { display: flex; width: 100%; }
   .businessContact { display: grid; gap: 0; }
   .businessContact a { text-decoration: underline; text-underline-offset: .2em; }
-  .companyLink { display: inline-flex; align-items: center; justify-self: start; gap: var(--site-space-copy); }
   .business dl { grid-template-columns: minmax(0, 1fr); gap: var(--site-space-copy); }
   .business dl > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }
   .business .address { display: flex; }
