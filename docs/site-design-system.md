@@ -771,9 +771,9 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 
 ### 헤더 작업 순서와 난색 프로필 (2026-11-25)
 
-PC 헤더의 오른쪽은 내 메뉴판 → 매장 운영 → 분리선 → 알림 → 프로필 순서다. 기존 텍스트 계정 링크와 만들기 실행 버튼을 제거하고 내 메뉴판은 공통 secondary, 매장 운영은 공통 primary의 `site-button-header`로 표시한다. 어두운 미디어 위 주요 버튼은 secondary를 사용해 형태와 대비를 유지한다. 로그인 전에는 기존 로그인·회원가입 진입을 보조 버튼으로 유지하며, 알림·프로필·매장 운영은 기존 인증/기능 게이트를 따른다. 매장 운영은 화살표를 생략하고 보조기기용 새 창 안내를 유지한다. 새 창 이동과 알림/프로필 Popover·모바일 Sheet의 포커스 동작은 유지한다.
+PC 헤더의 오른쪽은 내 메뉴판 → 매장 운영 → 분리선 → 알림 → 프로필 순서다. 기존 텍스트 계정 링크와 만들기 실행 버튼을 제거하고 내 메뉴판은 흰 바탕·검정 테두리의 공통 outline, 매장 운영은 공통 primary의 `site-button-header`로 표시한다. 어두운 미디어 위 주요 버튼은 secondary를 사용해 형태와 대비를 유지한다. 로그인 전에는 기존 로그인·회원가입 진입을 보조 버튼으로 유지하며, 알림·프로필·매장 운영은 기존 인증/기능 게이트를 따른다. 매장 운영은 화살표를 생략하고 보조기기용 새 창 안내를 유지한다. 새 창 이동과 알림/프로필 Popover·모바일 Sheet의 포커스 동작은 유지한다.
 
-`SITE_NAV_ITEMS`의 디자인 템플릿 항목은 `chip: { label: "만들기", tone: "create" }`를 가진다. `SiteNavigationLabel`과 `site-nav-label`로 PC·모바일 모두 레이블 바로 옆에 표시하며 독립 클릭 대상은 만들지 않는다. 클릭 목적지는 기존 `/templates`다. `Badge tone="create"`는 공통 `--ui-chip-create`의 짙은 주황색과 흰 글자를 사용한다. 만들기 페이지 자체와 다른 진입 링크는 유지한다.
+`SITE_NAV_ITEMS`의 디자인 템플릿 항목은 `chip: { label: "만들기", tone: "create" }`를 가진다. `SiteNavigationLabel`과 `site-nav-label`로 PC·모바일 모두 레이블 바로 옆에 표시하며 독립 클릭 대상은 만들지 않는다. 클릭 목적지는 기존 `/templates`다. `Badge tone="create"`는 공통 `--ui-chip-create`의 골드 배경, 짙은 글자와 둥근 캡슐 형태를 사용한다. 만들기 페이지 자체와 다른 진입 링크는 유지한다.
 
 `ACCOUNT_AVATAR_COLORS`와 공유 `ProfileAvatar`는 계정 ID에 따른 안정적인 난색 분포를 사용한다. `--ui-profile-orange/terracotta/rose/amber/coral/wine`는 흰 이니셜과 각각4.5:1 이상의 대비를 유지한다. 방문할 때마다 색을 다시 뽑거나 이름·권한·사진 데이터를 변경하지 않는다. 헤더·계정 레이어·모바일 메뉴·프로필 편집의 같은 계정은 같은 색을 사용한다.
 
