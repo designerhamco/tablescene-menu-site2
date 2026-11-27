@@ -62,7 +62,7 @@
 .businessContact { display: flex; flex-wrap: wrap; gap: 0 var(--site-space-block); min-width: 0; }
 .businessContact a { display: inline-flex; align-items: center; max-inline-size: 100%; overflow-wrap: anywhere; }
 .support { align-content: start; justify-items: start; }
-.inquiry { display: inline-flex; min-height: var(--ui-control-height-header); align-items: center; gap: var(--site-space-copy); }
+.supportLink { display: inline-flex; min-height: var(--ui-control-height-header); align-items: center; gap: var(--site-space-copy); }
 .bottom {
   display: flex;
   flex-direction: column;
