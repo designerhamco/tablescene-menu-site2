@@ -10,7 +10,7 @@
   color: var(--footer-ink);
 }
 
-.surface { position: relative; isolation: isolate; overflow: hidden; border: 0; border-radius: var(--ui-radius-hero); background: var(--footer-surface); }
+.surface { position: relative; isolation: isolate; overflow: clip; border: 0; border-radius: var(--ui-radius-hero); background: var(--footer-surface); }
 .content { position: relative; z-index: 1; padding: var(--site-space-content); }
 .top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--site-space-content); }
 .identity { display: grid; min-width: 0; justify-items: start; align-content: start; gap: var(--site-space-title-copy); }
