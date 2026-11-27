@@ -1,4 +1,5 @@
 "use client";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { DateField } from "@/app/components/ui/date-field";
 import { SearchField } from "@/app/components/ui/search-field";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -90,8 +91,16 @@ export type BillingHistoryEntry = {
   } | null;
 };
 
+type MenuBillingSchedule = {
+  key: string;
+  menuName: string;
+  menuPath: string;
+  dates: ReadonlyArray<{ label: string; value: string }>;
+};
+
 type BillingHistoryPanelProps = {
   entries: BillingHistoryEntry[];
+  menuSchedules?: readonly MenuBillingSchedule[];
   initialQuery?: string;
   restoreCheckoutEnabled?: boolean;
   restoreCheckoutConfig?: {
@@ -525,7 +534,7 @@ function RestoreSubscriptionModal({
   );
 }
 
-export default function BillingHistoryPanel({ entries, initialQuery = "", restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
+export default function BillingHistoryPanel({ entries, menuSchedules = [], initialQuery = "", restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
   const queryId = useId();
   const [filters, setFilters] = useState<FilterState>(() => ({ ...initialFilters, query: initialQuery }));
   const filteredEntries = useMemo(() => {
@@ -558,6 +567,8 @@ export default function BillingHistoryPanel({ entries, initialQuery = "", restor
   }, [entries, filters]);
 
   const hasActiveFilters = JSON.stringify(filters) !== JSON.stringify(initialFilters);
+  const scheduleQuery = filters.query.trim().toLowerCase();
+  const matchingSchedules = menuSchedules.filter(menu => `${menu.menuName} ${menu.menuPath}`.toLowerCase().includes(scheduleQuery));
 
   return (
     <section className="site-stack-group">
@@ -638,6 +649,26 @@ export default function BillingHistoryPanel({ entries, initialQuery = "", restor
           구독 해지, 환불 요청, 재구독하고 복구는 구독/결제내역에서 관리하고, 편집·미리보기·공개 메뉴판 보기·QR 관리는 내 메뉴판에서 사용할 수 있습니다.
         </p>
       </div></ContentPanel>
+
+      {matchingSchedules.length > 0 ? (
+        <Accordion type="single" collapsible>
+          <AccordionItem value="menu-schedules">
+            <AccordionTrigger>메뉴판 이용 일정</AccordionTrigger>
+            <AccordionContent>
+              <div className="site-stack-block">
+                {matchingSchedules.map(menu => (
+                  <div key={menu.key} className="site-stack-title site-content-divider">
+                    <h4 className="type-item-title">{menu.menuName}</h4>
+                    <DetailGrid>
+                      {menu.dates.map(date => <DetailField key={date.label} label={date.label}>{date.value}</DetailField>)}
+                    </DetailGrid>
+                  </div>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      ) : null}
 
       <div className="site-content-heading-row">
         <h3 className="type-subsection-title">결제내역</h3>

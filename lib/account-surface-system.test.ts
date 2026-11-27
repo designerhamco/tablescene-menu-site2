@@ -78,19 +78,18 @@ test("shared layouts define bounded columns and wrapping; favorites add no empty
   assert.match(read("components/mypage/FavoriteTemplates.tsx"), /site-catalog-results site-stack-group/);
 });
 
-test("compact menu records keep complete details and meaningful archive states without a repeated warning box", async () => {
+test("compact menu records keep status and history actions without dates", async () => {
   const { default: MenuSummaryCard } = await import("../components/mypage/MenuSummaryCard");
   const name = "아주 긴 메뉴판 이름 Very Long Store Menu";
   const html = render(h(MenuSummaryCard, {
     cardKey: "ended-menu", name, serviceLabel: "베이직", lifecycle: "deleted",
     thumbnail: h("span", null, "메뉴판 썸네일"), badges: h("span", null, "종료됨"),
-    details: [{ label: "템플릿", value: "REAL MATCHA" }, { label: "이용 종료일", value: "2026. 11. 22." }],
     status: "보관 기간이 종료되어 복구할 수 없습니다.",
-    billingHref: "/mypage?tab=payments&billingQuery=%2Fmenu%2Fended-menu", billingLabel: "결제내역",
+    billingAction: h("a", { href: "/mypage?tab=payments&billingQuery=%2Fmenu%2Fended-menu", className: "site-button site-button-outline" }, "결제내역"),
   }));
-  for (const text of [name, "REAL MATCHA", "2026. 11. 22.", "복구할 수 없습니다", "결제내역"]) assert.ok(html.includes(text), text);
+  for (const text of [name, "종료됨", "복구할 수 없습니다", "결제내역"]) assert.ok(html.includes(text), text);
   assert.match(html, /<article[^>]*aria-labelledby="menu-card-ended-menu"[^>]*data-menu-lifecycle="deleted"/);
-  assert.doesNotMatch(html, /site-notice|site-menu-card-actions|편집하기|QR 관리/);
+  assert.doesNotMatch(html, /site-notice|site-menu-card-actions|편집하기|QR 관리|이용 종료일|보관 종료일/);
 });
 
 test("a card's billing link initializes the existing history search", () => {
@@ -100,12 +99,28 @@ test("a card's billing link initializes the existing history search", () => {
   assert.match(html, /결제 상세/);
 });
 
+test("recovery starts with an outlined button and keeps the deadline in the closed dialog", async () => {
+  const { default: MenuRecoveryGuide } = await import("../components/mypage/MenuRecoveryGuide");
+  const html = render(h(MenuRecoveryGuide, { menuName: "보관 메뉴판", deadlineLabel: "2026. 12. 02.", billingHref: "/mypage?tab=payments" }));
+  assert.match(html, /class="site-button site-button-outline"/);
+  assert.match(html, /aria-haspopup="dialog"/);
+  assert.doesNotMatch(html, /2026\. 12\. 02\./);
+});
+
+test("billing exposes menu schedules without requiring a matching payment", () => {
+  const menuSchedules = [{ key: "trial", menuName: "이전 체험", menuPath: "/menu/old-trial", dates: [{ label: "체험 종료일", value: "2027. 06. 03." }] }];
+  const matching = render(h(BillingHistoryPanel, { entries: [], menuSchedules, initialQuery: "/menu/old-trial" }));
+  assert.match(matching, /메뉴판 이용 일정/);
+  const unmatched = render(h(BillingHistoryPanel, { entries: [], menuSchedules, initialQuery: "다른 메뉴판" }));
+  assert.doesNotMatch(unmatched, /메뉴판 이용 일정/);
+});
+
 test("menu card action rows preserve order, public navigation and disabled QR access", async () => {
   const { default: MenuSummaryCard } = await import("../components/mypage/MenuSummaryCard");
   const { default: MenuQrDownloadModal } = await import("../components/mypage/MenuQrDownloadModal");
   const html = render(h(MenuSummaryCard, {
     cardKey: "actions", name: "가게", serviceLabel: "다이닝", lifecycle: "active",
-    thumbnail: h("span", null, "썸네일"), badges: null, details: [],
+    thumbnail: h("span", null, "썸네일"), badges: null,
     actions: h("div", null, h("button", null, "편집하기"), h("button", null, "미리보기")),
     secondaryActions: h("div", null,
       h("a", { href: "/menu/shop", target: "_blank", rel: "noopener noreferrer" }, "공개 메뉴판 보기"),
@@ -123,7 +138,7 @@ test("menu card action rows preserve order, public navigation and disabled QR ac
   assert.doesNotMatch(qr, /<svg/);
   const ended = render(h(MenuSummaryCard, {
     cardKey: "ended-actions", name: "종료", serviceLabel: "디스플레이", lifecycle: "deleted",
-    thumbnail: null, badges: null, details: [], actions: h("button", null, "편집하기"), secondaryActions: h("button", null, "QR 관리"),
+    thumbnail: null, badges: null, actions: h("button", null, "편집하기"), secondaryActions: h("button", null, "QR 관리"),
   }));
   assert.doesNotMatch(ended, /편집하기|QR 관리/);
 });
