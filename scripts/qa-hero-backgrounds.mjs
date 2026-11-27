@@ -19,10 +19,13 @@ try {
   await page.route('**/api/**',route=>route.request().method()==='GET'?route.continue():(writes.push(route.request().url()),route.abort()));
   await page.goto(base+'/',{waitUntil:'load'});
   await page.evaluate(()=>document.fonts.ready);
-  await page.locator('[data-hero-motion]').waitFor();
-  await page.locator('[data-hero-composition]').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
-  const masking=await page.locator('[data-hero-composition]').evaluateAll(async images=>{
-   window.__heroSharpMaps={};
+  const presentation = width < 768 ? 'stills' : 'live';
+  await page.locator(`[data-hero-motion][data-presentation="${presentation}"]`).waitFor();
+  assert.equal(await page.locator('[data-hero-composition]').count(), 1, 'opening requests one full-size photo');
+  const masking=[];
+  const activePhoto=page.locator('[data-hero-plane][data-active="true"] [data-hero-composition]');
+  const readActiveMask=()=>activePhoto.evaluateAll(async images=>{
+   window.__heroSharpMaps??={};
    return Promise.all(images.map(async image=>{
     // Render the ACTUAL SVG sharp-layer masks against solid white. Alpha is sharp
     // coverage, rather than total opacity (which includes the blurred underlay).
@@ -39,46 +42,46 @@ try {
     return {scene,source:image.currentSrc,center:alpha(2304,768),left:positions.map(x=>alpha(x,768)),right:positions.map(x=>alpha(4607-x,768)),top20:alpha(2304,307)};
    }));
   });
-  assert.equal(masking.length,4);
-  for(const mask of masking){
-   assert.equal(mask.center,255);
-   for(const profile of [mask.left,mask.right]){assert.equal(profile[0],0);assert.ok(profile.every((a,i)=>i===0||a>=profile[i-1]),'sharp coverage increases continuously from the full photo edge');}
-   mask.left.forEach((a,i)=>assert.ok(Math.abs(a-mask.right[i])<=4,'one symmetric lateral profile'));
-   assert.equal(mask.top20,255,'top/bottom transition is shallow');assert.ok(mask.left[2]<255,'sides have a wider transition');
-   assert.deepEqual(mask.left,masking[0].left,'all compositions share the same true-edge treatment');
-  }
   const states=[];
   async function readState(){return page.evaluate(()=>{
     const hero=document.querySelector('[data-hero-motion]'),plane=hero.querySelector('[data-hero-plane][data-active="true"]'),photo=plane.querySelector('[data-hero-composition]'),canvas=plane.querySelector('[data-hero-canvas]'),r=canvas.getBoundingClientRect(),frame=plane.querySelector('[data-hero-framing]'),f=frame.getBoundingClientRect(),ambient=plane.querySelector('[data-hero-ambient]'),a=ambient.getBoundingClientRect();
-    const scale=r.width/1536,b=photo.getBoundingClientRect(),map=window.__heroSharpMaps[plane.dataset.heroPlane],ctx=map.getContext('2d'),sharpCoverage=[];
-    for(let row=0;row<=8;row++)for(let col=0;col<=10;col++){
+    const scale=r.width/1536,b=photo.getBoundingClientRect(),ctx=window.__heroSharpMaps?.[plane.dataset.heroPlane]?.getContext('2d'),sharpCoverage=[];
+    if(ctx)for(let row=0;row<=8;row++)for(let col=0;col<=10;col++){
      const x=Math.floor(((innerWidth-1)*col/10-r.x)/scale+1536),y=Math.floor(((innerHeight-1)*row/8-r.y)/scale+256);
      sharpCoverage.push(x<0||x>=4608||y<0||y>=1536?0:ctx.getImageData(x,y,1,1).data[3]);
     }
     const screens=[...plane.querySelectorAll('[data-hero-screen]')].map(screen=>{const s=screen.getBoundingClientRect();return {width:s.width/innerHeight,height:s.height/innerHeight,center:(s.x+s.width/2-innerWidth/2)/innerHeight,y:s.y/innerHeight};});
     const uiMask=plane.querySelector('[data-hero-ui-mask]');
-    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:new URL(photo.currentSrc).pathname,x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===4608,filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:Math.min(...sharpCoverage),softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},uiMask:uiMask?getComputedStyle(uiMask).maskImage:null,oldOriginals:plane.querySelectorAll('img[src$="/counter.webp"],img[src$="/dining.webp"],img[src$="/phone-v3.webp"]').length,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
+    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:new URL(photo.currentSrc).pathname,x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===(hero.dataset.presentation==='stills'?2304:4608),filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:ctx?Math.min(...sharpCoverage):null,softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},uiMask:uiMask?getComputedStyle(uiMask).maskImage:null,oldOriginals:plane.querySelectorAll('img[src$="/counter.webp"],img[src$="/dining.webp"],img[src$="/phone-v3.webp"]').length,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
   });}
   function verifyPhoto(state){
    assert.equal(state.composition.loaded,true);assert.equal(state.overflow,false);
-   assert.equal(state.ambient.covers,true);assert.ok(state.ambient.src.endsWith('/venue.webp'));assert.equal(state.ambient.filter,'blur(48px)');
+   assert.equal(state.ambient.covers,true);assert.ok(state.ambient.src.endsWith(presentation==='stills'?'/ambient.webp':'/venue.webp'));assert.equal(state.ambient.filter,'blur(48px)');
    assert.equal(state.frame.overflow,'visible');assert.equal(state.frame.mask,'none');assert.equal(state.composition.filter,'none');assert.equal(state.composition.edgeMask,'none');
    assert.equal(state.oldOriginals,0,'no original photo may be reinserted over the approved source');
-   if(state.image!=='venue')assert.ok(state.uiMask.includes(`${state.image}-screen-mask.png`),'only the projected UI is clipped to the actual device screen');
+   if(state.image!=='venue')assert.ok(state.uiMask.includes(presentation==='stills'?`${state.image}-mask.png`:`${state.image}-screen-mask.png`),'only the projected UI is clipped to the actual device screen');
    const profile=profileAt(width,height);
-   assert.ok(state.composition.src.endsWith(`/${state.image}${profile==='normal'?'':`-${profile}`}-composition.svg`),'browser selects the viewport-specific photo edges');
+   assert.ok(state.composition.src.endsWith(presentation==='stills'?`/${state.image}-background.webp`:`/${state.image}${profile==='normal'?'':`-${profile}`}-composition.svg`),'browser selects the viewport-specific photo edges');
    assert.ok(Math.abs(state.composition.width-state.original.width*3)<.25);
    assert.ok(Math.abs(state.composition.height-state.original.height*1.5)<.25);
    assert.ok(Math.abs(state.composition.x-(state.original.x-1536*state.scale))<.25);
    assert.ok(Math.abs(state.composition.y-(state.original.y-256*state.scale))<.25);
-   if([1440,1512,1920,2560].includes(width))assert.equal(state.sharpViewport.minimum,255,`${width}/${state.image}: EVERY visible viewport sample must be fully sharp, including both sides and corners`);
-   assert.ok(state.frames<=2);
+   if(state.image!=='venue'&&[1440,1512,1920,2560].includes(width))assert.equal(state.sharpViewport.minimum,255,`${width}/${state.image}: EVERY visible viewport sample must be fully sharp, including both sides and corners`);
+   if(state.image==='venue'&&width>=1024){
+    const left=state.screens[0].center-state.screens[0].width/2;
+    const right=state.screens[2].center+state.screens[2].width/2;
+    assert.ok(Math.abs(left+right)*height<1,'center the whole three-screen group');
+    assert.ok(left*height>-width/2&&right*height<width/2,'show all three screens');
+   }
+   assert.ok(state.frames<=(presentation==='stills'?0:2));
   }
   for(let chapter=0;chapter<4;chapter++){
    if(chapter){await page.locator(`[data-hero-segment="${chapter}"]`).dispatchEvent("pointerdown");await page.locator(`[data-hero-segment="${chapter}"]`).evaluate(button=>button.click());}
    await page.waitForFunction(index=>Number(document.querySelector('[data-hero-motion]').dataset.chapter)===index,chapter);
+   await activePhoto.evaluate(image=>image.decode());
+   if(presentation==='live')masking.push(...await readActiveMask());
    await page.waitForTimeout(700);
-   if(chapter>0){await page.locator('[data-hero-live][data-ready="true"]').waitFor({timeout:20000}).catch(()=>{});await page.waitForTimeout(400);}
+   if(chapter>0&&presentation==='live'){await page.locator('[data-hero-live][data-ready="true"]').waitFor({timeout:20000}).catch(()=>{});await page.waitForTimeout(400);}
    const state=await readState();
    assert.equal(state.chapter,chapter,`${width}: requested chapter remains active after demo readiness`);
    assert.equal(state.stageHeight,height);verifyPhoto(state);
@@ -94,6 +97,14 @@ try {
     const zoomed=await readState();verifyPhoto(zoomed);
     if([390,3440].includes(width))await page.screenshot({path:`${out}/${width}-${chapter}-zoom.png`});
    }
+  }
+  assert.equal(masking.length,presentation==='live'?4:0);
+  for(const mask of masking){
+   assert.equal(mask.center,255);
+   for(const profile of [mask.left,mask.right]){assert.equal(profile[0],0);assert.ok(profile.every((a,i)=>i===0||a>=profile[i-1]),'sharp coverage increases continuously from the full photo edge');}
+   mask.left.forEach((a,i)=>assert.ok(Math.abs(a-mask.right[i])<=4,'one symmetric lateral profile'));
+   assert.equal(mask.top20,255,'top/bottom transition is shallow');assert.ok(mask.left[2]<255,'sides have a wider transition');
+   assert.deepEqual(mask.left,masking[0].left,'all compositions share the same true-edge treatment');
   }
   await page.locator('[data-hero-segment="0"]').dispatchEvent('pointerdown');await page.locator('[data-hero-segment="0"]').evaluate(button=>button.click());await page.waitForFunction(()=>document.querySelector('[data-hero-motion]').dataset.chapter==='0');
   if(width===390){const cdp=await page.context().newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:210,y:460}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:210,y:300}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);assert.ok(await page.evaluate(()=>scrollY>0),'mockup swipe scrolls the page');}

@@ -21,6 +21,8 @@
 
 PC·태블릿에서는 첫 매장 장면65% 이후에만 다음 태블릿 앱 한 개를 준비한다. 다른 장면·hero 밖·숨긴 탭·모션 감소에서는 메뉴 앱을 올리지 않는다. 역방향 UI 복원 중만 최대2개이며 기존 네이티브 카운트다운/번호 입력을 유지한다. 이는 웹 콘텐츠 부하를 줄이는 변경이며 실제 아이폰 프로세스 종료 원인을 로그로 확정한 것은 아니다.
 
+PC·태블릿 첫 진입은 매장 사진만 요청한다. 각 장면의 스크롤 진행률이 35%에 이르면 다음 사진을 준비하고, 진행 막대로 이동하면 선택한 사진을 바로 요청한다. 이미 준비한 사진은 페이드와 역방향 이동에 재사용한다. 메뉴 시연은 위의 별도 로딩 조건을 따른다.
+
 캡처는 현재 REAL MATCHA 및 AUBE TABLE의 공개 `heroDemo=1`/`previewOnly` 화면에서 만들었으며 실제 주문·호출은 전송되지 않았다. 사용자 승인 예시는 바닐라 휘낭시에·와인 문의·01000000000이다. 파일/좌표는 `public/assets/hero-mobile-v1/capture-manifest.json`에 기록한다. 원본 캡처 준비 후 `node scripts/build-hero-mobile-stills.mjs <capture-directory>`로 화면 자산을 만들고, `node scripts/build-hero-mobile-backgrounds.mjs`로 배경/마스크를 생성한다. 휴대폰 전체 캡처의 고정 주문 버튼이 내용을 덮은 y824–900 영역은 scrollY675의 겹치는 실제 캡처로 복원했다. 화면 파일 교체 시 같은 viewport와 crop 좌표를 유지하거나 manifest/시연 좌표를 함께 갱신한다.
 
 드래그는28px 원 안의18px 양방향 화살표만 사용한다. QR 주문의 클릭 전에는 최소6초 좌표의 구간에서 원형 파동을3회 보여준 뒤 실행한다. QR 강조·파동·입력 커서도 스크롤 진행값에 묶여 멈추거나 역스크롤할 때 같은 위치를 유지/복원한다. 전화번호는 합성 예시01000000000을 실제 input에 한 자리씩 채우고 입력 문구의 측정 폭 끝에 커서를 표시한다. 뒤로가기/주문내역 탭의 자동 focus-visible 테두리만 해당 시연 iframe 안에서 숨기며 실제 주문 UI의 키보드 포커스는 보존한다. 참고는 https://cuberto.com/blog/cuberto-mouse-follower/ 와 공식 https://github.com/Cuberto/mouse-follower 이며 라이브러리 설치/코드 복사는 하지 않았다.

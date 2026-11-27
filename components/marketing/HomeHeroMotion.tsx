@@ -11,7 +11,7 @@ import HeroMobileMenu from "./HeroMobileMenu";
 import HeroSaleHighlight from "./HeroSaleHighlight";
 import { HOME_START_EVENT } from "@/lib/service-home-scroll";
 import { HERO_MOBILE_MEDIA, HERO_MOBILE_ASSETS } from "@/lib/hero-mobile-stills";
-import { HERO_COMPOSITIONS, HERO_RESPONSIVE_COMPOSITIONS, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
+import { HERO_COMPOSITIONS, HERO_RESPONSIVE_COMPOSITIONS, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition, heroOpeningCamera } from "@/lib/hero-background-layout";
 
 const ASSETS = "/assets/hero-cafe-v1/";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -50,6 +50,7 @@ export default function HomeHeroMotion() {
   const [saleTarget,setSaleTarget]=useState<HeroScreenRect|null>(null);
   // Unknown/server renders are image-only. Never briefly mount a preview app on a phone.
   const [presentation,setPresentation]=useState<"stills"|"live"|null>(null);
+  const [preparedChapters, setPreparedChapters] = useState<readonly number[]>([0]);
   const scenePosition=heroSceneAt(progress),chapter=scenePosition.chapter,scene=HERO_CAFE_CHAPTERS[chapter];
   const liveScene=presentation==="live"?heroLiveSceneAt(chapter,inView,visible,reduced,scenePosition.fraction):null;
   const localProgress=scenePosition.fraction;
@@ -78,6 +79,19 @@ export default function HomeHeroMotion() {
       const rect=root.current.getBoundingClientRect(),height=stage.current.clientHeight;
       const next=Math.max(0,Math.min(1,-rect.top/Math.max(1,root.current.offsetHeight-height)));
       setProgress(next);
+      // Request the next full-size photo during its lead-in. Keep prepared planes
+      // mounted for fades and reverse scrolling, including after a direct jump.
+      if (next < 1 && rect.top < height && rect.bottom > 0) {
+        const { chapter, fraction } = heroSceneAt(next);
+        const upcoming = chapter + 1;
+        const prepareUpcoming = fraction >= .35 && upcoming < HERO_CAFE_CHAPTERS.length;
+        setPreparedChapters(current => {
+          const activePrepared = current.includes(chapter);
+          const nextPrepared = !prepareUpcoming || current.includes(upcoming);
+          if (activePrepared && nextPrepared) return current;
+          return [...current, ...(activePrepared ? [] : [chapter]), ...(nextPrepared ? [] : [upcoming])];
+        });
+      }
       if(next>0) setRestart(current=>current.atStart?{...current,atStart:false}:current);
       const copy=root.current.querySelector<HTMLElement>("[data-hero-copy]");
       setSize({width:stage.current.clientWidth,height,gutter:copy?parseFloat(getComputedStyle(copy).paddingLeft)||0:0,copyHeight:copy?.offsetHeight??0,copyBottom:copy?parseFloat(getComputedStyle(copy).bottom)||0:0});
@@ -117,6 +131,9 @@ export default function HomeHeroMotion() {
     const start=mobile?item.mobileFocus:item.focus;
     const baseFocus=item.image==="phone"?[start[0]+(970-start[0])*phoneZoom,start[1]+(490-start[1])*phoneZoom]:start;
     const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
+    if (!mobile && item.image === "venue") {
+      return heroOpeningCamera(size.width, size.height, scale, focus);
+    }
     const position=mobile?{x:size.width/2-focus[0]*scale,y:(item.image==="phone"?phoneRoom/2:size.height*.52)-focus[1]*scale}:heroLandscapePosition(frame.width,size.height,scale,focus);
     if(item.image==="phone"&&size.width<768){
       const copyClearance=size.height-size.copyHeight-size.copyBottom-size.gutter-(position.y+810*scale);
@@ -125,10 +142,12 @@ export default function HomeHeroMotion() {
     return {...position,scale};
   };
   return <section ref={root} className={styles.story} style={{height:`${HERO_STORY_SVH}svh`}} data-hero-motion data-chapter={chapter} data-live-scene={liveScene??"none"} data-presentation={presentation??"pending"} data-scroll-driven="true" data-template={selected} data-progress={localProgress.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-image-ready={loaded} data-in-view={inView} data-reduced={reduced} aria-label="매장에서 만나는 아티메뉴">
-    <div ref={stage} className={styles.stage} data-rendering={inView&&visible}>
+    <div ref={stage} className={styles.stage} data-rendering={(inView || progress === 0) && visible}>
       <div key={restart.revision} className={styles.scene} aria-hidden="true" inert>
-        {(["venue","counter","dining","phone"] as const).filter(image=>presentation==="live"||image===scene.image).map(image=>{
-          const active=scene.image===image,index=HERO_CAFE_CHAPTERS.findIndex(item=>item.image===image),camera=cameraFor(index);
+        {HERO_CAFE_CHAPTERS.map(({ image }, index) => {
+          const active = index === chapter;
+          if (presentation === "live" ? !preparedChapters.includes(index) : !active) return null;
+          const camera = cameraFor(index);
           return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image} data-active={active}>
             <img src={presentation==="stills"?`${HERO_MOBILE_ASSETS}ambient.webp`:`${ASSETS}${HERO_CAFE_PHOTOS.venue}`} className={styles.ambient} data-hero-ambient alt=""/>
             <div className={styles.framing} data-hero-framing style={{left:frame.left,width:frame.width}}>
@@ -136,7 +155,7 @@ export default function HomeHeroMotion() {
               <picture>
                 <source media={HERO_MOBILE_MEDIA} srcSet={`${HERO_MOBILE_ASSETS}${image}-background.webp`} data-hero-edge-source="mobile-flat"/>
                 {HERO_RESPONSIVE_COMPOSITIONS.map(source=><source key={source.profile} media={source.media} srcSet={source.sources[image]} data-hero-edge-source={source.profile}/>)}
-                <img ref={image==="venue"?firstPhoto:undefined} src={HERO_COMPOSITIONS[image]} className={styles.composition} data-hero-composition={image} width={4608} height={1536} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
+                <img ref={image==="venue"?firstPhoto:undefined} src={HERO_COMPOSITIONS[image]} className={styles.composition} data-hero-composition={image} width={4608} height={1536} alt="" fetchPriority={active?"high":"low"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
               </picture>
               {image==="venue"?<>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
               {image!=="venue"?<div className={styles.screenMask} style={{maskImage:presentation==="stills"?`url(${HERO_MOBILE_ASSETS}${image}-mask.png)`:`url(/assets/hero-cafe-v7/${image}-screen-mask.png)`}} data-hero-ui-mask={image} data-flat-mask={presentation==="stills"}>
