@@ -4,7 +4,8 @@
   --footer-muted: #b4b4be;
   --footer-divider: rgb(255 255 255 / 11%);
   scroll-margin-top: calc(var(--site-header-height) + var(--site-space-block));
-  padding-block: var(--site-space-group) var(--site-space-copy);
+  padding-block-start: var(--site-space-group);
+  padding-block-end: max(var(--site-gutter), calc((100% - var(--site-content-max)) / 2 + var(--site-gutter)));
   background: transparent;
   color: var(--footer-ink);
 }
@@ -36,7 +37,7 @@
 .group li { min-width: 0; }
 .group li a { display: inline-flex; align-items: center; min-height: var(--ui-control-height-compact); color: var(--footer-ink); font-size: var(--type-body-sm-size); line-height: 1.6; overflow-wrap: anywhere; }
 .brand:hover, .email:hover, .group li a:hover, .business dd a:hover,
-.businessContact a:hover, .support a[href^="tel:"]:hover, .legal a:hover {
+.businessContact a:hover, .support a:hover, .legal a:hover {
   color: var(--footer-ink);
   text-decoration: underline;
   text-underline-offset: .25em;
@@ -61,6 +62,7 @@
 .businessContact { display: flex; flex-wrap: wrap; gap: 0 var(--site-space-block); min-width: 0; }
 .businessContact a { display: inline-flex; align-items: center; max-inline-size: 100%; overflow-wrap: anywhere; }
 .support { align-content: start; justify-items: start; }
+.inquiry { display: inline-flex; min-height: var(--ui-control-height-header); align-items: center; gap: var(--site-space-copy); }
 .bottom {
   display: flex;
   flex-direction: column;
@@ -75,7 +77,23 @@
 .copyright, .legal { color: var(--footer-muted); }
 .legal { display: flex; flex-wrap: wrap; gap: 0 var(--site-space-group); font-size: var(--type-body-sm-size); }
 .legal a { display: inline-flex; align-items: center; min-height: var(--ui-control-height-compact); }
+.utilities { display: flex; flex-wrap: wrap; align-items: center; gap: var(--site-space-copy) var(--site-space-block); }
+.familyTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-control-gap);
+  min-height: var(--ui-control-height-header);
+  padding-inline: var(--ui-control-padding-inline);
+  border: 1px solid color-mix(in srgb, var(--footer-muted) 62%, var(--footer-surface));
+  border-radius: var(--ui-radius-control);
+  background: transparent;
+  color: var(--footer-muted);
+  cursor: pointer;
+}
+.familyTrigger:is(:hover, [data-state="open"]) { color: var(--footer-ink); }
+.familyTrigger[data-state="open"] svg { transform: rotate(180deg); }
 .footer :is(a, summary):focus-visible { outline: 2px solid var(--footer-ink); outline-offset: 3px; border-radius: var(--ui-radius-control-rounded); }
+.familyTrigger:focus-visible { outline: 2px solid var(--footer-ink); outline-offset: 3px; }
 .wordmark {
   position: absolute;
   inset-inline-end: -.04em;
