@@ -8,14 +8,14 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Dialog, DialogContent } from "@/app/components/ui/dialog";
 import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan-canvas";
 import { FloorPlanViewport } from "@/app/components/ui/floor-plan-viewport";
-import { RoomLabel } from "@/app/components/ui/room-label";
+import { RoomTabs } from "@/app/components/ui/room-tabs";
 import { FilterFill, Grid2X2, Link2, List, PrinterFill } from "@/app/components/ui/site-icon";
 import HelpTooltip from "@/components/ui/HelpTooltip";
 import { Switch } from "@/app/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import OrderCardSummary, { DEFAULT_ORDER_CARD_FIELDS, ORDER_CARD_FIELDS, type OrderCardField } from "@/components/mypage/OrderCardSummary";
-import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO, floorMemberships, readableFloorDocument } from "@/lib/menu-floor-plan";
+import { floorMemberships, readableFloorDocument } from "@/lib/menu-floor-plan";
 import { isCurrentOrder } from "@/lib/order-history-query";
 import { getHistoryPlacements, groupOperationHistory, representativeOperationOrder, type OperationHistoryRecord, type OperationsFloorPlan } from "@/lib/operations-history";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
@@ -210,7 +210,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
   }
 
   const shell = (
-    <ContentPanel as="section" layout="canvas" data-order-table-workspace aria-label="주문 관리 작업 영역">
+    <ContentPanel as="section" layout="canvas" data-room-tabs-surface data-order-table-workspace aria-label="주문 관리 작업 영역">
       <div className="site-floor-workspace-tools">
         <div className="site-action-row" data-distribution="between">
           <Tabs purpose="state" value={view} onValueChange={setView}>
@@ -276,8 +276,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
         ) : (
           <div className="site-floor-workspace-canvas">
             <FloorPlanViewport key={room.id} name={room.name}>
-              <FloorPlanCanvas name={room.name} gridSize={room.gridSize} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
-                data-mobile-cards="true" data-order-table-canvas
+              <FloorPlanCanvas name={room.name} gridSize={room.gridSize}
+                data-mobile-cards="true"
                 onClick={event => {
                   if (event.target === event.currentTarget) {
                     setSelection(previous => previous?.kind === "single" ? undefined : previous);
@@ -308,7 +308,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
                   return (
                     <FloorPlanObject key={point.id} rect={placement} label={point.label} disabled={disabled}
                       selected={selected} data-checked={checked || undefined} data-order-settlement={groupNumber || undefined}
-                      data-order-table-card data-point-kind={point.kind ?? "table"}>
+                      data-order-table-card pointKind={point.kind ?? "table"}>
                       <button type="button" className="site-order-table-card-select" disabled={disabled}
                         aria-label={`${point.label} 개별 선택`} aria-pressed={selected} onClick={() => selectSingle(point.id)} />
                       <div className="site-order-table-card-choice">
@@ -385,7 +385,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     <section className="site-stack-copy" aria-label="주문 테이블·리스트 보기">
       <ActionFeedbackToast message={feedback?.message} tone="success" eventKey={feedback} />
       {room && floorPlan.available ? (
-        <Tabs purpose="section" appearance="rooms" value={view === "list" ? activeListRoom : room.id} onValueChange={id => {
+        <RoomTabs label="주문 내역 룸" rooms={floor.rooms} includeAll={view === "list"} value={view === "list" ? activeListRoom : room.id} onValueChange={id => {
           if (view === "list") {
             setListRoomId(id);
             return;
@@ -393,12 +393,8 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
           setRoomId(id);
           setSelection(undefined);
         }}>
-          <TabsList size="sm" data-active-tone="solid" aria-label="주문 내역 룸">
-            {view === "list" && <TabsTrigger value="all">모든 룸</TabsTrigger>}
-            {floor.rooms.map(room => <TabsTrigger key={room.id} value={room.id}><RoomLabel name={room.name} emoji={room.emoji} /></TabsTrigger>)}
-          </TabsList>
-          <TabsContent value={view === "list" ? activeListRoom : room.id}>{shell}</TabsContent>
-        </Tabs>
+          {shell}
+        </RoomTabs>
       ) : shell}
       {view === "map" && unplaced.length > 0 && (
         <ContentPanel aria-label="배치되지 않은 주문 내역">

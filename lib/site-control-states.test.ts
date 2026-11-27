@@ -132,7 +132,7 @@ test("tab purpose maps main views, independent sections, categories and states t
   assert.match(tabsSource, /category: "underline"/);
   assert.match(tabsSource, /section: "area"/);
   assert.doesNotMatch(tabsSource, /"folder"|"flow"|"contained"|site-shaped-tab-label/);
-  assert.match(read("components/design-system/ShapedTabExamples.tsx"), /<Tabs purpose="section"/);
+  assert.match(read("components/design-system/ShapedTabExamples.tsx"), /<RoomTabs\b/);
   const hierarchyExample = read("components/design-system/SelectionControlExamples.tsx");
   assert.match(hierarchyExample, /템플릿 페이지 포함 관계 예시/);
   assert.match(hierarchyExample, /고객센터 페이지 포함 관계 예시/);
@@ -345,20 +345,29 @@ test("등록은 룸이 있을 때만 활성화하고 취소를 제공하지 않�
 });
 
 
-test("룸 선택의 독립 사각 탭은 고정 추가 행동과 선택 가능한 룸을 분리한다",async()=>{
- const {Tabs,TabsList,TabsTrigger}=await import("../app/components/ui/tabs");
- const html=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"rooms",defaultValue:"main"},createElement(TabsList,{"aria-label":"룸 선택",action:createElement("button",{type:"button","aria-label":"룸 추가"},"+")},createElement(TabsTrigger,{value:"main"},"메인"),createElement(TabsTrigger,{value:"terrace"},"테라스"))));
- assert.match(html,/site-room-tabs-header" data-size="md"/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
- for(const size of ["sm","md","lg","default"] as const){
-  const sized=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"rooms",defaultValue:"main"},createElement(TabsList,{size},createElement(TabsTrigger,{value:"main"},"메인"))));
-  const expected=size==="default"?"md":size;
-  assert.match(sized,new RegExp(`site-room-tabs-header" data-size="${expected}"`));
-  assert.match(sized,new RegExp(`data-size="${expected}" class="site-room-tabs`));
- }
- assert.equal((html.match(/role="tab"/g)??[]).length,2);assert.match(html,/aria-selected="true"/);assert.doesNotMatch(html,/site-document-tab/);
+test("룸 탭은 연결형 작업 패널과 고정 추가 행동을 공유한다", async () => {
+  const { RoomTabs } = await import("../app/components/ui/room-tabs");
+  const rooms = [{ id: "main", name: "메인", emoji: "🏠" }, { id: "terrace", name: "테라스" }];
+  const action = createElement("button", { type: "button", "aria-label": "룸 추가" }, "+");
+  const html = renderToStaticMarkup(createElement(RoomTabs, {
+    label: "룸 선택", value: "main", onValueChange: () => {}, rooms, action,
+    includeAll: true, children: "룸 작업 내용",
+  }));
+  assert.match(html, /data-action-placement="start"/);
+  assert.match(html, /data-variant="document"[^>]+data-size="sm"/);
+  assert.ok(html.indexOf('aria-label="룸 추가"') < html.indexOf('role="tablist"'));
+  assert.equal((html.match(/role="tab"/g) ?? []).length, 3);
+  assert.match(html, /aria-selected="true"[^>]*>.*메인/);
+  assert.match(html, /role="tabpanel"[^>]*>룸 작업 내용/);
+  for (const file of [
+    "components/mypage/OperationsHistoryViews.tsx",
+    "components/mypage/floor-plan/FloorPlanEditor.tsx",
+    "app/mypage/menus/[menuId]/orders/OrderTableWorkspace.tsx",
+    "app/mypage/menus/[menuId]/kitchen/KitchenDashboard.tsx",
+  ]) assert.match(read(file), /<RoomTabs\b/);
 });
 
-test("category capsules and room rectangles use separate shared roles without changing control geometry", async () => {
+test("category capsules and room add actions keep their shared roles", async () => {
   const { ChoiceTile } = await import("../app/components/ui/choice-tile");
   const { Button } = await import("../app/components/ui/button");
   const filter = renderToStaticMarkup(createElement(ChoiceTile, { purpose: "filter", size: "compact", label: "전체", selected: true }));
@@ -373,14 +382,10 @@ test("category capsules and room rectangles use separate shared roles without ch
   assert.match(css, /\.site-choice-tile\[data-purpose="filter"\] \{ border-radius: var\(--ui-radius-control\); \}/);
   assert.match(css, /\.site-filter \{[^}]*border-radius: var\(--ui-radius-control\)/);
   assert.match(css, /\.site-button\.site-button-icon\.site-button-rounded \{ border-radius: var\(--ui-radius-control-rounded\); \}/);
-  assert.match(tabCss, /\.site-room-tabs > \.site-room-tab \{[^}]*border-radius:var\(--ui-radius-control-rounded\)/);
-  assert.match(tabCss, /\.site-room-tabs > \.site-room-tab\[data-state="active"\] \{[^}]*background:var\(--ui-surface\);[^}]*color:var\(--ui-text\);[^}]*box-shadow:inset/);
-  assert.match(read("components/mypage/OperationsHistoryViews.tsx"), /appearance="rooms"/);
-  const floorPlanEditor = read("components/mypage/floor-plan/FloorPlanEditor.tsx");
-  assert.match(floorPlanEditor, /appearance=\{roomManagement \? "document" : "rooms"\}/);
-  assert.match(floorPlanEditor, /actionPlacement="start".*shape="rounded" size="icon" onClick=\{addRoom\}/);
+  assert.match(tabCss, /\.site-document-tab-item:has\(> \[data-state="active"\]\) \{[^}]*border-bottom-color: var\(--ui-surface\)/);
+  assert.match(read("components/mypage/floor-plan/FloorPlanEditor.tsx"), /shape="rounded" size="icon" onClick=\{addRoom\}/);
   assert.match(read("components/apply/TemplateGallery.tsx"), /<CatalogFilterSelect key="industry" label="업종"/);
-  assert.match(read("styles/site-spacing.css"), /:is\(\.site-room-tabs, \.site-document-tabs\)\[data-overflow-right="true"\]/);
+  assert.match(read("styles/site-spacing.css"), /\.site-document-tabs\[data-overflow-right="true"\]/);
 });
 
 

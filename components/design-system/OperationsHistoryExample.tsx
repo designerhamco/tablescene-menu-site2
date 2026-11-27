@@ -6,6 +6,7 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { TableCell } from "@/app/components/ui/table";
 import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import { Badge } from "@/app/components/ui/badge";
+import { snapFloorRect } from "@/lib/menu-floor-plan";
 import type {
   OperationsFloorPlan,
   OperationHistoryRecord,
@@ -37,14 +38,14 @@ const floorPlan: OperationsFloorPlan = {
   available: true,
   revision: 1,
   document: {
-    rooms: [{ id: room, name: "홀 예시", emoji: "🏠", aspectRatio: 1.33 }],
+    rooms: [
+      { id: room, name: "홀 예시", emoji: "🏠", aspectRatio: 16 / 9, gridSize: 5 },
+      { id: "44444444-4444-4444-8444-444444444444", name: "테라스 예시", aspectRatio: 16 / 9, gridSize: 5 },
+    ],
     placements: records.map((record, index) => ({
       pointId: record.pointId,
       roomId: room,
-      x: index ? 55 : 8,
-      y: 12,
-      width: 34,
-      height: 42,
+      ...snapFloorRect({ x: index * 20, y: 20, width: 20, height: 20 }, 5),
     })),
   },
   points: records.map((record, index) => ({
