@@ -162,12 +162,12 @@ async function verifyLibrary(page, width) {
 
 async function verifyCatalog(page, width) {
     await open(page, '/templates');
-    const service = page.getByRole('combobox', { name: '메뉴판 유형', exact: true });
-    await expect(service).toHaveValue('all');
+    const service = page.getByRole('group', { name: '메뉴판 유형', exact: true });
+    await expect(service.getByRole('radio', { name: '전체', exact: true })).toHaveAttribute('aria-checked', 'true');
     await expect(page.locator('.site-template-media').first()).toHaveCSS('border-top-left-radius', '16px');
     const columns = await page.locator('.site-template-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
     assert.equal(columns, width < 640 ? 1 : width < 768 ? 2 : width < 1024 ? 3 : 4);
-    await service.selectOption('dining');
+    await service.getByRole('radio', { name: '다이닝', exact: true }).click();
     await expect(page.locator('[data-catalog-service]:not([data-catalog-service="dining"])')).toHaveCount(0);
     await assertViewport(page, width);
     await page.screenshot({ path: `${output}/templates-${width}.png` });

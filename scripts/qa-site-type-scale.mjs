@@ -93,11 +93,11 @@ try {
         for (const tab of await sections.all()) await expect(tab).toHaveCSS("font-size", "14px");
 
         if (route === "/templates") {
-          const service = page.getByRole("combobox", { name: "메뉴판 유형", exact: true });
-          await expect(service).toHaveValue("all");
-          await service.selectOption("dining");
+          const service = page.getByRole("group", { name: "메뉴판 유형", exact: true });
+          await expect(service.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
+          await service.getByRole("radio", { name: "다이닝", exact: true }).click();
           await expect(page.locator('[data-catalog-service]:not([data-catalog-service="dining"])')).toHaveCount(0);
-          await service.selectOption("all");
+          await service.getByRole("radio", { name: "전체", exact: true }).click();
         }
       }
 

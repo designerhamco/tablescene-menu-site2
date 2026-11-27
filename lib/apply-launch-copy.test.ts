@@ -23,7 +23,7 @@ test("만들기와 디자인 템플릿 목록은 서로 다른 진입 화면을 
   assert.doesNotMatch(applyPageSource, /TemplateGallery/);
   assert.match(applyPageSource, /어떤 메뉴판을 만들까요/);
   assert.match(templatesPageSource, /TemplateGallery/);
-  assert.match(templateGallerySource, /<CatalogServiceSelect/);
+  assert.match(templateGallerySource, /<CatalogServiceButtons/);
   for (const label of ["기본 템플릿", "디자인 템플릿"]) assert.ok(templateGallerySource.includes(label));
   assert.match(templateGallerySource, /filterCatalogDesigns/);
   assert.doesNotMatch(templateGallerySource, /얼리버드 월|정상가/);

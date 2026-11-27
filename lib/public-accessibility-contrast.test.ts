@@ -12,8 +12,8 @@ test("public product and support surfaces keep secondary copy at accessible cont
   const faq = readSource("../app/components/common/FAQ.tsx");
 
   assert.doesNotMatch(gallery, /border-transparent text-zinc-400/);
-  assert.match(gallery, /primaryFilter=\{<CatalogServiceSelect/);
-  assert.match(readSource("../components/templates/CatalogServiceSelect.tsx"), /<select className="site-field" aria-label="메뉴판 유형"/);
+  assert.match(gallery, /primaryFilter=\{<CatalogServiceButtons/);
+  assert.match(readSource("../components/templates/CatalogServiceButtons.tsx"), /<ToggleGroup type="single" appearance="segmented" size="sm" aria-label="메뉴판 유형"/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /site-filter/);
   const controls = readSource("../styles/ui-system.css");
