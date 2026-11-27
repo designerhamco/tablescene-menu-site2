@@ -808,9 +808,7 @@
 .site-menu-card-toolbar > .site-button-outline { justify-self: end; }
 .site-menu-card-state-row { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); }
 .site-menu-card-state-row > .site-button-outline { align-self: end; }
-.site-menu-card :is(.site-menu-card-actions, .site-menu-card-secondary-actions) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
-.site-menu-card .site-menu-card-actions:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
-.site-menu-card-actions .site-button { min-width: 0; width: 100%; max-width: 100%; white-space: normal; word-break: keep-all; flex-wrap: wrap; text-align: center; }
+.site-menu-card-actions .site-button { min-width: 0; max-width: 100%; white-space: normal; word-break: keep-all; flex-wrap: wrap; text-align: center; }
 .site-menu-card-secondary-actions .site-button { white-space: nowrap; }
 .site-breadcrumb { text-align: start; }
 .site-breadcrumb [data-slot="breadcrumb-list"] { font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
