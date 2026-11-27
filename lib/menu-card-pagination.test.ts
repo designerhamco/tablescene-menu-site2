@@ -24,3 +24,18 @@ test("empty results and shrinking lists clamp the current page without losing ca
   assert.equal(getMenuCardPage(cards, "없는 이름", 2).cards.length, 0);
   assert.deepEqual(getMenuCardPage(cards, "", -2).cards, cards.slice(0, 12));
 });
+
+test("service and visibility intersect with the name across the complete tab", () => {
+  const cards = [
+    ...Array.from({ length: 12 }, (_, index) => ({ title: `메뉴판 ${index}`, serviceCategory: "basic" as const, visibility: "published" as const })),
+    { title: "강남 메뉴판", serviceCategory: "display" as const, visibility: "private" as const },
+    { title: "강남 메뉴판", serviceCategory: "display" as const, visibility: "published" as const },
+    { title: "송파 메뉴판", serviceCategory: "display" as const, visibility: "private" as const },
+    { title: "강남 메뉴판", serviceCategory: null, visibility: null },
+  ];
+  const result = getMenuCardPage(cards, "강남", 2, { serviceCategory: "display", visibility: "private" });
+  assert.deepEqual(result.cards, [cards[12]]);
+  assert.equal(result.page, 1);
+  assert.equal(result.totalResults, 1);
+  assert.equal(getMenuCardPage(cards, "강남", 1, { serviceCategory: "", visibility: "private" }).totalResults, 1);
+});

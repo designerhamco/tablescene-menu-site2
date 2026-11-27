@@ -23,8 +23,8 @@ test("promoted work headings keep tools, help and labelled-by targets without re
   assert.equal(renderToStaticMarkup(h(SectionHeader, { title: "주문 관리", titleHidden: true })), "");
 });
 test("menu lists show twelve cards and paginate only when more results exist", () => {
-  const cards = Array.from({ length: 13 }, (_, i) => ({ key: String(i), title: `메뉴판 ${i}`, content: h("article", null, `메뉴판 ${i}`) }));
-  const render = (count: number) => renderToStaticMarkup(h(MenuCardList, { cards: cards.slice(0, count), tabs: null, emptyState: h("p", null, "빈 목록") }));
+  const cards = Array.from({ length: 13 }, (_, i) => ({ key: String(i), title: `메뉴판 ${i}`, serviceCategory: null, visibility: null, content: h("article", null, `메뉴판 ${i}`) }));
+  const render = (count: number) => renderToStaticMarkup(h(MenuCardList, { cards: cards.slice(0, count), tabs: null, allowVisibilityFilter: true, emptyState: h("p", null, "빈 목록") }));
   assert.equal((render(13).match(/<article>/g) ?? []).length, 12);
   assert.match(render(13), /aria-label="메뉴판 목록 페이지"/);
   assert.doesNotMatch(render(12), /aria-label="메뉴판 목록 페이지"/);

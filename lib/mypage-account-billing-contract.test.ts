@@ -50,9 +50,10 @@ test("mypage menu cards use compact shared work panels and keep owner and staff 
   assert.match(card, /className="site-menu-card-media"/);
   assert.match(card, /className="site-menu-card-meta"/);
   assert.match(card, /supportingDetails.map/);
+  assert.doesNotMatch(card, /publicPath|MenuLinkCopyButton/);
   assert.match(card, /className="site-action-row site-menu-card-actions"/);
   assert.match(list, /className="site-menu-card-list"/);
-  assert.match(list, /getMenuCardPage\(cards, query, requestedPage\)/);
+  assert.match(list, /getMenuCardPage\(cards, query, requestedPage, filters\)/);
   assert.match(readFileSync(new URL("../lib/menu-card-pagination.ts", import.meta.url), "utf8"), /matchesMenuName\(card.title, query\)/);
   assert.match(mypageSource, /content: renderMenuCard\(card\)/);
   assert.match(mypageSource, /content: renderStaffMenuCard\(card\)/);

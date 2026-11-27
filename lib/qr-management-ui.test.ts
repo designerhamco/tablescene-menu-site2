@@ -112,13 +112,14 @@ test("다운로드 API는 관리 메타데이터 없이 비공개·무캐시 DTO
   assert.deepEqual((await response.json()).tables, [{ id: table.id, label: table.label, status: table.status, qrPath: table.qrPath }]);
 });
 
-test("내 메뉴판은 다운로드 전용 Dialog를 열고 기존 QR URL은 통합 관리로 이동한다", () => {
+test("내 메뉴판 QR Dialog는 주소 복사와 다운로드를 제공하고, 기존 QR URL은 통합 관리로 이동한다", () => {
   const source = readSource("app/mypage/page.tsx");
   const modal = readSource("components/mypage/MenuQrDownloadModal.tsx");
   const legacy = readSource("app/mypage/menus/[menuId]/qr/page.tsx");
   assert.equal((source.match(/<MenuQrDownloadModal/g) ?? []).length, 2);
   assert.doesNotMatch(source, /<QrDownloadButton/);
   assert.match(modal, /<DialogContent/);
+  assert.match(modal, /<QrAddressActions/);
   assert.match(modal, /등록된 테이블이 없습니다/);
   assert.match(modal, /다시 시도/);
   assert.match(modal, /QR 관리로 이동/);

@@ -95,6 +95,7 @@ export type AccessibleMenuSiteListItem = {
   templateKey: string;
   designId?: string;
   status: string;
+  publishedAt: string | null;
   updatedAt: string;
   accessRole: MenuSiteAccessRole;
   isOwner: boolean;
@@ -689,7 +690,7 @@ export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteLis
   const adminSupabase = createAdminClient();
   const { data, error } = await adminSupabase
     .from("menu_sites")
-    .select("id, name, slug, template_key, status, updated_at, settings")
+    .select("id, name, slug, template_key, status, published_at, updated_at, settings")
     .in("id", accessEntries.map((entry) => entry.menuSiteId));
 
   if (error) accessCheckFailed("loadAccessibleMenuSiteList", error);
@@ -708,6 +709,7 @@ export async function getAccessibleMenuSiteList(): Promise<AccessibleMenuSiteLis
         templateKey: menuSite.template_key,
         designId: typeof (menuSite.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? String((menuSite.settings as Record<string, unknown>).menu_design_id) : undefined,
         status: menuSite.status,
+        publishedAt: menuSite.published_at,
         updatedAt: menuSite.updated_at,
         accessRole: entry.accessRole,
         isOwner: entry.isOwner,

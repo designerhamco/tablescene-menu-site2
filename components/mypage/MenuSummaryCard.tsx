@@ -1,15 +1,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ContentPanel } from "@/app/components/ui/content-panel";
-import MenuLinkCopyButton from "./MenuLinkCopyButton";
 
 type MenuDetail = { label: string; value: string };
 
 /** Identity, state, essential details and existing actions share one compact work surface. */
-export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, badges, details, supportingDetails = [], status, actions, secondaryActions, billingHref, billingLabel = "구독 정보", lifecycle }: {
+export default function MenuSummaryCard({ cardKey, name, serviceLabel, thumbnail, badges, details, supportingDetails = [], status, actions, secondaryActions, billingHref, billingLabel = "구독 정보", lifecycle }: {
   cardKey: string;
   name: string;
-  publicPath: string;
+  serviceLabel: string;
   thumbnail: ReactNode;
   badges: ReactNode;
   details: MenuDetail[];
@@ -29,15 +28,13 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
         <div className="site-menu-card-header">
           <div className="site-stack-detail min-w-0">
             <h2 id={headingId} className="type-content-title site-menu-card-title" title={name}>{name}</h2>
-            <div className="site-action-row site-menu-card-address"><p className="type-caption site-copy-muted site-menu-card-path" title={publicPath}>{publicPath}</p>
-              {lifecycle !== "deleted" && publicPath !== "/menu/" ? <MenuLinkCopyButton path={publicPath} name={name} /> : null}
-            </div>
+            <p className="type-caption site-copy-muted">{serviceLabel}</p>
           </div>
           <div className="site-menu-card-badges">{badges}</div>
         </div>
-        <dl className="site-menu-card-meta">
+        {details.length ? <dl className="site-menu-card-meta">
           {details.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
-        </dl>
+        </dl> : null}
         {supportingDetails.length ? <dl className="site-menu-card-supporting">
           {supportingDetails.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}
         </dl> : null}
