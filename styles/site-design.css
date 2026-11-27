@@ -443,13 +443,11 @@
   .site-operations-feature-navigation { display: flex; flex: none; gap: inherit; border: 0; padding: 0; }
 }
 @media (min-width: 768px) {
-  .site-page-spacing-compact:has(> .site-container > .site-account-layout) {
-    padding-block-start: var(--site-space-content);
-  }
   .site-account-layout {
     grid-template-columns: clamp(12rem, 24vw, 15rem) minmax(0, 1fr);
-    grid-template-areas: "heading content" "sidebar content";
+    grid-template-areas: "sidebar heading" "sidebar content";
     grid-template-rows: max-content 1fr;
+    row-gap: var(--site-page-intro-content-gap);
   }
   .site-account-layout > .site-page-intro { grid-area: heading; margin-block-end: 0; overflow-wrap: anywhere; }
   .site-account-layout > .site-account-sidebar { grid-area: sidebar; position: sticky; top: 7rem; display: grid; gap: 1.25rem; min-width: 0; }
