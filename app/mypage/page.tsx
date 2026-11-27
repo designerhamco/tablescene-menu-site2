@@ -29,7 +29,8 @@ import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypa
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import MenuQrDownloadModal from "@/components/mypage/MenuQrDownloadModal";
-import { MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
+import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -2368,6 +2369,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
+  let accountStaffCount: number | undefined;
+  if (activeTab === "menus" && canShowOwnerCommerce && isStaffManagementAvailable() && !menuSitesError) {
+    if (menuSiteIds.length === 0) {
+      accountStaffCount = 0;
+    } else {
+      const memberships = await runMypageQuery(
+        "account_staff_count",
+        supabase.from("menu_site_members").select("user_id")
+          .in("menu_site_id", menuSiteIds).eq("status", "active").neq("user_id", user.id),
+      );
+      if (memberships?.data) accountStaffCount = new Set(memberships.data.map(({ user_id }) => user_id)).size;
+    }
+  }
   const pageTitle = { menus: "내 메뉴판", payments: "구독/결제 내역", inquiries: "문의 내역", notifications: "알림 내역", favorites: "좋아요한 템플릿", account: "계정 정보" }[activeTab];
   function menuBillingHref(publicPath: string, title: string) {
     return `/mypage?${new URLSearchParams({ tab: "payments", billingTab: "history", billingQuery: publicPath.startsWith("/menu/") ? publicPath : title })}`;
@@ -2452,6 +2466,17 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       />
       <main className="site-management-scope site-account-page site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <AccountPageContent sidebar={<>
+            {activeTab === "menus" ? (
+              <MypageAccountCard
+                userId={user.id}
+                avatarUrl={getAccountAvatarUrl(user.id, user.user_metadata)}
+                name={businessProfile?.business_name?.trim() || displayName || "내 계정"}
+                email={user.email}
+                role={hasOwnedMenuSites ? "사장" : isStaffOnlyAccount ? "직원" : null}
+                aiCredits={canShowOwnerCommerce ? accountAiCreditBalance?.totalRemainingCredits : undefined}
+                staffCount={accountStaffCount}
+              />
+            ) : null}
             <MypageNavigation
               active={activeNavigationKey}
               totalMenuCount={totalMenuCardCount}
