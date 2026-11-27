@@ -10,13 +10,14 @@ import type { MenuQrDownloadData } from "@/lib/menu-qr-downloads";
 import QrDownloadButton from "./QrDownloadButton";
 
 export default function MenuQrDownloadModal({
-  menuSiteId, menuName, disabled = false, disabledReason, className = "site-button site-button-outline",
+  menuSiteId, menuName, disabled = false, disabledReason, className = "site-button site-button-outline", showIcon = true,
 }: {
   menuSiteId: string;
   menuName: string;
   disabled?: boolean;
   disabledReason?: string | null;
   className?: string;
+  showIcon?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState<MenuQrDownloadData | null>(null);
@@ -53,7 +54,7 @@ export default function MenuQrDownloadModal({
       else requestRef.current?.abort();
     }}>
       <DialogTrigger asChild>
-        <button type="button" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}><QrCode aria-hidden="true" />QR 관리</button>
+        <button type="button" disabled={disabled} title={disabled ? disabledReason ?? undefined : undefined} className={className}>{showIcon ? <QrCode aria-hidden="true" /> : null}QR 관리</button>
       </DialogTrigger>
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">

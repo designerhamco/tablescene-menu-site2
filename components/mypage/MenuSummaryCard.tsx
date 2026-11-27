@@ -6,7 +6,7 @@ import MenuLinkCopyButton from "./MenuLinkCopyButton";
 type MenuDetail = { label: string; value: string };
 
 /** Identity, state, essential details and existing actions share one compact work surface. */
-export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, badges, details, supportingDetails = [], status, actions, billingHref, billingLabel = "구독 정보", lifecycle }: {
+export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, badges, details, supportingDetails = [], status, actions, secondaryActions, billingHref, billingLabel = "구독 정보", lifecycle }: {
   cardKey: string;
   name: string;
   publicPath: string;
@@ -16,6 +16,7 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
   supportingDetails?: MenuDetail[];
   status?: ReactNode;
   actions?: ReactNode;
+  secondaryActions?: ReactNode;
   billingHref?: string;
   billingLabel?: string;
   lifecycle: "active" | "holding" | "deleted";
@@ -28,7 +29,7 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
         <div className="site-menu-card-header">
           <div className="site-stack-detail min-w-0">
             <h2 id={headingId} className="type-content-title">{name}</h2>
-            <div className="site-action-row"><p className="type-caption site-copy-muted site-menu-card-path">{publicPath}</p>
+            <div className="site-action-row site-menu-card-address"><p className="type-caption site-copy-muted site-menu-card-path">{publicPath}</p>
               {lifecycle !== "deleted" && publicPath !== "/menu/" ? <MenuLinkCopyButton path={publicPath} name={name} /> : null}
             </div>
           </div>
@@ -42,8 +43,9 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
           {billingHref ? <Link href={billingHref} className="site-button site-button-link">{billingLabel}</Link> : null}
         </div> : <>
           {status ? <p className="type-body-sm site-copy-muted site-menu-card-status">{status}</p> : null}
-          {actions || billingHref ? <div className="site-menu-card-toolbar site-content-divider">
+          {actions || secondaryActions || billingHref ? <div className="site-menu-card-toolbar site-stack-copy">
             {actions ? <div className="site-action-row site-menu-card-actions">{actions}</div> : null}
+            {secondaryActions ? <div className="site-action-row site-menu-card-secondary-actions">{secondaryActions}</div> : null}
             {billingHref ? <Link href={billingHref} className="site-button site-button-link">{billingLabel}</Link> : null}
           </div> : null}
         </>}
