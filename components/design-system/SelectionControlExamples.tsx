@@ -22,7 +22,7 @@ const options = [
 
 export default function SelectionControlExamples() {
   const [kind, setKind] = useState("designer");
-  const [service, setService] = useState<CatalogServiceButtons>("all");
+  const [service, setService] = useState<CatalogServiceFilter>("all");
   const [industry, setIndustry] = useState("all");
   const [topic, setTopic] = useState("all");
   const [nativeValue, setNativeValue] = useState("all");
