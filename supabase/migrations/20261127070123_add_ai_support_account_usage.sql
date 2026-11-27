@@ -1,3 +1,7 @@
+begin;
+
+set local lock_timeout = '5s';
+
 create table public.ai_support_account_usage (
   account_id uuid primary key references auth.users(id) on delete cascade,
   reset_at timestamptz not null,
@@ -107,7 +111,7 @@ create function public.settle_ai_support_account_usage(
   p_reservation_id uuid,
   p_daily_limit integer,
   p_reserve_tokens integer,
-  p_actual_tokens integer
+  p_actual_tokens integer default null
 )
 returns jsonb
 language plpgsql
@@ -147,3 +151,5 @@ grant execute on function public.reserve_ai_support_account_usage(uuid, uuid, in
   to service_role;
 grant execute on function public.settle_ai_support_account_usage(uuid, uuid, integer, integer, integer)
   to service_role;
+
+commit;

@@ -166,7 +166,10 @@ export async function answerAiSupportQuestion({ accountId, question, rateLimitKe
   const { answer, tokens } = await requestOpenAi(question, apiKey);
   let settledAccess: AiSupportChatAccess = unavailable;
   try {
-    const settled = await admin.rpc("settle_ai_support_account_usage", { ...reservation, p_actual_tokens: tokens });
+    const settled = await admin.rpc("settle_ai_support_account_usage", {
+      ...reservation,
+      p_actual_tokens: tokens ?? undefined,
+    });
     if (settled.error) throw settled.error;
     settledAccess = decodeAccess(settled.data);
   } catch {

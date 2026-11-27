@@ -29,6 +29,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_support_account_usage: {
+        Row: {
+          account_id: string
+          reservation_id: string | null
+          reserved_tokens: number
+          reserved_until: string | null
+          reset_at: string
+          spent_tokens: number
+        }
+        Insert: {
+          account_id: string
+          reservation_id?: string | null
+          reserved_tokens?: number
+          reserved_until?: string | null
+          reset_at: string
+          spent_tokens?: number
+        }
+        Update: {
+          account_id?: string
+          reservation_id?: string | null
+          reserved_tokens?: number
+          reserved_until?: string | null
+          reset_at?: string
+          spent_tokens?: number
+        }
+        Relationships: []
+      }
       alimtalk_billing_policy: AlimtalkTable<{ id: boolean; unit_price: number | null; topup_enabled: boolean; metering_enabled: boolean; terms_version: string; pg_reviewed_at: string | null; approved_store_id:string|null;approved_channel_key:string|null }>
       alimtalk_refund_requests: AlimtalkTable<AlimtalkRefundRow, "id" | "owner_id" | "menu_site_id" | "amount" | "terms_version">
       alimtalk_refund_payments: AlimtalkTable<{ refund_id: string; payment_id: string; amount: number; refunded_amount: number; baseline_cancelled: number }, "refund_id" | "payment_id" | "amount" | "baseline_cancelled">
@@ -3777,20 +3804,29 @@ export type Database = {
     }
     Functions: {
       get_ai_support_account_quota: {
-        Args: { p_account_id: string; p_daily_limit: number; p_reserve_tokens: number }
+        Args: {
+          p_account_id: string
+          p_daily_limit: number
+          p_reserve_tokens: number
+        }
         Returns: Json
       }
       reserve_ai_support_account_usage: {
-        Args: { p_account_id: string; p_reservation_id: string; p_daily_limit: number; p_reserve_tokens: number }
+        Args: {
+          p_account_id: string
+          p_daily_limit: number
+          p_reservation_id: string
+          p_reserve_tokens: number
+        }
         Returns: Json
       }
       settle_ai_support_account_usage: {
         Args: {
           p_account_id: string
-          p_reservation_id: string
+          p_actual_tokens?: number
           p_daily_limit: number
+          p_reservation_id: string
           p_reserve_tokens: number
-          p_actual_tokens: number | null
         }
         Returns: Json
       }
