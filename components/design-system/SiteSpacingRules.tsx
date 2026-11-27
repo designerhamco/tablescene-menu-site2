@@ -17,7 +17,7 @@ export default function SiteSpacingRules() {
       <p className="type-body site-copy-muted">일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본입니다. 제목·여백·정렬·필요한 구분선으로 나누고, 대시보드·마이페이지·운영관리의 독립된 정보·설정·작업에만 필요한 패널을 선택합니다. 박스를 제거할 때는 배경뿐 아니라 전용 래퍼·안쪽 여백·불필요한 높이·클리핑도 없앱니다. 페이지 바깥 여백과 컨트롤 클릭 영역은 유지하고, 콘텐츠 사이 간격은 공통 stack/section이 소유합니다.</p>
     </div>
     <div className={styles.usageTable}><table aria-label="작업 영역 구성 기준"><thead><tr><th>역할</th><th>모바일 / 768px 이상</th><th>공통 구현</th><th>사용 위치</th></tr></thead><tbody>
-      {SITE_CONTENT_COMPOSITION.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.mobile} / {item.wide}px</td><td><code>{item.owner}</code></td><td>{item.usage}</td></tr>)}
+      {SITE_CONTENT_COMPOSITION.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.mobile}px / {item.wide === null ? "숨김" : `${item.wide}px`}</td><td><code>{item.owner}</code></td><td>{item.usage}</td></tr>)}
     </tbody></table></div>
     <div className="site-stack-title"><h3 className="type-content-title">컴포넌트 내부 밀도</h3><p className="type-body-sm site-copy-muted">본문 구역 간격과 컨트롤 내부 간격은 별도입니다. 옵션 행 높이에 큰 gap을 겹쳐 더하지 않습니다.</p></div>
     <div className={styles.usageTable}><table aria-label="컴포넌트 크기·간격 기준"><thead><tr><th>역할</th><th>기준</th><th>공통 토큰</th><th>적용 원칙</th></tr></thead><tbody>{SITE_CONTROL_DENSITY.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.value}</td><td><code>{item.token}</code></td><td>{item.rule}</td></tr>)}</tbody></table></div>
