@@ -4,11 +4,12 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 type MenuDetail = { label: string; value: string };
 
 /** Identity, state and existing actions share one compact work surface. */
-export default function MenuSummaryCard({ cardKey, name, serviceLabel, thumbnail, badges, supportingDetails = [], status, actions, secondaryActions, billingAction, lifecycle }: {
+export default function MenuSummaryCard({ cardKey, name, serviceLabel, thumbnail, thumbnailAction, badges, supportingDetails = [], status, actions, secondaryActions, billingAction, lifecycle }: {
   cardKey: string;
   name: string;
   serviceLabel: string;
   thumbnail: ReactNode;
+  thumbnailAction?: ReactNode;
   badges: ReactNode;
   supportingDetails?: MenuDetail[];
   status?: ReactNode;
@@ -20,7 +21,10 @@ export default function MenuSummaryCard({ cardKey, name, serviceLabel, thumbnail
   const headingId = `menu-card-${cardKey}`;
   return <ContentPanel as="article" aria-labelledby={headingId} data-menu-lifecycle={lifecycle} density="compact">
     <div className="site-menu-card">
-      <div className="site-menu-card-media">{thumbnail}</div>
+      <div className="site-menu-card-media">
+        {thumbnail}
+        {thumbnailAction}
+      </div>
       <div className="site-menu-card-body">
         <div className="site-menu-card-header">
           <div className="site-stack-detail min-w-0">

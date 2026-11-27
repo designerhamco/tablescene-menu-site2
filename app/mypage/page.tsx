@@ -4,6 +4,8 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import MenuCardList from "@/components/mypage/MenuCardList";
 import MenuSummaryCard from "@/components/mypage/MenuSummaryCard";
+import MenuConnectionDialog, { type MenuConnection } from "@/components/mypage/MenuConnectionDialog";
+import { canImportIntoMenuCatalogTarget } from "@/lib/menu-catalog";
 import MenuRecoveryGuide from "@/components/mypage/MenuRecoveryGuide";
 import { EditIcon } from "@/app/components/ui/edit-icon";
 import { Eye } from "@/app/components/ui/site-icon";
@@ -1271,6 +1273,35 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   );
 
   const sites = (menuSites ?? []) as MenuSite[];
+  const shouldLoadMenuConnections = activeTab === "menus" && sites.length > 0;
+  const menuConnectionsResult = shouldLoadMenuConnections ? await runMypageQuery(
+    "menu_site_content_links",
+    supabase.from("menu_site_content_links")
+      .select("source_menu_site_id, target_menu_site_id")
+      .eq("owner_user_id", user.id)
+      .eq("mode", "linked")
+      .eq("status", "active"),
+  ) : null;
+  const ownedMenuChoices = new Map(sites.flatMap(({ id, name, status }) => id ? [[
+    id, { id, name: getSafeString(name) || "이름 없는 메뉴판", status },
+  ] as const] : []));
+  const incomingMenuConnectionIds = new Set<string>();
+  const menuConnectionsById = new Map<string, MenuConnection[]>();
+  for (const link of menuConnectionsResult?.data ?? []) {
+    incomingMenuConnectionIds.add(link.target_menu_site_id);
+    const source = ownedMenuChoices.get(link.source_menu_site_id);
+    const target = ownedMenuChoices.get(link.target_menu_site_id);
+    if (!source || !target) continue;
+    for (const { id } of [source, target]) {
+      const connections = menuConnectionsById.get(id) ?? [];
+      connections.push({ source, target });
+      menuConnectionsById.set(id, connections);
+    }
+  }
+  const originalMenuOptions = Array.from(ownedMenuChoices.values()).filter(
+    menu => menu.status !== "archived" && !incomingMenuConnectionIds.has(menu.id),
+  );
+  const menuConnectionsAvailable = Boolean(menuConnectionsResult && !menuConnectionsResult.error);
   const accessibleMenuSitesResult = await runMypageQuery(
     "accessible_menu_sites",
     getAccessibleMenuSiteList(),
@@ -2228,6 +2259,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       accessLabel,
       primaryMessage,
       billingDates,
+      canConnect: section === "active" && canUseMenuActions && canImportIntoMenuCatalogTarget(site.status),
       recoveryDeadlineLabel: section === "holding" ? formatDate(retentionEndDate) : null,
       isAccessRestricted,
       isTrialPendingDelete,
@@ -2351,8 +2383,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
       return <button type="button" disabled title={reason} aria-label={`${accessibleLabel} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
     }
+    const connections = card.siteId ? menuConnectionsById.get(card.siteId) ?? [] : [];
     return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} serviceLabel={card.service.label} lifecycle={card.section}
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
+      thumbnailAction={card.siteId && menuConnectionsAvailable ? (
+        <MenuConnectionDialog menu={{ id: card.siteId, name: card.title }} connections={connections}
+          canConnect={card.canConnect}
+          sourceOptions={card.canConnect && !connections.length ? originalMenuOptions.filter(menu => menu.id !== card.siteId) : []} />
+      ) : undefined}
       badges={<>
         {card.section === "active" ? <Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge> : null}
         {card.accessLabel ? <Badge>{card.accessLabel}</Badge> : null}
@@ -2436,6 +2474,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   notices={<>
                     {mypageNotice && messageCode !== "staff-invitation-accepted" ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">{mypageNotice}</p></ContentPanel> : null}
                     {menuSitesError ? <ContentPanel as="aside" surface="danger" density="compact"><p className="type-body-sm" role="alert">메뉴판 목록을 불러오지 못했습니다: {menuSitesError.message}</p></ContentPanel> : null}
+                    {shouldLoadMenuConnections && !menuConnectionsAvailable ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm" role="alert">메뉴판 연결 상태를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p></ContentPanel> : null}
                     {serviceEntitlementsError ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">이용 상태 정보를 불러오지 못해 일부 메뉴판은 기존 저장값 기준으로 표시됩니다: {serviceEntitlementsError.message}</p></ContentPanel> : null}
                     {staffMenuSitesError ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">{staffMenuSitesError.message}</p></ContentPanel> : null}
                   </>}

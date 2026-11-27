@@ -1,4 +1,4 @@
-.page { background: var(--ui-surface); color: var(--ui-text); padding-block: 1.5rem 5rem; }
+.page { background: var(--ui-surface); color: var(--ui-text); padding-block: var(--site-detail-heading-top) 5rem; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3.5rem; align-items: start; }
 .sidebar { min-width: 0; }
 .sidebarPanel { display: flex; flex-direction: column; }
@@ -45,7 +45,7 @@
 .storySection { container-type: inline-size; min-width: 0; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
 .featureNote { color: var(--ui-text-muted); margin-top: 1.25rem; }
 @media (min-width: 768px) {
-  .page { padding-block: 2rem 6rem; }
+  .page { padding-block-end: 6rem; }
   .layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, .75fr); gap: clamp(1.5rem, 4vw, 5rem); }
   .sidebar { grid-column: 2; grid-row: 1; align-self: stretch; min-height: var(--detail-natural-height, auto); overflow-anchor: none; }
   .sidebar[data-docked="true"] .sidebarPanel { position: sticky; top: calc(var(--site-header-height) + 1.5rem); height: calc(100dvh - var(--site-header-height) - 3rem); }

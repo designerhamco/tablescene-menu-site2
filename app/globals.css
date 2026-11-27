@@ -35,6 +35,7 @@ body {
   --site-section-space: clamp(3rem, 6vw, 5rem);
   --site-grid-gap: clamp(1rem, 2vw, 1.5rem);
   --site-page-heading-top: var(--site-page-space-compact);
+  --site-detail-heading-top: 1.5rem;
   --site-page-title-description-gap: var(--site-space-title-copy);
   --site-page-intro-content-gap: var(--site-space-content);
 }
@@ -44,7 +45,7 @@ body {
 }
 
 @media (min-width: 768px) {
-  :root { --site-header-height: 4.5rem; --site-page-intro-content-gap: 2.5rem; }
+  :root { --site-header-height: 4.5rem; --site-page-intro-content-gap: 2.5rem; --site-detail-heading-top: 2rem; }
 }
 
 /* Bounded wide-screen spacing, independent of customer menu rem geometry. */
@@ -94,6 +95,12 @@ body {
 
 .site-page-spacing-compact {
   padding-block: var(--site-page-heading-top) var(--site-page-space-compact);
+}
+
+@media (min-width: 768px) {
+  .site-page-spacing-compact:has(> .site-container > .site-account-layout) {
+    padding-block-start: var(--site-detail-heading-top);
+  }
 }
 
 .site-section-spacing {

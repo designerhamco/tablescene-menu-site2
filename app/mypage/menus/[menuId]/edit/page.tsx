@@ -1973,11 +1973,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     href={`/mypage/menus/${site.id}/import`}
                     className="site-button site-button-secondary"
                   >
-                    메뉴 가져오기
+                    메뉴 가져오기·연결
                   </Link>
                 ) : useBasicEditorLayout && accessContext.isOwner ? (
-                  <button type="button" disabled className="site-button site-button-secondary" title="편집할 수 있는 작성 중 메뉴판에서 가져오기를 사용할 수 있습니다.">
-                    메뉴 가져오기
+                  <button type="button" disabled className="site-button site-button-secondary" title="편집할 수 있는 작성 중 메뉴판에서 메뉴를 가져오거나 연결할 수 있습니다.">
+                    메뉴 가져오기·연결
                   </button>
                 ) : null}
                 {canPreview ? (
@@ -2594,7 +2594,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               href={`/mypage/menus/${site.id}/import`}
                               className="site-button site-button-outline inline-flex items-center justify-center"
                             >
-                              메뉴 가져오기
+                              메뉴 가져오기·연결
                             </Link>
                           ) : null}
                         </div>
