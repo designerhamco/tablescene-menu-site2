@@ -29,7 +29,7 @@ export default function MenuSummaryCard({ cardKey, name, publicPath, thumbnail, 
         <div className="site-menu-card-header">
           <div className="site-stack-detail min-w-0">
             <h2 id={headingId} className="type-content-title site-menu-card-title" title={name}>{name}</h2>
-            <div className="site-action-row site-menu-card-address"><p className="type-caption site-copy-muted site-menu-card-path">{publicPath}</p>
+            <div className="site-action-row site-menu-card-address"><p className="type-caption site-copy-muted site-menu-card-path" title={publicPath}>{publicPath}</p>
               {lifecycle !== "deleted" && publicPath !== "/menu/" ? <MenuLinkCopyButton path={publicPath} name={name} /> : null}
             </div>
           </div>

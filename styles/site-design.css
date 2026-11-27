@@ -744,11 +744,10 @@
 .site-menu-card-body { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: var(--site-space-title-copy); }
 .site-menu-card-header { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); min-width: 0; }
 .site-menu-card-header > .site-stack-detail { max-inline-size: 100%; }
-.site-menu-card-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-menu-card-title, .site-menu-card-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-menu-card .site-menu-card-address { flex-wrap: nowrap; }
 .site-menu-card-address .site-menu-card-path { flex: 1; min-width: 0; }
 .site-menu-card-address > button { flex: none; }
-.site-menu-card-path { overflow-wrap: anywhere; }
 .site-menu-card-badges { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); }
 .site-menu-card-meta, .site-menu-card-supporting { display: grid; gap: var(--site-space-copy); margin: 0; padding: 0; min-width: 0; }
 .site-menu-card-meta > div, .site-menu-card-supporting > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy); min-width: 0; max-width: 100%; }
