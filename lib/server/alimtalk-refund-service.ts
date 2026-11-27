@@ -5,6 +5,7 @@ import { normalizeOrderManagementId } from "@/lib/order-management";
 import { requireMenuSitePermission } from "./menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { alimtalkRefundExecutionEnabled } from "./alimtalk-refund-worker";
 
 export class AlimtalkRefundError extends Error {}
 const errors: Record<string,string> = {
@@ -55,11 +56,21 @@ export async function loadAlimtalkRefundQueue(page=1) {
   const names = new Map(sites?.data?.map(row=>[row.id,row.name]));
   return {rows:requests.data.map(row=>({...row,menuName:names.get(row.menu_site_id)??"이전 메뉴판"})),total:requests.count??0};
 }
+export async function approveAlimtalkRefund(requestIdInput:string,amount:number) {
+  const actor=await requireAlimtalkRefundAdmin(),id=normalizeOrderManagementId(requestIdInput);
+  if(!Number.isSafeInteger(amount)||amount<=0||amount>1_000_000_000)throw new AlimtalkRefundError("환불 금액을 다시 확인해 주세요.");
+  if(!(await alimtalkRefundExecutionEnabled()))throw new AlimtalkRefundError("PG 계약과 환불 검수 전에는 자동 카드 환불을 실행할 수 없습니다.");
+  const result=await createAdminClient().rpc("approve_alimtalk_refund",{p_admin_id:actor,p_request_id:id,p_expected_remaining:amount});
+  if(result.error)throw new AlimtalkRefundError("신청 금액·처리 상태·담당자가 변경되었는지 새로고침해 확인해 주세요.");
+}
 export async function loadAlimtalkRefundDetail(requestIdInput:string,paymentPage=1) {
   await requireAlimtalkRefundAdmin();const requestId=normalizeOrderManagementId(requestIdInput),db=createAdminClient();
   const request=await db.from("alimtalk_refund_requests").select("*").eq("id",requestId).maybeSingle();
   if(request.error||!request.data)throw new AlimtalkRefundError("환불 신청을 불러오지 못했습니다.");
   const payments=await db.from("alimtalk_refund_payments").select("payment_id,amount,refunded_amount",{count:"exact"}).eq("refund_id",requestId).order("payment_id").range((paymentPage-1)*50,paymentPage*50-1);
   if(payments.error)throw new AlimtalkRefundError("환불 대상 결제를 불러오지 못했습니다.");
-  return {request:request.data,payments:payments.data,total:payments.count??0};
+  const jobs=payments.data.length?await db.from("alimtalk_refund_jobs").select("payment_id,state,last_error_code").eq("refund_id",requestId).in("payment_id",payments.data.map(p=>p.payment_id)):null;
+  if(jobs?.error)throw new AlimtalkRefundError("환불 처리 상태를 불러오지 못했습니다.");
+  const byPayment=new Map(jobs?.data.map(j=>[j.payment_id,j]));
+  return {request:request.data,payments:payments.data.map(p=>({...p,job:byPayment.get(p.payment_id)})),total:payments.count??0,executionEnabled:await alimtalkRefundExecutionEnabled()};
 }

@@ -3,6 +3,8 @@ export type AlimtalkPayment = {
   id?: unknown; status?: unknown; storeId?: unknown; currency?: unknown;
   amount?: { total?: unknown; paid?: unknown; cancelled?: unknown };
   channel?: { id?: unknown; key?: unknown; type?:unknown }; customer?: { id?: unknown }; customData?: unknown;
+  method?: { type?: unknown };
+  cancellations?: { status?: unknown }[];
 };
 export type AlimtalkPaymentIntent = { payment_id: string; owner_id: string; menu_site_id: string; amount: number; store_id: string; channel_key: string };
 export function verifyAlimtalkPayment(payment: AlimtalkPayment, intent: AlimtalkPaymentIntent): "paid" | "pending" | "review" {

@@ -7,8 +7,10 @@ import { Table,TableHeader,TableBody,TableRow,TableHead,TableCell } from "@/app/
 import AlimtalkRefundAdminActions from "@/components/mypage/AlimtalkRefundAdminActions";
 import { AlimtalkRefundError, loadAlimtalkRefundQueue, loadAlimtalkRefundDetail } from "@/lib/server/alimtalk-refund-service";
 import { ALIMTALK_REFUND_LABELS } from "@/lib/alimtalk-wallet";
+import { ALIMTALK_REFUND_JOB_LABELS } from "@/lib/alimtalk-refund-admin";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 export const dynamic="force-dynamic";
+export const maxDuration=300;
 export const metadata:Metadata={title:"알림톡 환불 관리 | 아티메뉴",robots:{index:false,follow:false}};
 const won=(amount:number)=>`${amount.toLocaleString("ko-KR")}원`;
 const pageNumber=(value?:string)=>value&&/^\d+$/.test(value)&&Number(value)>0&&Number(value)<=20000?Number(value):1;
@@ -30,10 +32,10 @@ export default async function AlimtalkRefundAdminPage({searchParams}:{searchPara
           <p className="type-caption site-copy-muted break-all">신청 {r.id} · 계정 {r.owner_id}</p>
           <dl className="site-field-grid"><div className="site-stack-copy"><dt className="type-label">환불 신청 금액 · 수수료 0원</dt><dd className="type-content-title">{won(r.amount)}</dd></div>
             <div className="site-stack-copy"><dt className="type-label">결제사 취소 확인 금액</dt><dd className="type-content-title">{won(r.refunded_amount)}</dd></div></dl>
-          <p className="type-body-sm">‘환불 처리 시작’은 담당자와 처리 상태만 기록합니다. 원래 결제수단의 취소는 아래 결제별 금액을 확인해 포트원에서 처리하세요. 실제 취소가 조회되어야 환불 완료로 반영됩니다.</p>
-          <AlimtalkRefundAdminActions id={r.id} state={r.state} paymentPage={page}/>
-          <Table variant="management" label="알림톡 환불 대상 원 결제"><TableHeader><TableRow><TableHead>원 결제 ID</TableHead><TableHead align="end">이번 환불 금액</TableHead><TableHead align="end">확인된 환불액</TableHead></TableRow></TableHeader>
-            <TableBody>{detail.payments.map(payment=><TableRow key={payment.payment_id}><TableCell><span className="type-caption break-all">{payment.payment_id}</span></TableCell><TableCell nowrap align="end">{won(payment.amount)}</TableCell><TableCell nowrap align="end">{won(payment.refunded_amount)}</TableCell></TableRow>)}</TableBody></Table>
+          {r.approved_at&&<p className="type-caption site-copy-muted">승인 {formatKoreanDateTime(r.approved_at)} · 관리자 {r.approved_by}</p>}
+          <AlimtalkRefundAdminActions id={r.id} state={r.state} paymentPage={page} remaining={r.amount-r.refunded_amount} totalPayments={detail.total} approved={Boolean(r.approved_at)} executionEnabled={detail.executionEnabled}/>
+          <Table variant="management" label="알림톡 환불 대상 원 결제"><TableHeader><TableRow><TableHead>원 결제 ID</TableHead><TableHead align="end">이번 환불 금액</TableHead><TableHead align="end">확인된 환불액</TableHead><TableHead>처리 상태</TableHead></TableRow></TableHeader>
+            <TableBody>{detail.payments.map(payment=><TableRow key={payment.payment_id}><TableCell><span className="type-caption break-all">{payment.payment_id}</span></TableCell><TableCell nowrap align="end">{won(payment.amount)}</TableCell><TableCell nowrap align="end">{won(payment.refunded_amount)}</TableCell><TableCell nowrap>{payment.job?ALIMTALK_REFUND_JOB_LABELS[payment.job.state]:payment.amount===payment.refunded_amount?"환불 확인":"승인 대기"}</TableCell></TableRow>)}</TableBody></Table>
           <nav className="site-action-row" aria-label="환불 대상 결제 페이지">{page>1&&<Link className="site-button site-button-outline" href={`/admin/alimtalk-refunds?request=${r.id}&paymentPage=${page-1}`}>이전</Link>}
             <span className="type-caption">{page} / {Math.max(1,Math.ceil(detail.total/50))}</span>{page*50<detail.total&&<Link className="site-button site-button-outline" href={`/admin/alimtalk-refunds?request=${r.id}&paymentPage=${page+1}`}>다음</Link>}</nav>
         </ContentPanel></div>;
