@@ -244,7 +244,7 @@ test("일반 페이지는 공통 제목을 쓰며 필요한 설명만 같은 읽
 
 test("마이페이지와 직원 관리는 같은 제목 경계를 사용하고 매장 운영은 공통 헤더를 유지한다", () => {
   const accountShell = readFileSync(join(componentsRoot, "mypage/AccountPageContent.tsx"), "utf8");
-  assert.match(accountShell, /<SitePageHeader title="마이페이지" align="start"/);
+  assert.match(accountShell, /<SitePageHeader title=\{title\} align="start"[^>]*breadcrumbs=/);
   for (const path of ["mypage/page.tsx", "mypage/staff/page.tsx"]) {
     assert.match(readFileSync(join(appRoot, path), "utf8"), /<AccountPageContent sidebar=/);
   }

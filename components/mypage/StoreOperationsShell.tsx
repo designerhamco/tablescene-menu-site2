@@ -82,8 +82,20 @@ export default async function StoreOperationsShell({
   const allOrders = allMenuOperationSites(sites, "orders");
   const allCalls = allMenuOperationSites(sites, "calls");
 
+  const pageTitles: Record<StoreOperationsSection, string> = {
+    dashboard: "운영 대시보드", tables: "테이블·키오스크 관리", kiosks: "테이블·키오스크 관리",
+    calls: "호출 관리", orders: "주문 관리", kitchen: "주방 대시보드", sales: "매출 관리",
+    pickup: "대기번호", qr: "QR 관리", "order-settings": "주문 관리", "call-settings": "호출 관리", "call-items": "호출 관리",
+  };
+  const pageTitle = pageTitles[activeSection];
+  const breadcrumbs = [
+    { label: "매장 운영", href: "/mypage/operations" },
+    ...(selectedSite ? [{ label: selectedSite.name || "이름 없는 메뉴판", href: `/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}` }] : allMenus ? [{ label: "전체 메뉴판", href: allMenuOperationsHref("dashboard") }] : []),
+    { label: pageTitle },
+  ];
+
   return (
-    <SitePage title="매장 운영" align="start" typography="management">
+    <SitePage title={pageTitle} breadcrumbs={breadcrumbs} align="start" typography="management">
       <div className="site-account-page">
           <div className="site-account-layout">
             <StoreOperationsNavigation

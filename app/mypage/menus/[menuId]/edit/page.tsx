@@ -1,3 +1,4 @@
+import SiteBreadcrumb from "@/components/layout/SiteBreadcrumb";
 import { readPreviewDesign, serializePreviewDesign } from "@/lib/menu-preview-design";
 import { getMenuItemImageVisibility } from "@/lib/menu-item-image-visibility";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
@@ -1931,9 +1932,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} description={saveToastDescription} />
         <div className="site-container">
         <header className="site-editor-workspace-header site-stack-block">
-          <Link href="/mypage" className="site-basic-editor-back type-body-sm">
-            <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
-          </Link>
+          <SiteBreadcrumb items={[{ label: "마이페이지", href: "/mypage" }, { label: "내 메뉴판", href: "/mypage?tab=menus" }, { label: "메뉴판 편집" }]} />
           <div className="site-editor-summary">
             <div className="site-editor-summary-identity site-stack-copy">
               <div className="site-action-row site-editor-status">

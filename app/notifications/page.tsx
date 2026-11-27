@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -34,12 +35,9 @@ export default async function NotificationsPage() {
 
   return <>
     <OfficialSiteNavbar showSupportLauncher={false} />
-    <main className="site-management-scope site-gutter flex-1 bg-white pb-8 pt-6 text-zinc-950 md:py-10" data-notification-inbox>
+    <main className="site-management-scope site-gutter site-page-spacing-compact flex-1 bg-white text-zinc-950" data-notification-inbox>
       <div className="mx-auto w-full max-w-2xl">
-        <header className="mb-5 flex items-center gap-3">
-          <NotificationBackButton />
-          <h1 className="type-page-title">알림</h1>
-        </header>
+        <SitePageHeader title="알림" align="start" breadcrumbs={[{ label: "마이페이지", href: "/mypage" }, { label: "알림" }]}><NotificationBackButton /></SitePageHeader>
         {error ? <p className="site-notice site-notice-error p-5" role="alert">알림을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>
           : <NotificationHistorySection events={data ?? []} userId={user.id} unreadCount={countResult.error ? undefined : countResult.count ?? 0} showIntro={false} fallbackHref={NOTIFICATION_INBOX_HREF} />}
       </div>

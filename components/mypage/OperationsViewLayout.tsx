@@ -8,5 +8,5 @@ export const useOperationsView=()=>useContext(ViewContext);
 /** Keeps the view selector beside the title while preserving server-rendered feature navigation. */
 export default function OperationsViewLayout({title,selectable=true,help,children}:{title:string;selectable?:boolean;help?:ReactNode;children:ReactNode}){
  const [view,setView]=useState("map");
- return <ViewContext.Provider value={{view,setView}}><div className="site-stack-content"><SectionHeader title={title} help={help} actions={selectable?<ViewStyleSelect value={view} onValueChange={setView}/>:undefined}/>{children}</div></ViewContext.Provider>;
+ return <ViewContext.Provider value={{view,setView}}><div className="site-stack-content"><SectionHeader titleHidden title={title} help={help} actions={selectable?<ViewStyleSelect value={view} onValueChange={setView}/>:undefined}/>{children}</div></ViewContext.Provider>;
 }

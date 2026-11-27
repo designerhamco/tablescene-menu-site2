@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -190,17 +191,10 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
-            <div>
-              <h1 className="type-page-title">월 구독 전환</h1>
-              <p className="type-page-description mt-4 text-zinc-500">
-                새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다.
-              </p>
-            </div>
-            <Link href="/mypage" className="site-button site-button-secondary">
-              마이페이지로 돌아가기
-            </Link>
-          </div>
+          <SitePageHeader title="월 구독 전환" align="start" descriptionPurpose="content"
+            description="새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다."
+            breadcrumbs={[{ label: "마이페이지", href: "/mypage" }, { label: "내 메뉴판", href: "/mypage?tab=menus" }, { label: "월 구독 전환" }]}
+            actions={<Link href="/mypage" className="site-button site-button-secondary">마이페이지로 돌아가기</Link>} />
 
           <section className="site-card mb-6 p-5 sm:p-7">
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">

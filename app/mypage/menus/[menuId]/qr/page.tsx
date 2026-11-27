@@ -52,7 +52,7 @@ export default async function MenuQrManagementPage({ params }: { params: Promise
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="qr">
       <div className="site-stack-content">
-        <SectionHeader title="QR 관리"/>
+        <SectionHeader titleHidden title="QR 관리"/>
         {data ? <>
           <RepresentativeQrCard data={data} />
           {data.canManageTables ? (

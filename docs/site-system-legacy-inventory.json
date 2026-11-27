@@ -110,17 +110,11 @@
     ]
   },
   "app/mypage/inquiries/page.tsx": {
-    "shared-heading": [
-      "fda998200295f68e"
-    ],
     "page-shell": [
       "78f263ec03d40202"
     ]
   },
   "app/mypage/menus/[menuId]/convert/page.tsx": {
-    "shared-heading": [
-      "fda998200295f68e"
-    ],
     "page-shell": [
       "78f263ec03d40202"
     ]
@@ -139,9 +133,6 @@
     ]
   },
   "app/mypage/menus/[menuId]/import/page.tsx": {
-    "shared-heading": [
-      "e57f4a0bdb261a9a"
-    ],
     "control-appearance": [
       "05e023e3e751b3cf",
       "58375bc000d2346f"
@@ -177,9 +168,6 @@
     ]
   },
   "app/notifications/page.tsx": {
-    "shared-heading": [
-      "fda998200295f68e"
-    ],
     "page-shell": [
       "78f263ec03d40202"
     ]

@@ -162,13 +162,12 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
       <main className="site-management-scope site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <AccountPageContent sidebar={<>
             <MypageNavigation active="staff" totalMenuCount={menuSites.length} canShowOwnerCommerce />
-          </>}>
+          </>} title="직원 관리" actions={<Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link>}>
         <ActionFeedbackToast
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
           eventKey={resultNotice ?? undefined}
         />
-        <div className="site-content-heading-row"><h2 className="type-section-title">직원 관리</h2><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></div>
 
         {menuSitesError ? (
           <p className="type-body-sm text-red-700">

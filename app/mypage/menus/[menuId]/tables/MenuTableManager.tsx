@@ -132,7 +132,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
 
     <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
       <div className="site-stack-group">
-        <SectionHeader id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<div className="site-action-row" data-wrap="nowrap">
+        <SectionHeader titleHidden id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<div className="site-action-row" data-wrap="nowrap">
           {orderEnabled && <Button variant="link" size="compact" asChild><Link href={`/mypage/menus/${menuSiteId}/order-settings`}>주문 설정</Link></Button>}
         </div>}/>
           <FloorPlanEditor requireEdit layoutLock={orderEnabled ? FLOOR_RECEPTION_LOCK : undefined}

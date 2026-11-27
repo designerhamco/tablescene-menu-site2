@@ -4,7 +4,6 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import MenuCardList from "@/components/mypage/MenuCardList";
 import MenuSummaryCard from "@/components/mypage/MenuSummaryCard";
-import SiteBreadcrumb from "@/components/layout/SiteBreadcrumb";
 import { EditIcon } from "@/app/components/ui/edit-icon";
 import { Eye } from "@/app/components/ui/site-icon";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
@@ -2440,6 +2439,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
+  const pageTitle = { menus: "내 메뉴판", payments: "구독/결제 내역", inquiries: "문의 내역", notifications: "알림 내역", favorites: "좋아요한 템플릿", account: "계정 정보" }[activeTab];
   function menuBillingHref(publicPath: string, title: string) {
     return `/mypage?${new URLSearchParams({ tab: "payments", billingTab: "history", billingQuery: publicPath.startsWith("/menu/") ? publicPath : title })}`;
   }
@@ -2518,14 +2518,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               canShowOwnerCommerce={canShowOwnerCommerce}
               unreadNotificationCount={unreadNotificationCount}
             />
-          </>}>
+          </>} title={pageTitle}>
             {activeTab === "menus" ? (
               <section id="my-menus" className="site-stack-group scroll-mt-28">
-                <div className="site-stack-title">
-                  <SiteBreadcrumb items={[{ label: "마이페이지", href: "/mypage" }, { label: "내 메뉴판" }]} />
-                  <h2 className="type-section-title">내 메뉴판</h2>
-                </div>
-                <MenuCardList
+                <MenuCardList key={activeMenuTab}
                   tabs={<NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" items={[
                     { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
                     { label: "이용 만료·보관", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
@@ -2546,7 +2542,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     : activeMenuTab === "deleted"
                       ? "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다. 종료 사유와 이용 기록을 확인할 수 있습니다."
                       : undefined}
-                  emptyState={<EmptyState headingLevel={3} icon={<PanelsTopLeft />} title={activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
+                  emptyState={<EmptyState headingLevel={2} icon={<PanelsTopLeft />} title={activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
                     description={activeMenuTab === "active" ? "상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다." : activeMenuTab === "holding" ? "복구 가능한 보관 기간 안의 메뉴판이 생기면 이곳에 표시됩니다." : "복구 가능 기간이 지난 메뉴판이 생기면 이곳에 표시됩니다."} />}
                 />
               </section>
@@ -2554,12 +2550,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
             {activeTab === "payments" ? (
               <section id="payment-history" className="site-stack-group">
-                <div className="site-content-heading-row">
-                  <div>
-                    <h2 className="type-section-title">구독/결제 내역</h2>
-                  </div>
-                </div>
-
                 <NavigationTabs purpose="section" label="구독/결제 내역 탭" items={[
                   { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history", disabledReason: canShowOwnerCommerce ? undefined : "구독과 결제 내역은 사장 계정에서 관리합니다." },
                   { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits", disabledReason: canShowOwnerCommerce ? undefined : "AI 충전·사용내역은 사장 계정에서 관리합니다." },
@@ -3016,11 +3006,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </section>
             ) : null}
 
-            {activeTab === "favorites" ? <FavoriteTemplates initialFavorites={readTemplateFavorites(user.user_metadata)} /> : null}
+            {activeTab === "favorites" ? <FavoriteTemplates showHeading={false} initialFavorites={readTemplateFavorites(user.user_metadata)} /> : null}
 
             {activeTab === "inquiries" ? (
               <section id="inquiry-history" className="scroll-mt-28">
-                <InquirySection
+                <InquirySection showIntro={false}
                   inquiries={inquiries}
                   activeInquiryPage={activeInquiryPage}
                   inquiryTotalPages={inquiryTotalPages}
@@ -3043,7 +3033,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ) : null}
 
             {activeTab === "notifications" ? (
-              <NotificationHistorySection events={notificationEvents} userId={user.id} unreadCount={unreadNotificationCount} />
+              <NotificationHistorySection showIntro={false} events={notificationEvents} userId={user.id} unreadCount={unreadNotificationCount} />
             ) : null}
 
             {activeTab === "account" ? (

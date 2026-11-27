@@ -14,10 +14,12 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 const render = (element: Parameters<typeof renderToStaticMarkup>[0]) => renderToStaticMarkup(h(AppRouterContext.Provider, { value: { push() {}, refresh() {} } as never }, element));
 
 test("account shell owns exactly one shared title boundary before the sidebar and content", () => {
-  const html = render(h(AccountPageContent, { sidebar: h("nav", null, "계정 메뉴"), children: h("h2", null, "직원 관리") }));
+  const html = render(h(AccountPageContent, { title: "내 메뉴판", sidebar: h("nav", null, "계정 메뉴"), children: h("h2", null, "직원 관리") }));
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1);
   assert.match(html, /class="site-container"/);
-  assert.ok(html.indexOf("마이페이지") < html.indexOf("계정 메뉴"));
+  assert.ok(html.indexOf('aria-label="현재 위치"') < html.indexOf("<h1"));
+  assert.match(html, /<h1[^>]*>내 메뉴판<\/h1>/);
+  assert.ok(html.indexOf("<h1") < html.indexOf("계정 메뉴"));
   assert.ok(html.indexOf("계정 메뉴") < html.indexOf("직원 관리"));
   for (const path of ["app/mypage/page.tsx", "app/mypage/staff/page.tsx"]) {
     assert.match(read(path), /<AccountPageContent sidebar=/);

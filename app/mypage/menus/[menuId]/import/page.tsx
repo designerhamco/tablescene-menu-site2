@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import { Check } from "@/app/components/ui/site-icon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -111,21 +112,10 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
         <ActionFeedbackToast message={message} tone="success" eventKey={{ message }} />
         <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">
-          <div className="mb-8 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
-            <div>
-              <p className="text-copy font-medium text-zinc-500">공통 메뉴</p>
-              <h1 className="type-page-title mt-2">기존 메뉴판에서 가져오기</h1>
-              <p className="type-page-description mt-4 max-w-2xl text-zinc-600">
-                다른 메뉴판의 페이지·카테고리·메뉴를 가져옵니다. 연결 모드를 선택하면 메뉴 내용은 함께 관리하고 화면 배치는 각각 구성할 수 있습니다.
-              </p>
-            </div>
-            <Link
-              href={`/mypage/menus/${menuId}/edit`}
-              className="site-button site-button-outline"
-            >
-              편집 화면으로 돌아가기
-            </Link>
-          </div>
+          <SitePageHeader title="기존 메뉴판에서 가져오기" align="start" descriptionPurpose="content"
+            description="다른 메뉴판의 페이지·카테고리·메뉴를 가져옵니다. 연결 모드를 선택하면 메뉴 내용은 함께 관리하고 화면 배치는 각각 구성할 수 있습니다."
+            breadcrumbs={[{ label: "마이페이지", href: "/mypage" }, { label: "내 메뉴판", href: "/mypage?tab=menus" }, { label: "메뉴판 편집", href: `/mypage/menus/${menuId}/edit` }, { label: "기존 메뉴판에서 가져오기" }]}
+            actions={<Link href={`/mypage/menus/${menuId}/edit`} className="site-button site-button-outline">편집 화면으로 돌아가기</Link>} />
 
           {error ? (
             <div className="site-notice site-notice-error mb-6 p-5">

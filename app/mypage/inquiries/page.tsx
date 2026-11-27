@@ -1,5 +1,4 @@
-import { ArrowLeft } from "@/app/components/ui/site-arrow";
-import Link from "next/link";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
@@ -86,14 +85,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-5xl">
-          <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
-            <div>
-              <Link href="/mypage?tab=inquiries" className="type-label mb-6 inline-block text-zinc-400 hover:text-zinc-950">
-                <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 마이페이지 문의 내역
-              </Link>
-              <h1 className="type-page-title">문의하기</h1>
-            </div>
-          </header>
+          <SitePageHeader title="문의하기" align="start" breadcrumbs={[{ label: "마이페이지", href: "/mypage" }, { label: "문의 내역", href: "/mypage?tab=inquiries" }, { label: "문의하기" }]} />
 
           <InquirySection
             inquiries={inquiries}

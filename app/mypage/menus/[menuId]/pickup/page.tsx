@@ -52,7 +52,7 @@ export default async function PickupQueuePage({ params }: { params: Promise<{ me
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="pickup">
       <div className="site-stack-content">
-        <SectionHeader title="대기번호"/>
+        <SectionHeader titleHidden title="대기번호"/>
         <PickupQueueDashboard
           menuSiteId={data.menuSite.id}
           slug={data.menuSite.slug}

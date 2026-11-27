@@ -1,9 +1,10 @@
+import SiteBreadcrumb from "@/components/layout/SiteBreadcrumb";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
 import { Check } from "@/app/components/ui/site-icon";
-import { ArrowLeft, ArrowUpRight, ChevronRight } from "@/app/components/ui/site-arrow";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -37,29 +38,31 @@ export default async function TemplateDetailPage({ params }: Props) {
     <OfficialSiteNavbar showSupportLauncher={false} />
     <main className={styles.page}>
       <div className="site-container">
-        <nav className={styles.breadcrumb} aria-label="현재 위치"><Link href={info.listHref}><ArrowLeft size={16} aria-hidden="true" />디자인 템플릿</Link><ChevronRight size={13} aria-hidden="true" /><span aria-current="page">{template.name}</span></nav>
-        <div className={styles.layout}>
-          <TemplateDetailSidebar
-            heading={<>
-              <div className={styles.sidebarHeading}><span className={`type-caption ${styles.serviceLabel}`}>{info.serviceLabel} <span> / </span> {template.categoryLabel}</span><TemplateDetailActions designId={template.key} name={template.name} /></div>
-              <h1 className="type-page-title">{template.name}</h1>
-              <p className={`type-body ${styles.templateDescription}`}>{template.description}</p>
-            </>}
-            gallery={<TemplateDetailGallery images={info.images} name={template.name} />}
-            actions={<>
-              <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">미리보기 <ArrowUpRight size={17} aria-hidden="true" /></Link>
-              {info.selectable ? (checkoutEnabled ? <Button asChild size="lg"><Link href={info.startHref}>이 디자인으로 시작 <ArrowUpRight size={17} aria-hidden="true" /></Link></Button> : <Button type="button" size="lg" disabled>디스플레이 신청 준비 중</Button>) : null}
-            </>}
-            note={info.selectable ? <p className={`type-body-sm ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p> : null}
-          >
-            <ul className={`${styles.included} type-body-sm`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
-            {info.selectable ? <div className={styles.purchase}>
-              <div className={styles.priceHeader}><span className="type-plan-title">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
-              <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
-              {!info.display && <p className="type-body-sm mt-3 text-zinc-600">같은 서비스의 모든 지원 템플릿으로 추가 요금 없이 교체할 수 있습니다.</p>}
-            </div> : null}
-          </TemplateDetailSidebar>
-          <TemplateDetailStory template={template} />
+        <div className="site-stack-title">
+          <SiteBreadcrumb items={[{ label: "디자인 템플릿", href: info.listHref }, { label: template.name }]} />
+          <div className={styles.layout}>
+            <TemplateDetailSidebar
+              heading={<>
+                <div className={styles.sidebarHeading}><span className={`type-caption ${styles.serviceLabel}`}>{info.serviceLabel} <span> / </span> {template.categoryLabel}</span><TemplateDetailActions designId={template.key} name={template.name} /></div>
+                <h1 className="type-page-title">{template.name}</h1>
+                <p className={`type-body ${styles.templateDescription}`}>{template.description}</p>
+              </>}
+              gallery={<TemplateDetailGallery images={info.images} name={template.name} />}
+              actions={<>
+                <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">미리보기 <ArrowUpRight size={17} aria-hidden="true" /></Link>
+                {info.selectable ? (checkoutEnabled ? <Button asChild size="lg"><Link href={info.startHref}>이 디자인으로 시작 <ArrowUpRight size={17} aria-hidden="true" /></Link></Button> : <Button type="button" size="lg" disabled>디스플레이 신청 준비 중</Button>) : null}
+              </>}
+              note={info.selectable ? <p className={`type-body-sm ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p> : null}
+            >
+              <ul className={`${styles.included} type-body-sm`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
+              {info.selectable ? <div className={styles.purchase}>
+                <div className={styles.priceHeader}><span className="type-plan-title">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
+                <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
+                {!info.display && <p className="type-body-sm mt-3 text-zinc-600">같은 서비스의 모든 지원 템플릿으로 추가 요금 없이 교체할 수 있습니다.</p>}
+              </div> : null}
+            </TemplateDetailSidebar>
+            <TemplateDetailStory template={template} />
+          </div>
         </div>
       </div>
     </main>
