@@ -2467,9 +2467,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       actions={card.section === "deleted" ? undefined : <>
         {card.section === "active" ? renderActionButton({ label: "편집하기", href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null, enabled: card.actions.canEdit, disabledReason: card.actions.editDisabledReason, primary: true, icon: <EditIcon /> }) : null}
         {renderActionButton({ label: "미리보기", href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null, enabled: card.actions.canOwnerPreview, disabledReason: card.actions.previewDisabledReason, newWindow: true, icon: <Eye aria-hidden="true" /> })}
-        {card.section === "active" ? renderActionButton({ label: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true }) : null}
-        {card.section === "active" ? <MenuQrDownloadModal menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} /> : null}
-      </>} />;
+      </>}
+      secondaryActions={card.section === "active" ? <>
+        {renderActionButton({ label: "공개 메뉴판 보기", href: card.publicPath, enabled: card.actions.canViewPublic, disabledReason: card.actions.publicDisabledReason, newWindow: true })}
+        <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId ?? ""} menuName={card.title} disabled={!card.siteId || !card.actions.canManageQr} disabledReason={card.actions.qrDisabledReason} />
+      </> : undefined} />;
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
@@ -2483,9 +2485,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
           : <button type="button" disabled title="현재 직원 역할에는 메뉴 편집 권한이 없습니다." aria-label="메뉴 편집 비활성화: 현재 직원 역할에는 메뉴 편집 권한이 없습니다." className="site-button site-button-outline"><EditIcon />메뉴 편집</button>}
         <Link href={`/mypage/menus/${card.siteId}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><Eye aria-hidden="true" />미리보기</Link>
+      </>}
+      secondaryActions={<>
         {card.canViewPublic ? <Link href={card.publicPath} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">공개 메뉴판 보기</Link>
           : <button type="button" disabled title="현재 메뉴판이 공개되지 않아 손님용 페이지를 열 수 없습니다." aria-label="공개 메뉴판 보기 비활성화: 현재 메뉴판이 공개되지 않았습니다." className="site-button site-button-outline">공개 메뉴판 보기</button>}
-        <MenuQrDownloadModal menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
+        <MenuQrDownloadModal showIcon={false} menuSiteId={card.siteId} menuName={card.title} disabled={!card.canManageQr} disabledReason={card.qrDisabledReason} />
       </>} />;
   }
 

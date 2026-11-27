@@ -99,3 +99,29 @@ test("a card's billing link initializes the existing history search", () => {
   assert.match(html, /가게 A/);
   assert.match(html, /결제 상세/);
 });
+
+test("menu card action rows preserve order, public navigation and disabled QR access", async () => {
+  const { default: MenuSummaryCard } = await import("../components/mypage/MenuSummaryCard");
+  const { default: MenuQrDownloadModal } = await import("../components/mypage/MenuQrDownloadModal");
+  const html = render(h(MenuSummaryCard, {
+    cardKey: "actions", name: "가게", publicPath: "/menu/shop", lifecycle: "active",
+    thumbnail: h("span", null, "썸네일"), badges: null, details: [],
+    actions: h("div", null, h("button", null, "편집하기"), h("button", null, "미리보기")),
+    secondaryActions: h("div", null,
+      h("a", { href: "/menu/shop", target: "_blank", rel: "noopener noreferrer" }, "공개 메뉴판 보기"),
+      h(MenuQrDownloadModal, { menuSiteId: "menu", menuName: "가게", showIcon: false, disabled: true, disabledReason: "공개 후 이용할 수 있습니다." })),
+  }));
+  const labels = ["편집하기", "미리보기", "공개 메뉴판 보기", "QR 관리"];
+  assert.deepEqual(labels.map(label => html.indexOf(label)), labels.map(label => html.indexOf(label)).sort((a, b) => a - b));
+  assert.match(html, /href="\/menu\/shop" target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /disabled="" title="공개 후 이용할 수 있습니다\."/);
+  const qr = render(h(MenuQrDownloadModal, { menuSiteId: "menu", menuName: "가게", showIcon: false }));
+  assert.match(qr, /QR 관리/);
+  assert.match(qr, /aria-haspopup="dialog"/);
+  assert.doesNotMatch(qr, /<svg/);
+  const ended = render(h(MenuSummaryCard, {
+    cardKey: "ended-actions", name: "종료", publicPath: "/menu/ended", lifecycle: "deleted",
+    thumbnail: null, badges: null, details: [], actions: h("button", null, "편집하기"), secondaryActions: h("button", null, "QR 관리"),
+  }));
+  assert.doesNotMatch(ended, /편집하기|QR 관리/);
+});
