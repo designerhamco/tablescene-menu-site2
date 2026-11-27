@@ -213,7 +213,7 @@ export default function OrderTableWorkspace({ menuSiteId, floorPlan, records, or
     <ContentPanel as="section" layout="canvas" data-order-table-workspace aria-label="주문 관리 작업 영역">
       <div className="site-floor-workspace-tools">
         <div className="site-action-row" data-distribution="between">
-          <Tabs purpose="section" value={view} onValueChange={setView}>
+          <Tabs purpose="state" value={view} onValueChange={setView}>
             <TabsList size="sm" aria-label="주문 보기 방식">
               <TabsTrigger ref={mapTab} value="map" aria-controls={panelId}><Grid2X2 aria-hidden="true" /> 테이블뷰</TabsTrigger>
               <TabsTrigger value="list" aria-controls={panelId}><List aria-hidden="true" /> 리스트뷰</TabsTrigger>

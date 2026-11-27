@@ -10,6 +10,7 @@ import { FontSelect } from "@/app/components/ui/font-select";
 import { KOREAN_FONT_OPTIONS, getKoreanFontOption, getAvailableEnglishFontsForTemplate, getEnglishFontOption } from "@/lib/font-options";
 import { Input } from "@/app/components/ui/input";
 import { FieldMessage } from "@/app/components/ui/field-message";
+import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/app/components/ui/input-group";
 import { PasswordField } from "@/app/components/ui/password-field";
 import { FilterToolbar } from "@/app/components/ui/filter-toolbar";
@@ -21,6 +22,12 @@ import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { Button } from "@/app/components/ui/button";
 import { Calendar } from "@/app/components/ui/calendar";
 import styles from "./SiteComponentGallery.module.css";
+
+const fieldSizes = [
+  { field: "sm", label: "소 · 32px / 터치 40px" },
+  { field: "md", label: "중 · 44px" },
+  { field: "lg", label: "대 · 48px" },
+] as const;
 
 export default function ComposedFieldExamples() {
   const id = useId();
@@ -35,7 +42,19 @@ export default function ComposedFieldExamples() {
   const [date, setDate] = useState<Date | undefined>(() => new Date(2026, 10, 11));
   const items = ["메뉴판 편집", "테이블 관리", "디자인 템플릿"].filter(item => item.includes(query.trim()));
   return <section className={styles.section} id="composed-fields" aria-labelledby={`${id}-title`}>
-    <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">입력값과 아이콘·단위·보조 행동을 하나의 경계 안에 정렬합니다. 일반 필드와 캡슐형 검색은 각각의 모서리를 유지하며32·40·44·48px 입력 규격을 공유합니다.</p></div>
+    <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">검색·셀렉트·한 줄 입력은 12px 모서리를 공유합니다. 같은 조작 행의 버튼과 필드는 크기와 세로 중심을 맞춥니다.</p></div>
+    <div className="site-card-grid lg:grid-cols-3" id="control-size-examples">
+      {fieldSizes.map(({ field, label }) => <ContentPanel key={field} data-control-size-example={field}>
+        <h3 className="type-content-title">{label}</h3>
+        <div className="site-field-stack">
+          <label className="type-label" htmlFor={`${id}-size-${field}`}>메뉴판 이름</label>
+          <FieldActionRow field={<Input id={`${id}-size-${field}`} fieldSize={field} defaultValue="우리 매장 메뉴판" />}
+            action={<Button type="button">저장</Button>} />
+        </div>
+        <label className="site-field-stack"><span className="type-label">이용 상태</span><select className="site-field w-full" data-field-size={field}><option>전체 상태</option><option>이용 중</option></select></label>
+        <SearchField label={`${label} 검색 예시`} fieldSize={field} placeholder="이름으로 검색" />
+      </ContentPanel>)}
+    </div>
     <div className="site-detail-grid">
       <ContentPanel><div className="site-field-stack"><span className="type-label">한글 서체 미리보기</span><FontSelect label="한글 서체 미리보기" script="ko" options={KOREAN_FONT_OPTIONS} defaultOption={getKoreanFontOption("pretendard")!} value={koreanFont} onChange={setKoreanFont} /></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><span className="type-label">영문 서체 미리보기</span><FontSelect label="영문 서체 미리보기" script="en" options={getAvailableEnglishFontsForTemplate("cafe_design_a")} defaultOption={getEnglishFontOption("alata")!} value={englishFont} onChange={setEnglishFont} /></div></ContentPanel>

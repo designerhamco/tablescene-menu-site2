@@ -107,7 +107,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft, representa
               <button
                 type="button"
                 onClick={applySampleDraft}
-                className="site-button site-button-outline inline-flex w-full items-center justify-center sm:w-auto"
+                className="site-button site-button-outline"
               >
                 {settingLabel} 샘플로 되돌리기
               </button>

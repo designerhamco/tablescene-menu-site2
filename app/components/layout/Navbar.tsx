@@ -78,6 +78,7 @@ const Navbar = () => {
   const scrolledRef = useRef(false);
   const accountLoadedForUser = useRef<string | null>(null);
   const pathname = usePathname();
+  const standardControls = !/^\/(templates|menu|m|pickup|table)(\/|$)/.test(pathname) && !pathname.split("/").includes("preview");
   const homeHeaderSurface = useHomeHeaderSurface(pathname);
   const homeHeroHeader = homeHeaderSurface === "dark-overlay";
   const activeHomeService = useActiveHomeService(pathname);
@@ -319,7 +320,7 @@ const Navbar = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-      <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} data-home-basic-approach={homeHeaderSurface === "clear" || undefined} className={styles.shell}>
+      <nav aria-label="공식 사이트 메뉴" data-site-header data-site-control-kit={standardControls ? "standard" : undefined} data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} data-home-basic-approach={homeHeaderSurface === "clear" || undefined} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
           <HomeStartLink className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
             <span className={styles.wordmark}>ArtiMenu</span>

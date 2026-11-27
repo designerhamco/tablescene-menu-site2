@@ -103,7 +103,7 @@ export default function MenuQrDownloadModal({
           ) : null}
         </div>
         <div className="border-t border-zinc-100 pt-4">
-          <Link href={`/mypage/menus/${menuSiteId}/${data?.canManageTables && data.tables.length === 0 ? "tables" : "qr"}`} className="site-button site-button-outline w-full" onClick={() => setOpen(false)}>
+          <Link href={`/mypage/menus/${menuSiteId}/${data?.canManageTables && data.tables.length === 0 ? "tables" : "qr"}`} className="site-button site-button-outline" onClick={() => setOpen(false)}>
             {data?.canManageTables && data.tables.length === 0 ? "테이블 등록·관리로 이동" : "QR 관리로 이동"}<ArrowUpRight className="size-4" aria-hidden="true" />
           </Link>
         </div>

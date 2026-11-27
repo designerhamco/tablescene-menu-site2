@@ -67,7 +67,7 @@ export default function ApplyPage() {
             <h2 className="type-subsection-title">{option.title}</h2>
             <p className="site-body mt-4 max-w-xl text-zinc-600">{option.description}</p>
           </div>
-          <Link href={option.href} data-purpose={"pending" in option ? undefined : "primary-action"} className={`site-button mt-8 w-full ${"pending" in option ? "site-button-secondary" : "site-button-primary"}`}>
+          <Link href={option.href} data-purpose={"pending" in option ? undefined : "primary-action"} className={`site-button mt-8 ${"pending" in option ? "site-button-secondary" : "site-button-primary"}`}>
             {option.cta}
           </Link>
         </article>

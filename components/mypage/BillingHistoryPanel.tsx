@@ -491,7 +491,7 @@ function RestoreSubscriptionModal({
               type="button"
               disabled={!canStartRestore}
               onClick={startRestoreCheckout}
-              className="site-button site-button-primary mt-5 w-full"
+              data-button-width="full" className="site-button site-button-primary mt-5"
             >
               {startState.status === "loading"
                 ? "재구독 결제 진행 중"

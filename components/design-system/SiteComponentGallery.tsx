@@ -140,7 +140,7 @@ export default function SiteComponentGallery() {
       </div>
       <Collapsible open={expanded} onOpenChange={setExpanded}>
         <CollapsibleContent><p className="type-body mb-4 text-zinc-600">베이직은 한 화면 메뉴, 다이닝은 여러 페이지 메뉴, 디스플레이는 매장 화면을 위한 구성입니다.</p></CollapsibleContent>
-        <CollapsibleTrigger asChild><Button variant="outline" className="w-full">{expanded ? "접기" : "더보기"}{expanded ? <ChevronUp /> : <ChevronDown />}</Button></CollapsibleTrigger>
+        <CollapsibleTrigger asChild><Button variant="outline">{expanded ? "접기" : "더보기"}{expanded ? <ChevronUp /> : <ChevronDown />}</Button></CollapsibleTrigger>
       </Collapsible>
     </Examples>
     <Examples title="카테고리 이동 버튼" description="목록의 진입점은 문구에 맞는 사각 버튼과 이동 아이콘으로 표시합니다.">

@@ -212,7 +212,7 @@ export default function KitchenDashboard({
         <div className={styles.workspace}>
           <div className={styles.viewBar}>
             <div className="site-action-row" data-distribution="between">
-              <Tabs purpose="section" value={view} onValueChange={setView}>
+              <Tabs purpose="state" value={view} onValueChange={setView}>
                 <TabsList size="sm" aria-label="주문 보기 방식">
                   <TabsTrigger value="board" aria-controls={boardId}>조리상태 칸반 뷰</TabsTrigger>
                   <TabsTrigger value="list" aria-controls={boardId}>리스트 뷰</TabsTrigger>

@@ -32,12 +32,12 @@ export default function FindAccountPage() {
             </div>
 
             <div className="mt-6 grid gap-3">
-              <Link href="/sign-in" className="site-button site-button-primary site-button-lg w-full">
+              <Link href="/sign-in" className="site-button site-button-primary site-button-lg">
                 로그인으로 돌아가기
               </Link>
               <a
                 href={supportMailHref}
-                className="site-button site-button-secondary site-button-lg w-full"
+                className="site-button site-button-outline site-button-lg"
               >
                 고객지원 문의하기
               </a>

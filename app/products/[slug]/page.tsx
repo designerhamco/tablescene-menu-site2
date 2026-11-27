@@ -73,7 +73,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <Link
                 href={purchaseHref}
                 data-purpose="primary-action"
-                className="site-button site-button-secondary mt-6 inline-flex w-full items-center justify-center"
+                className="site-button site-button-outline mt-6"
               >
                 이 상품 신청하기
               </Link>

@@ -98,7 +98,7 @@ export default function ResetPasswordForm({
         <div className="site-notice site-notice-warning px-4 py-3 text-copy font-medium leading-relaxed">
           비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
         </div>
-        <Link href="/forgot-password" className="site-button site-button-primary site-button-lg w-full">
+        <Link href="/forgot-password" className="site-button site-button-primary site-button-lg">
           재설정 메일 다시 받기
         </Link>
       </div>
@@ -142,7 +142,8 @@ export default function ResetPasswordForm({
       <button
         type="submit"
         disabled={state === "submitting"}
-        className="site-button site-button-primary site-button-lg w-full"
+        data-button-width="full"
+        className="site-button site-button-primary site-button-lg"
       >
         {state === "submitting" ? "변경 확인 중..." : "비밀번호 변경하기"}
       </button>

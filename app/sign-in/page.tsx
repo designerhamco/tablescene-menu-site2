@@ -5,6 +5,7 @@ import Footer from "@/app/components/layout/Footer";
 import { signInAction } from "@/app/auth/actions";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { Button } from "@/app/components/ui/button";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { getSignInErrorMessage } from "@/lib/auth-login-errors";
 import { getSafeAuthRedirectPath } from "@/lib/auth-redirect";
@@ -74,7 +75,7 @@ export default async function SignInPage({
                   type="email"
                   required
                   autoComplete="email"
-                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
+                  className="site-field w-full"
                   placeholder="owner@example.com"
                 />
               </div>
@@ -92,12 +93,9 @@ export default async function SignInPage({
                 />
               </div>
 
-              <button
-                type="submit"
-                className="site-button site-button-primary site-button-lg w-full"
-              >
+              <Button type="submit" size="lg" buttonWidth="full">
                 로그인
-              </button>
+              </Button>
             </form>
 
             <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
