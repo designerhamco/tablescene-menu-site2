@@ -54,7 +54,8 @@ test("데스크톱 헤더는 내 메뉴판·매장 운영 버튼 뒤에 구분�
   assert.ok(bell > notification);
   assert.ok(profile > bell);
   assert.match(navbarSource, /accountCtaLabel = authState.isAuthenticated \? '내 메뉴판'/);
-  assert.match(navbarSource, /site-button site-button-secondary site-button-header"[\s\S]*?data-site-header-account/);
+  assert.match(navbarSource, /authState\.isAuthenticated \? 'site-button-outline' : 'site-button-secondary'[\s\S]*?data-outline-contrast=\{authState\.isAuthenticated \? 'strong' : undefined\}[\s\S]*?data-site-header-account/);
+  assert.match(readSource("components/layout/MobileSiteMenu.tsx"), /site-button-outline" data-outline-contrast="strong">내 메뉴판/);
   assert.doesNotMatch(navbarSource, /href="\/apply"/);
   assert.doesNotMatch(navbarSource, /styles.accountLink/);
 });

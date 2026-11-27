@@ -15,8 +15,8 @@
   height: calc(100svh - var(--site-header-height));
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--site-space-block);
-  padding-block: var(--site-space-group) var(--site-space-block);
+  gap: var(--site-space-content);
+  padding-block: var(--site-space-card) var(--site-space-group);
   isolation: isolate;
   overflow: clip;
 }
@@ -24,7 +24,7 @@
 .copy { text-align: center; }
 .copy :is(h2, p) { margin: 0; text-wrap: balance; word-break: keep-all; }
 .visual { min-height: 0; }
-.scene { position: relative; height: 100%; pointer-events: none; }
+.scene { position: relative; width: 100%; max-height: 100%; aspect-ratio: 1; pointer-events: none; }
 
 .shell, .stand, .shadow {
   position: absolute;
@@ -115,6 +115,13 @@
   background: radial-gradient(ellipse, #15192234, transparent 70%);
   transform: translate(-50%, -50%);
   filter: blur(4px);
+}
+
+@media (max-width: 767px) {
+  .stage {
+    gap: var(--site-space-group);
+    padding-block-start: var(--site-space-content);
+  }
 }
 
 @media (max-height: 540px) {

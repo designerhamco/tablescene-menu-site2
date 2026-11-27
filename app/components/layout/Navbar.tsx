@@ -365,7 +365,8 @@ const Navbar = () => {
               {!authState.loading ? (
                 <Link
                   href={accountCtaHref}
-                  className="site-button site-button-secondary site-button-header"
+                  className={`site-button ${authState.isAuthenticated ? 'site-button-outline' : 'site-button-secondary'} site-button-header`}
+                  data-outline-contrast={authState.isAuthenticated ? 'strong' : undefined}
                   data-site-header-account
                 >
                   {accountCtaLabel}

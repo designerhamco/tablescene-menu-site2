@@ -13,7 +13,7 @@ export default function ListExamples() {
   return <>
     <section className={styles.section}>
       <div className={styles.heading}><h2 className="type-section-title">위치와 용도로 구분하는 버튼 모서리</h2><p className="type-body text-zinc-600">헤더와 본문·폼의 실행 버튼은 공통 8px 둥근 사각형입니다. 페이지 번호는 8px 모서리, 아이콘 도구는 무배경·무테이며 고객지원은 20px 모서리의 전용 형태를 유지합니다.</p></div>
-      <div className={styles.buttonRow}><Button variant="secondary" className="site-button-header" shape="rounded" asChild><Link href="/mypage">헤더 · 내 메뉴판</Link></Button><Button className="site-button-header" shape="rounded" asChild><Link href="/mypage/operations">헤더 · 매장 운영</Link></Button><Button asChild><Link href="/guides">본문 · 가이드 보기</Link></Button><Button variant="outline">폼 · 취소</Button></div>
+      <div className={styles.buttonRow}><Button variant="outline" className="site-button-header" shape="rounded" data-outline-contrast="strong" asChild><Link href="/mypage">헤더 · 내 메뉴판</Link></Button><Button className="site-button-header" shape="rounded" asChild><Link href="/mypage/operations">헤더 · 매장 운영</Link></Button><Button asChild><Link href="/guides">본문 · 가이드 보기</Link></Button><Button variant="outline">폼 · 취소</Button></div>
     </section>
     <section className={styles.section}>
       <div className={styles.heading}><h2 id="list-patterns" className="type-section-title">게시글 목록과 페이지 번호</h2><p className="type-body text-zinc-600">FAQ와 공지 게시판은 공통 글자·옅은 구분선·포커스 규칙을 사용합니다. 공지 게시판은 번호·제목·등록일을 정렬하고 모바일에서는 번호를 숨깁니다. 선택한 페이지는 검정 사각형으로 표시합니다.</p></div>

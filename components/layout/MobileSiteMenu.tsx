@@ -46,7 +46,7 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
           </div>
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
           <div className={styles.drawerAccountLinks}>
-            <Link href="/mypage" onClick={close} className="site-button site-button-secondary">내 메뉴판</Link>
+            <Link href="/mypage" onClick={close} className="site-button site-button-outline" data-outline-contrast="strong">내 메뉴판</Link>
             {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-primary">매장 운영 <NewWindowIndicator showIcon={false} /></Link> : null}
           </div>
         </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerAccountLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
