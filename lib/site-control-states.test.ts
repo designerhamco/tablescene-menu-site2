@@ -203,7 +203,7 @@ test("native and custom selects reserve a common chevron gutter without affectin
 
 test("tab hierarchy keeps service navigation, embedded catalog lists and notification tabs in their scopes", () => {
   const catalog = read("components/apply/TemplateGallery.tsx");
-  assert.match(catalog, /primaryFilter=\{<CatalogServiceSelect/);
+  assert.match(catalog, /primaryFilter=\{<CatalogServiceButtons/);
   assert.doesNotMatch(catalog, /서비스 선택|HintBubble/);
   assert.match(catalog, /ref=\{galleryStartRef\} purpose="section"/);
   assert.match(catalog, /className="site-catalog-panel"/);

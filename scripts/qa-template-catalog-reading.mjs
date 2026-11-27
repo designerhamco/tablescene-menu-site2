@@ -23,28 +23,29 @@ try {
   for (const [width, hasTouch] of [[1440, false], [390, true]]) {
     const page = await pageAt(width, true, hasTouch);
     await page.goto(`${base}/templates`, { waitUntil: "domcontentloaded" });
-    const service = page.getByRole("combobox", { name: "메뉴판 유형", exact: true });
+    const service = page.getByRole("group", { name: "메뉴판 유형", exact: true });
     const kinds = page.getByRole("tablist", { name: "템플릿 종류 선택" });
-    await expect(service).toHaveValue("all");
+    await expect(service.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
+    await expect(service.getByRole("radio")).toHaveCount(4);
     await expect(page.getByRole("button", { name: /좋아요/ }).first()).toBeEnabled();
     for (const type of ["basic", "dining", "display"]) {
       await expect(page.locator(`[data-catalog-service="${type}"]`).first()).toBeVisible();
     }
     await expect(page.locator(".site-catalog-kind-hint")).toHaveCount(0);
     await expect(kinds.getByRole("tab", { name: "디자인 템플릿", exact: true })).toHaveAccessibleDescription("완성된 디자인으로 시작");
-    await service.selectOption("dining");
+    await service.getByRole("radio", { name: "다이닝", exact: true }).click();
     await expect.poll(() => new URL(page.url()).searchParams.get("plan")).toBe("dining");
     await page.reload({ waitUntil: "domcontentloaded" });
-    await expect(service).toHaveValue("dining");
+    await expect(service.getByRole("radio", { name: "다이닝", exact: true })).toHaveAttribute("aria-checked", "true");
     await expect(page.getByRole("button", { name: /좋아요/ }).first()).toBeEnabled();
     await expect(page.locator('[data-catalog-service]:not([data-catalog-service="dining"])')).toHaveCount(0);
     await kinds.getByRole("tab", { name: "기본 템플릿", exact: true }).click();
     await expect(kinds.getByRole("tab", { selected: true })).toHaveAccessibleName("기본 템플릿");
-    await service.selectOption("display");
+    await service.getByRole("radio", { name: "디스플레이", exact: true }).click();
     await expect(kinds).toHaveCount(0);
     await expect(page.locator('[data-catalog-service="display"]')).toHaveCount(1);
     await expect(page.getByRole("navigation", { name: "템플릿 페이지" })).toHaveCount(0);
-    await service.selectOption("all");
+    await service.getByRole("radio", { name: "전체", exact: true }).click();
     await expect(kinds.getByRole("tab", { selected: true })).toHaveAccessibleName("기본 템플릿");
     await expect(page.locator('[data-catalog-service="display"]')).toHaveCount(0);
     await kinds.getByRole("tab", { name: "디자인 템플릿", exact: true }).click();
@@ -108,6 +109,7 @@ try {
     const page = await pageAt(width);
     await page.goto(catalog, { waitUntil: "domcontentloaded" });
     const grid = gridOn(page);
+    await expect(page.getByRole("button", { name: /좋아요/ }).first()).toBeEnabled();
     for (const size of ["small", "large"]) {
       if (width < 768) await page.goto(`${catalog}&view=${size}`, { waitUntil: "domcontentloaded" });
       else {
@@ -116,13 +118,14 @@ try {
         await control.click();
       }
       await expect(grid).toHaveAttribute("data-thumbnail-size", size);
-      assert.equal(new URL(page.url()).searchParams.get("view"), size);
-      await page.getByRole("combobox", { name: "메뉴판 유형", exact: true }).selectOption("dining");
+      await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe(size);
+      await page.getByRole("group", { name: "메뉴판 유형", exact: true }).getByRole("radio", { name: "다이닝", exact: true }).click();
       await expect(grid).toHaveAttribute("data-thumbnail-size", size);
-      assert.equal(new URL(page.url()).searchParams.get("view"), size);
+      await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe(size);
       await page.reload({ waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("button", { name: /좋아요/ }).first()).toBeEnabled();
       await expect(grid).toHaveAttribute("data-thumbnail-size", size);
-      await page.getByRole("combobox", { name: "메뉴판 유형", exact: true }).selectOption("basic");
+      await page.getByRole("group", { name: "메뉴판 유형", exact: true }).getByRole("radio", { name: "베이직", exact: true }).click();
       if (width === 390) {
         assert.equal((await columns(grid)).columns, size === "large" ? 1 : 2);
         await page.setViewportSize({ width: 820, height: 1000 });

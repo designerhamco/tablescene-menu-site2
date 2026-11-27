@@ -23,7 +23,7 @@ import CatalogFilterSearch from "@/components/templates/CatalogFilterSearch";
 import CatalogFilterSelect from "@/components/templates/CatalogFilterSelect";
 import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
-import CatalogServiceSelect from "@/components/templates/CatalogServiceSelect";
+import CatalogServiceButtons from "@/components/templates/CatalogServiceButtons";
 import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
 import TemplatePagination from "./TemplatePagination";
 
@@ -133,7 +133,7 @@ export default function TemplateGallery({
         id={`${tabsId}-kind-panel`} aria-labelledby={service !== "display" ? `${tabsId}-${effectiveKind}` : undefined}>
         <div className="site-catalog-results">
           <FilterToolbar surface="muted" collapseFiltersOnMobile hideToolsOnMobile filterLabel="템플릿 필터"
-            primaryFilter={<CatalogServiceSelect value={service} onValueChange={selectService} />} search={
+            primaryFilter={<CatalogServiceButtons value={service} onValueChange={selectService} />} search={
             <CatalogFilterSearch search={
               <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
                 <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />

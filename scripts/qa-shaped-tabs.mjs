@@ -71,7 +71,7 @@ try {
     }
     await assertPageTabs(page.getByRole("tablist", { name: "디자인 시스템 메뉴" }));
     const templatePattern = page.getByRole("region", { name: "템플릿 페이지 포함 관계 예시" });
-    await templatePattern.getByRole("combobox", { name: "메뉴판 유형", exact: true }).selectOption("basic");
+    await templatePattern.getByRole("group", { name: "메뉴판 유형", exact: true }).getByRole("radio", { name: "베이직", exact: true }).click();
     await assertArea(templatePattern.locator('[data-slot="tabs"][data-purpose="section"]'));
     const patternFilter = templatePattern.getByRole("group", { name: "템플릿 구조 업종 필터" });
     await patternFilter.getByRole("button", { name: "레스토랑", exact: true }).press("Enter");
@@ -126,9 +126,9 @@ try {
     await expect(notificationTabs.getByRole('tab', { selected: true })).toHaveCSS('border-bottom-color', 'rgb(21, 24, 30)');
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "domcontentloaded" });
-    const serviceFilter = page.getByRole("combobox", { name: "메뉴판 유형", exact: true });
-    await expect(serviceFilter).toHaveValue("all");
-    await serviceFilter.selectOption("basic");
+    const serviceFilter = page.getByRole("group", { name: "메뉴판 유형", exact: true });
+    await expect(serviceFilter.getByRole("radio", { name: "전체", exact: true })).toHaveAttribute("aria-checked", "true");
+    await serviceFilter.getByRole("radio", { name: "베이직", exact: true }).click();
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await assertArea(catalogTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/templates-${width}.png`, fullPage: true });

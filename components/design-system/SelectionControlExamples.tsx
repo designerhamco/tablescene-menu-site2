@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
-import CatalogServiceSelect from "@/components/templates/CatalogServiceSelect";
+import CatalogServiceButtons from "@/components/templates/CatalogServiceButtons";
 import { SERVICE_CATEGORY_LABELS } from "@/lib/service-categories";
 import type { CatalogServiceFilter } from "@/lib/catalog-designs";
 import styles from "./SiteComponentGallery.module.css";
@@ -49,7 +49,7 @@ export default function SelectionControlExamples() {
             </TabsList> : null}
             {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
               <div className="site-filter-group">
-                <CatalogServiceSelect value={service} onValueChange={setService} />
+                <CatalogServiceButtons value={service} onValueChange={setService} />
                 <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">
                   {[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}
                 </div>
