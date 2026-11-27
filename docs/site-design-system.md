@@ -119,7 +119,7 @@
 
 근거: [KRDS 토글 스위치](https://www.krds.go.kr/html/site/component/component_06_07.html)의 인접 대비·일관된 레이블, [KRDS 색상](https://www.krds.go.kr/html/site/style/style_02.html)의 불투명 비활성 색상, [W3C Switch Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/), [WCAG 비텍스트 대비](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). 배경별 팔레트와 비활성 대비 수치는 이 근거를 적용한 아티메뉴의 제품 규칙이다.
 
-탭과 선택은 [최종 역할 계약](tab-hierarchy-contract.md)을 따른다. 주요 화면(page), 독립 콘텐츠(section), 목록 주제(category), 작은 필터, 상태·보기 값(state)을 구분한다. 고정 단계와 URL 유무로 모양을 정하지 않는다. 전체 사용처는 [점검표](tab-role-audit.md)를 따른다.
+탭과 선택은 [역할 계약](tab-hierarchy-contract.md)을 따른다. 기본 탭은 밑줄형이고, 룸 관리처럼 선택한 대상과 아래 작업 패널이 한 영역을 이루면 콘텐츠 연결형을 쓴다. 내 메뉴판의 이용 상태는 목록 필터다. 디자인 템플릿의 기존 영역형은 카탈로그·미리보기 계약을 따른다. 전체 사용처는 [점검표](tab-role-audit.md)를 따른다.
 
 2026-10-18 사용자 제공 컴포넌트 참고 문서를 기존 사이트 시스템에 재매핑했다. 원문/CSS 복사나 별도 Mobbin 스타일시트 없이 `--ui-*`와 기존 의미 클래스를 수정한다.
 기존 서비스·계정·신청·운영 흐름은 유지하고, 사이트 UI의 시각 규칙을 통일한다.
@@ -360,7 +360,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 ## 실제 적용 역할 (2026-10-29)
 
-- 주요 화면 전환은 purpose="page"의 텍스트와 문구 너비 선택 밑줄이다. 독립 콘텐츠는 section, 목록 주제는 category 밑줄, 상태·보기 값은 회색 레일 state를 사용한다. URL 이동도 NavigationTabs에 역할을 명시한다.
+- 화면 전환은 purpose="page"의 텍스트와 문구 너비 선택 밑줄이다. 목록 주제는 category 밑줄, 작업 패널에 이어지는 룸 탭은 section + document, 내 메뉴판 상태 필터는 회색 레일 state를 사용한다. URL 이동도 NavigationTabs에 역할을 명시한다.
 - contained 파일형·산 모양은 폐기했다. 디자인/기본 템플릿은 section 영역형, FAQ 주제는 category 밑줄이며 공지와 이용가이드는 헤더 하위 메뉴로 연결하는 독립 페이지다.
 - 영역형은 탭과 아래 콘텐츠 묶음을 하나의 영역으로 전환할 때 사용한다. 콘텐츠에는 둘레 테두리를 두지 않는다. 템플릿은 카테고리 필터부터 페이지네이션까지 --ui-surface-muted의 밝은 회색 결과 표면으로 묶는다. 고객센터에는 필요 없는 하위 필터·영역을 만들지 않는다.
 - 밝은 중립 배경과 구분 면은 `--ui-surface`/`--ui-surface-muted`/`--ui-surface-soft`를 공유한다. 기본·보조·메타 글자색과 상태색은 같은 의미 토큰을 사용한다. 회색·유색 면에는 외곽 테두리를 추가하지 않는다.

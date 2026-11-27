@@ -44,6 +44,8 @@
 
 텍스트 버튼 높이는 compact 32px, default·header 44px, large 48px이다. 텍스트 버튼은 최신 타이포 계약의 공통 control 역할(기본14px·600)을 사용한다. 기본 모서리는 8px, 좌우 패딩은 default 12px·large 16px, 내부·버튼 간 간격은 8px이다. 내용이 긴 문구는 필요한 높이를 확보한다. 폭은 문구를 따르며, 폼의 전체 폭이나 모바일 액션 행 배치는 호출 화면에서 결정한다. 같은 버튼을 페이지마다 다른 크기로 보이게 하던 `sm`·`xl`·`rounded`·`square` 별칭은 사용하지 않는다.
 
+디자인 템플릿 상세의 가격·시작 패널은 전체 폭 버튼을 사용한다. ‘미리보기’와 ‘이 디자인으로 시작’은 한 세로 묶음에 배치하고 각각 패널 내부 폭을 채운다.
+
 compact는 표·편집기의 짧은 도구, default는 일반 실행, header는 헤더 CTA, large는 로그인·가입·결제·신청 같은 주요 완료에 쓴다. 기존 크기의 주요 실행에는 `data-purpose="primary-action"`을 사용한다. 공식 사이트의 일반 primary 실행은 PC에서16px이고 보조 버튼은14px이다. 기본 높이44px, 큰 완료48px, 밀집 도구32px을 구분하며 헤더 전용36px은 유지한다. 아이콘 SVG 크기와 클릭 영역은 분리한다. 일반40px/밀집32px의 공통 클릭 영역을 유지한다. 기기 미리보기의 어두운 도구는 `site-preview-control` 36px 전용 변형을 사용한다. 색상 스와치도 공통 포커스·hover·누름·비활성 규칙을 사용한다. 카카오 로그인은 제공자 색만 명시적인 변형으로 보존한다.
 
 알림의 ‘모두 읽음’는 사용자 첨부 시안의 전용 떠 있는 역할(`site-button-notification-read-all`)이다. 기존 compact 최소32px·공통 글자/상태를 유지하고152px 너비·12px 모서리·공통 outline의 흰색 배경/진한 글자와 어두운 회색 테두리·짧은 그림자를 사용한다. 실행 콜백이 있고 전체 미확인 건수가 양수일 때만 버튼과 하단 확보 공간을 표시하며, 0건이면 둘 다 제거한다. 처리 중 비활성 상태와 실패 시 재시도를 유지한다. 포커스된 버튼이 사라지면 선택된 분류 탭으로 포커스를 돌린다. 아이콘 없이 알림 목록 하단 중앙에 두며 이 표현을 일반 실행 버튼에 재사용하지 않는다.
@@ -71,15 +73,15 @@ secondary와 불투명 비활성 실행 버튼은 밝은 회색 작업 배경보
 | 역할 | 공통 구현 | 표현·적용 |
 | --- | --- | --- |
 | 주요 화면 전환 | Tabs/NavigationTabs purpose="page" | 배경 없는 텍스트·문구 너비의 검정 밑줄. 서비스, 가이드, 편집 설정 |
-| 독립 콘텐츠 전환 | Tabs/NavigationTabs purpose="section" | 연결형 사각 버튼·검정 선택 면. 템플릿 종류, 결제/AI 내역, 미리보기, 요금 상품 유형 |
+| 작업 영역 전환 | Tabs purpose="section" appearance="document" | 선택 탭의 흰 바탕이 아래 패널에 연결. 테이블·키오스크 룸 |
 | 목록 분류 | CategoryFilter, Tabs purpose="category" | 별도 영역 없는 밑줄. 고객센터·새 메뉴판 주제, 전체/읽지 않은 알림 |
 | 목록 조건·본문 이동 | site-filter, ChoiceTile purpose="filter", 링크 | 완전히 둥근 캡슐형. 업종·구성·문서 위치 |
-| 룸 선택·추가 | Tabs purpose="section" appearance="rooms", Button shape="rounded" size="icon" | 독립된8px 사각형, 흰 선택 면과 진한 경계. 왼쪽 고정 추가와 스크롤 목록 |
-| 상태·보기 값 | Tabs/NavigationTabs purpose="state" | 회색 레일의 둥근 검정 선택 면과 흰 글자. 이용 상태·언어·보기 방식 |
+| 룸 추가 | Button shape="rounded" size="icon" | 왼쪽 고정 8px 사각형. 룸 탭 목록만 가로 스크롤 |
+| 상태 필터 | NavigationTabs purpose="state" | 회색 레일의 둥근 검정 선택 면과 흰 글자. 내 메뉴판의 이용 상태 |
 
 템플릿은 page → section → 필터 → 결과, 고객센터는 page → category → 결과다. 영역형은 특정 단계에 고정하지 않는다. 최상위 버튼은 PC·태블릿 내용 폭+좌우 각각24px, 모바일 기존 폭·영역 내 스크롤을 사용한다. 크기는 lg40px/16px, md36px/14px, sm32px/14px다. 선택600·비선택500의 공통 토큰을 쓰고 페이지 CSS로 덮어쓰지 않는다.
 
-영역형은 연결된 사각 버튼이며 바깥 네 모서리만8px다. 검정 바탕·흰 글자 선택 면, 흰 비선택 면과1px 공통 경계를 사용한다. 콘텐츠로 이어지는 긴 기준선이나 둘레 테두리는 넣지 않는다. 최상위 탭의3px 밑줄은 클릭 영역 하단에서4px 위로 올리며 기존 클릭 높이를 유지한다. 제품 Tabs는 purpose를 반드시 선언한다. 저수준 variant는 라이브러리 상태 비교표에서만 쓴다. 패널은 Radix 선택·ARIA·방향키·Home/End, 링크는 URL 이동, CategoryFilter는 버튼/aria-pressed·기존 목록 필터링 동작을 유지한다.
+디자인 템플릿·미리보기의 기존 영역형은 연결된 사각 버튼과 검정 선택 면을 사용한다. 일반 화면 전환은 주문·결제 내역과 같은 밑줄형을 적용한다. 3px 선택선은 클릭 영역 하단에서4px 위에 놓인다. 제품 Tabs는 purpose를 반드시 선언한다. 저수준 variant는 라이브러리 상태 비교표에서만 쓴다. 패널은 Radix 선택·ARIA·방향키·Home/End, 링크는 URL 이동, CategoryFilter는 버튼/aria-pressed·기존 목록 필터링 동작을 유지한다.
 
 스위치·체크박스·날짜·페이지 번호·캐러셀·드래그·아코디언·썸네일은 각 기능을 유지한다. 헤더·사이드바·마이페이지 메뉴 레일은 사이트 내비게이션이다. 고객 메뉴판·공개 주문/호출·수령 제품은 사이트 탭과 분리한다.
 
@@ -236,7 +238,7 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 ## 카테고리 필터와 룸 선택의 모양 (2026-11-11)
 
 - 업종 등 버튼형 목록 조건은 완전히 둥근 캡슐형이다. 아이콘이 있는 필터는 `ChoiceTile purpose="filter"`, 짧은 텍스트 필터는 `site-filter`가 `--ui-radius-control`을 사용한다. 높이·패딩·아이콘·선택·비활성·포커스는 기존 공통 크기를 유지한다. 일반 기능/상품 선택 카드는 기존 사각형이며 `purpose="choice"`가 기본값이다. FAQ·알림 등의 밑줄형 주제 탭은 이 버튼형 필터와 다른 역할이다.
-- 룸 이름 선택과 룸 추가는 `--ui-radius-control-rounded`의8px 모서리를 사용한다. `Tabs purpose="section" appearance="rooms"`가 독립 사각형과 흰 선택 면·진한 경계를 소유한다. 왼쪽 고정 추가는 `Button shape="rounded" size="icon"`의 동일한 사각형이다. 룸 추가는 `iconAppearance="framed"`를 유지하며 `TabsList size`가 추가·선택 모두의 높이를 함께 결정한다(sm40 / md44 / lg48px). 룸 이름은16px·좌우12px(lg16px), 아이콘 추가는 해당 높이와 같은 정사각형이다. `--site-room-control-height/padding`과 `--site-type-16`을 공유해 일반 sm 탭의32px/14px 축소 규칙과 분리한다. 다른 아이콘의 표현과 클릭 영역은 아이콘 버튼 공통 원칙을 따른다.
+- 테이블·키오스크 룸 관리는 `Tabs purpose="section" appearance="document"`와 `TabsList actionPlacement="start"`를 사용한다. 룸 이름은 16px, 탭은 위쪽 8px 모서리, 왼쪽 고정 추가는 8px 사각 아이콘 버튼이다. `TabsList size`는 추가·선택의 높이 기준을 공유한다(sm40 / md44 / lg48px). 주문·호출의 룸 선택은 기존 `appearance="rooms"`의 독립 선택 컨트롤을 사용한다.
 - 테이블·키오스크 관리의 리스트/배치도와 주문·호출의 룸 선택에 같은 API를 적용한다. 추가 위치, 룸 순서·이름, 등록/저장/되돌리기, 선택 자동 노출·가로 스크롤·조건부 페이드, Radix 방향키·Home/End·선택/포커스와 저장 중 비활성을 유지한다. 고객 메뉴판 렌더러에는 적용하지 않는다.
 
 ## 이미지 위의 이동 도구 (2026-11-11)
