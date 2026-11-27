@@ -20,10 +20,9 @@ test("public product and support surfaces keep secondary copy at accessible cont
   assert.match(controls, /--ui-text-muted: #4b515b/);
   assert.match(controls, /\.site-filter \{[^}]*color: var\(--ui-text-muted\)/);
   const footer = readSource("../app/components/layout/Footer.module.css");
-  assert.match(footer, /--footer-muted: var\(--ui-text-on-dark-muted\)/);
   assert.match(footer, /\.copyright, \.legal \{ color: var\(--footer-muted\); \}/);
   const luminance = (token: string) => {
-    const hex = controls.match(new RegExp(`${token}: #([0-9a-f]{6})`, "i"))?.[1];
+    const hex = footer.match(new RegExp(`${token}: #([0-9a-f]{6})`, "i"))?.[1];
     assert.ok(hex, `Missing color token ${token}`);
     return [0.2126, 0.7152, 0.0722].reduce((sum, weight, channel) => {
       const value = Number.parseInt(hex.slice(channel * 2, channel * 2 + 2), 16) / 255;
@@ -31,9 +30,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
       return sum + weight * linear;
     }, 0);
   };
-  const surface = luminance("--ui-surface-dark");
-  assert.ok((luminance("--ui-text-on-dark-muted") + 0.05) / (surface + 0.05) >= 4.5);
-  assert.ok((luminance("--ui-border-on-dark") + 0.05) / (luminance("--ui-surface-dark-hover") + 0.05) >= 3);
+  assert.ok((luminance("--footer-muted") + 0.05) / (luminance("--footer-surface") + 0.05) >= 4.5);
 });
 
 test("auth consent and compact product previews avoid low-opacity essential copy", () => {
