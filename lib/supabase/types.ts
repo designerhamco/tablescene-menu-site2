@@ -3776,6 +3776,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_ai_support_account_quota: {
+        Args: { p_account_id: string; p_daily_limit: number; p_reserve_tokens: number }
+        Returns: Json
+      }
+      reserve_ai_support_account_usage: {
+        Args: { p_account_id: string; p_reservation_id: string; p_daily_limit: number; p_reserve_tokens: number }
+        Returns: Json
+      }
+      settle_ai_support_account_usage: {
+        Args: {
+          p_account_id: string
+          p_reservation_id: string
+          p_daily_limit: number
+          p_reserve_tokens: number
+          p_actual_tokens: number | null
+        }
+        Returns: Json
+      }
       create_alimtalk_topup: { Args: { p_menu_id: string; p_actor_id: string; p_payment_id: string; p_amount: number; p_store_id: string; p_channel_key: string; p_terms_version: string; p_unit_price: number }; Returns: AlimtalkTopupRow[] }
       request_alimtalk_refund: { Args: { p_menu_id: string|null; p_actor_id: string; p_request_id: string; p_expected_balance: number; p_terms_version: string }; Returns: AlimtalkRefundRow[] }
       cancel_alimtalk_refund: { Args: { p_actor_id: string; p_request_id: string }; Returns: undefined }

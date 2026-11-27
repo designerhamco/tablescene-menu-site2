@@ -3,6 +3,18 @@ export const AI_SUPPORT_CHAT_MAX_OUTPUT_TOKENS = 300;
 export const AI_SUPPORT_CHAT_RATE_LIMIT = 6;
 export const AI_SUPPORT_CHAT_RATE_WINDOW_MS = 10 * 60 * 1000;
 
+export type AiSupportChatAccess =
+  | { status: "ready" | "sign-in" | "unavailable" }
+  | { status: "busy"; retryAt: string }
+  | { status: "limited"; resetAt: string; kakaoChatUrl: string };
+
+export type AiSupportChatResponse = {
+  enabled?: boolean;
+  access?: AiSupportChatAccess;
+  answer?: string;
+  error?: string;
+};
+
 const SENSITIVE_INPUT_PATTERNS = [
   /\bsk-[a-z0-9_-]{10,}\b/i,
   /\b\d{6}\s*-\s*[1-4]\d{6}\b/,

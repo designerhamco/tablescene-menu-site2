@@ -34,5 +34,5 @@ test("AI 상담 모달은 내부 스크롤과 지원 홈 이동을 유지하고 
   assert.match(launcherSource, /<SupportHome enabled=\{enabled\}/);
   assert.match(launcherSource, /aria-label="고객지원 홈으로"/);
   assert.doesNotMatch(chatSource, /1:1 문의로 이어서 도움받기/);
-  assert.match(chatSource, /href="\/mypage\/inquiries"/);
+  assert.match(launcherSource, /href="\/mypage\/inquiries"/);
 });

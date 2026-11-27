@@ -16,7 +16,6 @@
 .answer { color: var(--ui-text); line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pending { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; color: var(--ui-text-muted); }
 .pending > svg { flex: none; }
-.error { margin-top: 1rem; }
 .form { flex: none; border-top: 1px solid var(--ui-border); padding: 1rem 1.25rem; background: var(--ui-surface); }
 .consent { display: flex; align-items: flex-start; gap: .625rem; margin-bottom: .875rem; color: var(--ui-text-muted); }
 .consent input { flex: none; width: 1rem; height: 1rem; margin-top: .125rem; accent-color: var(--ui-text); }
