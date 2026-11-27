@@ -4,6 +4,7 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import MenuCardList from "@/components/mypage/MenuCardList";
 import MenuSummaryCard from "@/components/mypage/MenuSummaryCard";
+import MenuRecoveryGuide from "@/components/mypage/MenuRecoveryGuide";
 import { EditIcon } from "@/app/components/ui/edit-icon";
 import { Eye } from "@/app/components/ui/site-icon";
 import AccountPageContent from "@/components/mypage/AccountPageContent";
@@ -2151,19 +2152,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     else if (section === "active" && isBusinessFreeTrial) accessLabel = "30일 무료 체험";
 
     const periodEnd = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
-    const metaItems: Array<{ label: string; value: string }> = [];
+    const billingDates: Array<{ label: string; value: string }> = [];
     let primaryMessage = "";
 
     if (archivedDisplayState && !isCancelScheduledActive) {
       primaryMessage = archivedDisplayState.message;
-      if (retentionEndDate) {
-        metaItems.push({ label: section === "holding" ? "복구 기한" : "보관 종료일", value: formatDate(retentionEndDate) });
-      } else if (periodEnd) {
-        metaItems.push({ label: "이용 종료일", value: formatDate(periodEnd) });
+      if (retentionEndDate && section === "deleted") {
+        billingDates.push({ label: "보관 종료일", value: formatDate(retentionEndDate) });
+      } else if (!retentionEndDate && periodEnd) {
+        billingDates.push({ label: "이용 종료일", value: formatDate(periodEnd) });
       }
     } else if (isOneTimeBusinessService && hasActiveEntitlement && !isAccessRestricted) {
       if (accessExpiresAt) {
-        metaItems.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
+        billingDates.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
       }
     } else if (activeBusinessSubscription) {
       primaryMessage = isCancelScheduledActive
@@ -2172,16 +2173,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           ? "30일 무료체험으로 이용 중입니다. 종료일에 첫 월결제가 진행됩니다."
           : "";
       if (cancelAtPeriodEnd && periodEnd) {
-        metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
+        billingDates.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
       } else if (isBusinessFreeTrial && activeBusinessSubscription.next_billing_at) {
-        metaItems.push({ label: "첫 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
+        billingDates.push({ label: "첫 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
       } else if (!activeBusinessSubscription.next_billing_at && periodEnd) {
-        metaItems.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
+        billingDates.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
       }
     } else if (isPersonalTrial && !isTrialExpired) {
       primaryMessage = "무료 체험으로 이용 중입니다.";
       if (accessExpiresAt) {
-        metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt) });
+        billingDates.push({ label: "체험 종료일", value: formatDate(accessExpiresAt) });
       }
     } else if (isTrialExpired) {
       primaryMessage = isRetentionEnded
@@ -2192,9 +2193,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ? "무료 체험 기간이 종료되어 편집과 공개가 제한됩니다."
             : "이용 기간이 종료되어 공개와 편집이 제한되었습니다.";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil) {
-        metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
+        billingDates.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
-        metaItems.push({ label: "이용 종료일", value: formatDate(accessExpiresAt) });
+        billingDates.push({ label: "이용 종료일", value: formatDate(accessExpiresAt) });
       }
     } else {
       primaryMessage = hasPaymentIssue
@@ -2205,11 +2206,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             : "보관 기간 동안 미리보기만 가능하며, 재구독하면 기존 메뉴판을 복구할 수 있습니다."
           : "";
       if (trialDisplayInfo?.source === "service_entitlements" && dataRetentionUntil && isAccessRestricted) {
-        metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
+        billingDates.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
-        metaItems.push({ label: "이용 기간 종료일", value: formatDate(accessExpiresAt) });
+        billingDates.push({ label: "이용 기간 종료일", value: formatDate(accessExpiresAt) });
       } else if (entitlement?.expired_at) {
-        metaItems.push({ label: "이용 종료일", value: formatDate(entitlement.expired_at) });
+        billingDates.push({ label: "이용 종료일", value: formatDate(entitlement.expired_at) });
       }
     }
 
@@ -2226,7 +2227,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       visibility,
       accessLabel,
       primaryMessage,
-      metaItems,
+      billingDates,
+      recoveryDeadlineLabel: section === "holding" ? formatDate(retentionEndDate) : null,
       isAccessRestricted,
       isTrialPendingDelete,
       isPersonalTrial,
@@ -2355,10 +2357,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         {card.section === "active" ? <Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge> : null}
         {card.accessLabel ? <Badge>{card.accessLabel}</Badge> : null}
       </>}
-      details={card.metaItems}
-      status={card.primaryMessage || undefined}
-      billingHref={card.section === "active" ? undefined : menuBillingHref(card.publicPath, card.title)}
-      billingLabel={card.section === "holding" ? "재구독·복구 안내" : card.section === "deleted" ? "결제내역" : "구독 정보"}
+      status={card.section === "holding" ? undefined : card.primaryMessage || undefined}
+      billingAction={card.recoveryDeadlineLabel ? (
+        <MenuRecoveryGuide menuName={card.title} deadlineLabel={card.recoveryDeadlineLabel} message={card.primaryMessage}
+          billingHref={menuBillingHref(card.publicPath, card.title)} />
+      ) : card.section === "deleted" ? (
+        <Link href={menuBillingHref(card.publicPath, card.title)} className="site-button site-button-outline">결제내역</Link>
+      ) : undefined}
       actions={card.section === "deleted" ? undefined : <>
         {card.section === "active" ? renderActionButton({ label: "편집하기", href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null, enabled: card.actions.canEdit, disabledReason: card.actions.editDisabledReason, primary: true, icon: <EditIcon /> }) : null}
         {renderActionButton({ label: "미리보기", href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null, enabled: card.actions.canOwnerPreview, disabledReason: card.actions.previewDisabledReason, newWindow: true, icon: <Eye aria-hidden="true" /> })}
@@ -2373,7 +2378,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} serviceLabel={card.service.label} lifecycle="active"
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
       badges={<><Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge></>}
-      details={[]}
       supportingDetails={[{ label: "사용 가능한 기능", value: card.permissionSummary }]}
       actions={<>
         {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
@@ -2469,6 +2473,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     key={requestedBillingQuery}
                     initialQuery={requestedBillingQuery}
                     entries={billingHistoryEntries}
+                    menuSchedules={menuCardViewModels
+                      .filter(card => card.billingDates.length > 0)
+                      .map(card => ({ key: card.key, menuName: card.title, menuPath: card.publicPath, dates: card.billingDates }))}
                     restoreCheckoutEnabled={restoreSubscriptionQaEnabled}
                     restoreCheckoutConfig={{
                       userId: user.id,
