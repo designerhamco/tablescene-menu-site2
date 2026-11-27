@@ -33,7 +33,7 @@ export default function SelectionControlExamples() {
         <tr><td>목록 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 주제, 전체/읽지 않은 알림</td></tr>
         <tr><td>룸 선택·추가</td><td>독립된 8px 사각형 · 추가도 같은 모서리</td><td>Tabs purpose=&quot;section&quot; appearance=&quot;rooms&quot;</td><td>테이블·키오스크, 주문·호출의 룸</td></tr>
         <tr><td>목록 조건 선택</td><td>완전히 둥근 캡슐형 필터</td><td>site-filter / ChoiceTile purpose=&quot;filter&quot;</td><td>템플릿 업종, 화면 구성, 본문 바로가기</td></tr>
-        <tr><td>현재 화면의 상태·보기 값 변경</td><td>회색 레일 안의 둥근 세그먼트 · 흰 선택 면</td><td>Tabs purpose=&quot;state&quot; / NavigationTabs purpose=&quot;state&quot;</td><td>이용 중/보관 중/종료됨, 언어, 이미지/목록 보기</td></tr>
+        <tr><td>현재 화면의 상태·보기 값 변경</td><td>회색 레일 안의 둥근 세그먼트 · 검정 선택 면</td><td>Tabs purpose=&quot;state&quot; / NavigationTabs purpose=&quot;state&quot;</td><td>이용 중/만료·보관/종료됨, 언어, 이미지/목록 보기</td></tr>
       </tbody></table></div>
       <div className={styles.hierarchyMap}>
         <section className={styles.hierarchyLevel} aria-label="템플릿 페이지 포함 관계 예시">
@@ -56,8 +56,8 @@ export default function SelectionControlExamples() {
           <p className="type-body-sm mt-5" role="status">FAQ · {topic === "all" ? "전체" : topic === "usage" ? "이용 환경" : "메뉴판 생성·관리"} 목록</p>
         </section>
       </div>
-      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 탭은 선택한 문구만 두껍게 표시하고 글자 가까이에 놓인 검정 밑줄을 사용하며 클릭 높이는 유지합니다. 비선택 문구는 더 가벼운 굵기와 중성 회색으로 구분합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
-        <Tabs purpose="state" defaultValue="active"><TabsList size="lg" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
+      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">회색 레일 안에서 선택한 값은 검정 배경과 흰 글자로 표시합니다. 건수가 있으면 라벨보다 작은 보조 숫자로 표시합니다.</p>
+        <Tabs purpose="state" defaultValue="active"><TabsList size="lg" aria-label="상태값 변경 예시"><TabsTrigger value="active" count={8}>이용 중</TabsTrigger><TabsTrigger value="holding" count={0}>만료·보관</TabsTrigger><TabsTrigger value="ended" count={13}>종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
       </div>
       <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>주요 화면 최소 높이</th><th>연결형 최소 높이</th></tr></thead><tbody>{sizes.map(([size, pageHeight, sectionHeight]) => <tr key={size}><td>{size}</td><td>{pageHeight}</td><td>{sectionHeight}</td></tr>)}</tbody></table></div>
       <p className="type-body-sm text-zinc-600">마이페이지 상태 탭은 36px, 레일은 44px입니다. PC 주요 화면 탭은 기본 16px, 연결형·상태 탭은 14px입니다. 모바일·태블릿의 주요 화면 탭은 대형 16px, 중·소형 14px입니다. 영역 콘텐츠에는 둘레 테두리를 두지 않으며, 카탈로그처럼 결과를 묶는 곳은 공통 밝은 회색 표면을 사용할 수 있습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>

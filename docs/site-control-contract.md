@@ -75,7 +75,7 @@ secondary와 불투명 비활성 실행 버튼은 밝은 회색 작업 배경보
 | 목록 분류 | CategoryFilter, Tabs purpose="category" | 별도 영역 없는 밑줄. 고객센터·새 메뉴판 주제, 전체/읽지 않은 알림 |
 | 목록 조건·본문 이동 | site-filter, ChoiceTile purpose="filter", 링크 | 완전히 둥근 캡슐형. 업종·구성·문서 위치 |
 | 룸 선택·추가 | Tabs purpose="section" appearance="rooms", Button shape="rounded" size="icon" | 독립된8px 사각형, 흰 선택 면과 진한 경계. 왼쪽 고정 추가와 스크롤 목록 |
-| 상태·보기 값 | Tabs/NavigationTabs purpose="state" | 회색 레일의 둥근 흰 선택 면. 이용 상태·언어·보기 방식 |
+| 상태·보기 값 | Tabs/NavigationTabs purpose="state" | 회색 레일의 둥근 검정 선택 면과 흰 글자. 이용 상태·언어·보기 방식 |
 
 템플릿은 page → section → 필터 → 결과, 고객센터는 page → category → 결과다. 영역형은 특정 단계에 고정하지 않는다. 최상위 버튼은 PC·태블릿 내용 폭+좌우 각각24px, 모바일 기존 폭·영역 내 스크롤을 사용한다. 크기는 lg40px/16px, md36px/14px, sm32px/14px다. 선택600·비선택500의 공통 토큰을 쓰고 페이지 CSS로 덮어쓰지 않는다.
 
