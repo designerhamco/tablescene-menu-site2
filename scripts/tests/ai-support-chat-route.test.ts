@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, mock, test } from "node:test";
-import type { AiSupportChatAccess } from "../../lib/ai-support-chat";
+import { AI_SUPPORT_CHAT_ACCESS_PATH, type AiSupportChatAccess } from "../../lib/ai-support-chat";
 
 const accountId = "80000000-0000-4000-8000-000000000001";
 const limited: AiSupportChatAccess = {
@@ -35,8 +35,10 @@ mock.module(new URL("../../lib/server/ai-support-chat-service.ts", import.meta.u
   namedExports: { getAiSupportAccess: readQuota, answerAiSupportQuestion: answerQuestion, AiSupportChatServiceError: ServiceError },
 });
 
-const { GET, POST } = await import("../../app/api/support/chat/route");
+const { GET: getLegacyAvailability, POST } = await import("../../app/api/support/chat/route");
+const { GET: getAccess } = await import("../../app/api/support/chat/access/route");
 const endpoint = "https://artimenu.example/api/support/chat";
+const accessEndpoint = "https://artimenu.example" + AI_SUPPORT_CHAT_ACCESS_PATH;
 
 beforeEach(() => {
   process.env.AI_SUPPORT_CHAT_ENABLED = "true";
@@ -55,13 +57,14 @@ function submit(overrides = {}) {
 }
 
 test("the public availability probe works without exposing an account consultation state", async () => {
-  const response = await GET(new Request(endpoint));
+  const response = await getAccess(new Request(accessEndpoint + "?availability=1"));
   assert.deepEqual(await response.json(), { enabled: true });
+  assert.deepEqual(await (await getLegacyAvailability()).json(), { enabled: true });
   assert.equal(readQuota.mock.callCount(), 0);
 });
 
 test("signed-out requests cannot read a quota or reach the model", async () => {
-  const access = await GET(new Request(endpoint + "?access=1"));
+  const access = await getAccess(new Request(accessEndpoint));
   assert.deepEqual(await access.json(), { enabled: true, access: { status: "sign-in" } });
   const response = await submit({ accountId });
   assert.equal(response.status, 401);
@@ -87,7 +90,7 @@ test("the last answer and limited access arrive together using the verified acco
   assert.deepEqual(await response.json(), { answer: "내 메뉴판에서 대표 QR을 받을 수 있어요.", access: limited });
   assert.equal(answerQuestion.mock.calls[0].arguments[0].accountId, accountId);
   assert.equal(answerQuestion.mock.calls[0].arguments[0].question, "대표 QR은 어디에서 받아요?");
-  const access = await GET(new Request(endpoint + "?access=1"));
+  const access = await getAccess(new Request(accessEndpoint));
   assert.deepEqual(await access.json(), { enabled: true, access: limited });
   assert.deepEqual(readQuota.mock.calls[0].arguments, [accountId]);
 });

@@ -2,6 +2,7 @@ export const AI_SUPPORT_CHAT_MAX_INPUT_LENGTH = 500;
 export const AI_SUPPORT_CHAT_MAX_OUTPUT_TOKENS = 300;
 export const AI_SUPPORT_CHAT_RATE_LIMIT = 6;
 export const AI_SUPPORT_CHAT_RATE_WINDOW_MS = 10 * 60 * 1000;
+export const AI_SUPPORT_CHAT_ACCESS_PATH = "/api/support/chat/access";
 
 export type AiSupportChatAccess =
   | { status: "ready" | "sign-in" | "unavailable" }

@@ -9,6 +9,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";
 import {
+  AI_SUPPORT_CHAT_ACCESS_PATH,
   AI_SUPPORT_CHAT_MAX_INPUT_LENGTH,
   type AiSupportChatAccess,
   type AiSupportChatResponse,
@@ -33,7 +34,7 @@ const resetTime = new Intl.DateTimeFormat("ko-KR", {
 
 async function readAccess(signal?: AbortSignal): Promise<AiSupportChatAccess> {
   try {
-    const response = await fetch("/api/support/chat?access=1", { cache: "no-store", signal });
+    const response = await fetch(AI_SUPPORT_CHAT_ACCESS_PATH, { cache: "no-store", signal });
     const payload: AiSupportChatResponse = await response.json();
     if (payload.access) return payload.access;
   } catch {

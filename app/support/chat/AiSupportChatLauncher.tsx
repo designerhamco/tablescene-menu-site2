@@ -6,6 +6,7 @@ import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { SupportChatIcon, SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";
+import { AI_SUPPORT_CHAT_ACCESS_PATH } from "@/lib/ai-support-chat";
 import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 import AiSupportChat from "./AiSupportChat";
 import SupportHome from "./SupportHome";
@@ -32,7 +33,7 @@ export default function AiSupportChatLauncher() {
   useEffect(() => {
     if (!open || enabled !== null) return;
     const controller = new AbortController();
-    void fetch("/api/support/chat", { method: "GET", cache: "no-store", signal: controller.signal })
+    void fetch(AI_SUPPORT_CHAT_ACCESS_PATH + "?availability=1", { method: "GET", cache: "no-store", signal: controller.signal })
       .then(response => response.json())
       .then((payload: { enabled?: unknown }) => { if (!controller.signal.aborted) setEnabled(payload.enabled === true); })
       .catch(() => { if (!controller.signal.aborted) setEnabled(false); });
