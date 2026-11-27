@@ -755,7 +755,8 @@
 
 /* My Menu: the available content width owns the vertical card columns. */
 .site-menu-list-toolbar { display: flex; flex-direction: column; gap: var(--site-space-block); min-width: 0; }
-.site-menu-list-search { width: 100%; min-width: 0; }
+.site-menu-list-search.site-form-row { width: 100%; min-width: 0; flex-direction: row; align-items: center; }
+.site-menu-list-search > .site-search-field { flex: 1 1 auto; }
 .site-menu-results { container-type: inline-size; scroll-margin-top: calc(var(--site-header-height) + var(--site-space-group)); }
 .site-menu-card-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--site-space-block); }
 .site-menu-card-list > div { display: grid; min-width: 0; }
@@ -776,10 +777,7 @@
 .site-menu-card-body { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: var(--site-space-title-copy); }
 .site-menu-card-header { display: flex; flex-direction: column; align-items: start; gap: var(--site-space-copy); min-width: 0; }
 .site-menu-card-header > .site-stack-detail { max-inline-size: 100%; }
-.site-menu-card-title, .site-menu-card-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.site-menu-card .site-menu-card-address { flex-wrap: nowrap; }
-.site-menu-card-address .site-menu-card-path { flex: 1; min-width: 0; }
-.site-menu-card-address > button { flex: none; }
+.site-menu-card-title { max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .site-menu-card-badges { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); }
 .site-menu-card-meta, .site-menu-card-supporting { display: grid; gap: var(--site-space-copy); margin: 0; padding: 0; min-width: 0; }
 .site-menu-card-meta > div, .site-menu-card-supporting > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--site-space-copy); min-width: 0; max-width: 100%; }
@@ -800,8 +798,8 @@
 .site-breadcrumb [data-slot="breadcrumb-list"] { font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .site-breadcrumb [data-slot="breadcrumb-page"] { color: var(--ui-text-muted); }
 @media (min-width: 640px) {
-  .site-menu-list-toolbar { flex-direction: row; align-items: center; justify-content: space-between; }
-  .site-menu-list-search { flex: 0 1 18rem; }
+  .site-menu-list-toolbar { flex-flow: row wrap; align-items: center; justify-content: space-between; }
+  .site-menu-list-search { flex: 0 0 min(100%, 22rem); margin-inline-start: auto; }
 }
 @container (min-width: 36rem) {
   .site-menu-card-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }

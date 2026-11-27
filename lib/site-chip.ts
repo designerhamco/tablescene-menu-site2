@@ -9,8 +9,8 @@ export function getSiteChipTone(label: string): SiteChipTone {
   if (/복구불가|복구불가능|복구가능기간종료|처리확인필요|실패|오류|결제확인필요|거절/.test(value)) return "error";
   if (/해지예약|해지예정/.test(value)) return "ending";
   if (/종료|만료|삭제|해지완료|취소됨|비활성/.test(value)) return "ended";
-  if (/작성중|초안/.test(value)) return "draft";
-  if (/비공개|공개전/.test(value)) return "private";
+  if (value === "공개전" || /작성중|초안/.test(value)) return "draft";
+  if (/비공개/.test(value)) return "private";
   if (/공개중|이용중|사용중|활성|공개됨/.test(value) || value === "공개") return "active";
   if (/결제완료/.test(value)) return "settled";
   if (/지급완료|답변완료|처리완료|준비완료/.test(value)) return "paid";

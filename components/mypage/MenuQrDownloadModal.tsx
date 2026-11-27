@@ -1,5 +1,6 @@
 "use client";
 
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -7,6 +8,7 @@ import { QrCode } from "@/app/components/ui/site-icon";
 import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import type { MenuQrDownloadData } from "@/lib/menu-qr-downloads";
+import QrAddressActions from "./QrAddressActions";
 import QrDownloadButton from "./QrDownloadButton";
 
 export default function MenuQrDownloadModal({
@@ -58,7 +60,7 @@ export default function MenuQrDownloadModal({
       </DialogTrigger>
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
-          <DialogTitle>QR 다운로드</DialogTitle>
+          <DialogTitle>QR 관리</DialogTitle>
           <DialogDescription className="mt-2">{menuName}</DialogDescription>
         </div>
         <div aria-live="polite" aria-busy={loading}>
@@ -71,16 +73,13 @@ export default function MenuQrDownloadModal({
             </div>
           ) : data ? (
             <div className="space-y-5">
-              <section className="site-section p-4 sm:p-5" aria-label="대표 QR 다운로드">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h3 className="type-item-title flex items-center gap-2"><QrCode className="size-5" aria-hidden="true" />대표 메뉴 QR</h3>
-                    <p className="type-body-sm mt-2 text-zinc-500">매장 입구·포스터·SNS에서 메뉴판을 공유할 때 사용합니다.</p>
-                  </div>
-                  <QrDownloadButton feedbackLabel="대표 메뉴" fileName={`arti-menu-${data.menuSite.slug}-qr.png`} path={`/menu/${encodeURIComponent(data.menuSite.slug)}`} publicBaseUrl={data.publicBaseUrl} disabled={!data.canDownloadRepresentativeQr} disabledReason={data.representativeQrDisabledReason} />
+              <ContentPanel density="compact" aria-label="대표 메뉴 QR">
+                <div className="site-stack-copy">
+                  <h3 className="type-item-title site-action-row"><QrCode className="size-5" aria-hidden="true" />대표 메뉴 QR</h3>
+                  <p className="type-body-sm text-zinc-500">매장 입구·포스터·SNS에서 메뉴판을 공유할 때 사용합니다.</p>
                 </div>
-                {data.representativeQrDisabledReason ? <p className="type-footnote mt-3 text-zinc-500">{data.representativeQrDisabledReason}</p> : null}
-              </section>
+                <QrAddressActions copyKey={`menu-modal-${menuSiteId}`} feedbackLabel="대표 메뉴" fileName={`arti-menu-${data.menuSite.slug}-qr.png`} path={`/menu/${encodeURIComponent(data.menuSite.slug)}`} publicBaseUrl={data.publicBaseUrl} disabled={!data.canDownloadRepresentativeQr} disabledReason={data.representativeQrDisabledReason} />
+              </ContentPanel>
               <section aria-labelledby={`table-qr-title-${menuSiteId}`}>
                 <h3 id={`table-qr-title-${menuSiteId}`} className="type-item-title">테이블별 QR</h3>
                 <p className="type-body-sm mt-2 text-zinc-500">각 테이블에 맞는 QR을 선택해 주세요.</p>

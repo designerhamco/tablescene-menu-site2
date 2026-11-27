@@ -56,11 +56,12 @@ import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
 import { getServiceCategory, getServiceCategoryLabel } from "@/lib/service-categories";
+import { getMenuCardVisibility, MENU_CARD_VISIBILITY_LABELS } from "@/lib/menu-card-visibility";
 import { getNotificationDisplaySince, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
-import { getMenuDesignDisplayName, getSavedMenuDesign } from "@/lib/menu-design-identity";
+import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
@@ -110,6 +111,7 @@ type MenuSite = {
   slug: string | null;
   template_key: string | null;
   status: string | null;
+  published_at: string | null;
   created_at: string | null;
   updated_at: string | null;
   settings: Json | null;
@@ -511,19 +513,14 @@ function getServiceName(
   return "아티메뉴 이용권";
 }
 
-function getMenuServiceBadge(input: {
-  productKey: string | null | undefined;
-  planType: string | null | undefined;
-  templateKey: string | null | undefined;
+function getMenuService(input: {
+  productKey?: string | null;
+  planType?: string | null;
+  templateKey?: string | null;
 }) {
   const category = getServiceCategory(input);
-  return { key: `service:${category ?? "unknown"}`, label: category ? getServiceCategoryLabel(category) : "서비스 확인 필요" };
+  return { category, label: category ? getServiceCategoryLabel(category) : "서비스 확인 필요" };
 }
-
-type MenuCardBadge = {
-  key: string;
-  label: string;
-};
 
 type RecoveryCta = {
   label: string;
@@ -543,63 +540,6 @@ type ArchivedDisplayState = {
   cta: RecoveryCta | null;
   ddayInfo: RetentionDdayInfo | null;
 };
-
-function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | null {
-  if (status === "draft") {
-    return {
-      key: "visibility:draft",
-      label: "작성중",
-
-    };
-  }
-
-  if (status === "published") {
-    return {
-      key: "visibility:published",
-      label: "공개중",
-
-    };
-  }
-
-  if (status === "private" || status === "unpublished") {
-    return {
-      key: "visibility:private",
-      label: "비공개",
-
-    };
-  }
-
-  if (!status) {
-    return {
-      key: "visibility:unknown",
-      label: "상태 미확인",
-
-    };
-  }
-
-  return null;
-}
-
-function getUniqueMenuCardBadges(
-  badges: MenuCardBadge[],
-) {
-  const seenKeys = new Set<string>();
-  const seenLabels = new Set<string>();
-
-  return badges.filter((badge) => {
-    if (seenKeys.has(badge.key)) {
-      return false;
-    }
-
-    if (seenLabels.has(badge.label)) {
-      return false;
-    }
-
-    seenKeys.add(badge.key);
-    seenLabels.add(badge.label);
-    return true;
-  });
-}
 
 function getBillingCycleLabel(billingCycle: string | null | undefined) {
   if (billingCycle === "trial_1_month") return "1개월 체험";
@@ -1318,7 +1258,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     "menu_sites",
     supabase
       .from("menu_sites")
-      .select("id, name, slug, template_key, status, created_at, updated_at, settings")
+      .select("id, name, slug, template_key, status, published_at, created_at, updated_at, settings")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false })
   );
@@ -2185,20 +2125,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       ddayInfo: retentionDdayInfo,
     });
     const isRetentionEnded = isTrialPendingDelete || (dataRetentionUntil ? daysUntilRetentionEnds !== null && daysUntilRetentionEnds < 0 : false);
-    const serviceBadge = getMenuServiceBadge({
+    const service = getMenuService({
       productKey: entitlement?.product_key ?? activeBusinessSubscription?.product_key ?? anyBusinessSubscription?.product_key ?? null,
       planType: planType || activeBusinessSubscription?.plan_type || anyBusinessSubscription?.plan_type || null,
       templateKey: site.template_key,
     });
-    const visibilityBadge = isAccessRestricted ? null : getMenuVisibilityBadge(site.status);
-    const serviceTypeBadge: MenuCardBadge = {
-      key: serviceBadge.key,
-      label: serviceBadge.label,
-
-    };
     const section: MenuTab = isAccessRestricted || hasPaymentIssue || isTrialExpired || hasInactiveEntitlement
       ? isRecoveryWindowOpen ? "holding" : "deleted"
       : "active";
+    const visibility = section === "active" ? getMenuCardVisibility(site.status, site.published_at, canOpenPublicPage) : null;
     const unavailableActionReason = isTrialPendingDelete
       ? "복구 가능 기간이 종료되어 사용할 수 없습니다."
       : section === "deleted"
@@ -2206,71 +2141,48 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         : isAccessRestricted || hasPaymentIssue
         ? "보관 중에는 사용할 수 없습니다. 보관 기간 안에 재구독하면 다시 사용할 수 있습니다."
         : "현재 상태에서는 사용할 수 없습니다.";
-    const unpublishedActionReason = "아직 공개 전입니다. 공개 후 사용할 수 있습니다.";
+    const unpublishedActionReason = "메뉴판을 공개하면 사용할 수 있습니다.";
     const noMenuSiteReason = "메뉴판 정보를 확인할 수 없어 사용할 수 없습니다.";
-    let accessBadge: MenuCardBadge | null = null;
+    const isBusinessFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
+    let accessLabel: string | null = null;
+    if (isCancelScheduledActive) accessLabel = "해지 예약";
+    else if (archivedDisplayState) accessLabel = archivedDisplayState.label;
+    else if (isPersonalTrial && !isTrialExpired) accessLabel = "체험 중";
+    else if (section === "active" && isBusinessFreeTrial) accessLabel = "30일 무료 체험";
 
-    if (isCancelScheduledActive) {
-      accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약" };
-    } else if (archivedDisplayState) {
-      accessBadge = {
-        key: `access:${archivedDisplayState.key}`,
-        label: archivedDisplayState.label,
-
-      };
-    } else if (isPersonalTrial && !isTrialExpired) {
-      accessBadge = { key: "plan:trial-active", label: "체험 중" };
-    }
-
-    const badges = getUniqueMenuCardBadges([
-      ...(visibilityBadge ? [visibilityBadge] : []),
-      serviceTypeBadge,
-      ...(accessBadge ? [accessBadge] : []),
-      ...(section === "active" && isActiveBusinessFreeTrial(activeBusinessSubscription) ? [{ key: "subscription:free-trial", label: "30일 무료 체험" }] : []),
-    ]);
     const periodEnd = activeBusinessSubscription?.current_period_end ?? activeBusinessSubscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
     const metaItems: Array<{ label: string; value: string }> = [];
     let primaryMessage = "";
 
     if (archivedDisplayState && !isCancelScheduledActive) {
       primaryMessage = archivedDisplayState.message;
-      if (archivedDisplayState.key !== "deleted" && archivedDisplayState.ddayInfo && archivedDisplayState.ddayInfo.days >= 0) {
-        metaItems.push({ label: "보관 만료", value: archivedDisplayState.ddayInfo.label });
-      }
       if (retentionEndDate) {
-        metaItems.push({ label: "보관 종료일", value: formatDate(retentionEndDate) });
+        metaItems.push({ label: section === "holding" ? "복구 기한" : "보관 종료일", value: formatDate(retentionEndDate) });
       } else if (periodEnd) {
         metaItems.push({ label: "이용 종료일", value: formatDate(periodEnd) });
       }
     } else if (isOneTimeBusinessService && hasActiveEntitlement && !isAccessRestricted) {
       if (accessExpiresAt) {
         metaItems.push({ label: "이용 만료일", value: formatDate(accessExpiresAt) });
-      } else {
-        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
-      metaItems.push({ label: "결제방식", value: "이전 체험 상품" });
-      metaItems.push({ label: "인증 사업자", value: businessProfile?.business_name ?? "인증 사업자 정보 확인 중" });
     } else if (activeBusinessSubscription) {
-      const isFreeTrial = isActiveBusinessFreeTrial(activeBusinessSubscription);
-      metaItems.push({ label: "최근 결제일", value: formatDate(activeBusinessSubscription.last_paid_at) });
       primaryMessage = isCancelScheduledActive
         ? "해지 예약된 메뉴판입니다. 이용 종료일까지 편집과 공개가 가능합니다."
-        : isFreeTrial
+        : isBusinessFreeTrial
           ? "30일 무료체험으로 이용 중입니다. 종료일에 첫 월결제가 진행됩니다."
           : "";
       if (cancelAtPeriodEnd && periodEnd) {
         metaItems.push({ label: "이용 종료 예정일", value: formatDate(periodEnd) });
-      } else if (activeBusinessSubscription.next_billing_at) {
-        metaItems.push({ label: isFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
-      } else if (periodEnd) {
+      } else if (isBusinessFreeTrial && activeBusinessSubscription.next_billing_at) {
+        metaItems.push({ label: "첫 결제 예정일", value: formatDate(activeBusinessSubscription.next_billing_at) });
+      } else if (!activeBusinessSubscription.next_billing_at && periodEnd) {
         metaItems.push({ label: "이용 기간 종료일", value: formatDate(periodEnd) });
-      } else {
-        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
     } else if (isPersonalTrial && !isTrialExpired) {
       primaryMessage = "무료 체험으로 이용 중입니다.";
-      metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt || null) });
-      metaItems.push({ label: "남은 기간", value: daysUntilExpiry === 0 ? "오늘 만료" : typeof daysUntilExpiry === "number" ? `${Math.max(0, daysUntilExpiry)}일` : "확인 중" });
+      if (accessExpiresAt) {
+        metaItems.push({ label: "체험 종료일", value: formatDate(accessExpiresAt) });
+      }
     } else if (isTrialExpired) {
       primaryMessage = isRetentionEnded
         ? "보관 기간이 종료되어 복구할 수 없습니다."
@@ -2283,8 +2195,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         metaItems.push({ label: "보관 종료일", value: formatDate(dataRetentionUntil) });
       } else if (accessExpiresAt) {
         metaItems.push({ label: "이용 종료일", value: formatDate(accessExpiresAt) });
-      } else {
-        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
     } else {
       primaryMessage = hasPaymentIssue
@@ -2300,8 +2210,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         metaItems.push({ label: "이용 기간 종료일", value: formatDate(accessExpiresAt) });
       } else if (entitlement?.expired_at) {
         metaItems.push({ label: "이용 종료일", value: formatDate(entitlement.expired_at) });
-      } else {
-        metaItems.push({ label: "생성일", value: formatDate(site.created_at) });
       }
     }
 
@@ -2314,11 +2222,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       publicPath,
       template: getTemplateByKey(site.template_key),
       design: getSavedMenuDesign(site.template_key, site.settings),
-      templateLabel: site.template_key ? getMenuDesignDisplayName(site.template_key, null, site.settings) : "-",
-      serviceBadge,
-      badges,
+      service,
+      visibility,
+      accessLabel,
       primaryMessage,
-      metaItems: metaItems.slice(0, 3),
+      metaItems,
       isAccessRestricted,
       isTrialPendingDelete,
       isPersonalTrial,
@@ -2364,6 +2272,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const staffMenuCardViewModels = staffMenuSites.map((site) => {
     const publicPath = formatPublicMenuPath(site.slug);
     const hasPermission = (permission: Parameters<typeof hasMenuSitePermission>[1]) => site.permissions.includes(permission);
+    const canViewPublic = site.status === "published" && Boolean(site.slug);
     const canEdit = hasPermission("menu.edit");
     const canPublish = hasPermission("menu.publish");
     const canUseAi = hasPermission("ai.use");
@@ -2395,10 +2304,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       publicPath,
       template: getTemplateByKey(site.templateKey),
       design: getSavedMenuDesign(site.templateKey, {menu_design_id: site.designId}),
-      templateLabel: site.templateKey ? getMenuDesignDisplayName(site.templateKey, null, {menu_design_id: site.designId}) : "-",
+      service: getMenuService({ templateKey: site.templateKey }),
+      visibility: getMenuCardVisibility(site.status, site.publishedAt, canViewPublic),
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
-      statusLabel: getStatusLabel(site.status),
-      updatedAt: site.updatedAt,
       canEdit,
       canManageQr: canManageQr && site.status === "published" && Boolean(site.slug),
       qrDisabledReason: !canManageQr
@@ -2410,7 +2318,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       canManageOrders,
       canViewSales,
       canManageCalls,
-      canViewPublic: site.status === "published" && Boolean(site.slug),
+      canViewPublic,
       permissionSummary,
     };
   });
@@ -2441,20 +2349,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       const reason = disabledReason ?? "현재 상태에서는 사용할 수 없습니다.";
       return <button type="button" disabled title={reason} aria-label={`${accessibleLabel} 비활성화: ${reason}`} className="site-button site-button-outline">{icon}{label}</button>;
     }
-    const supportingLabels = new Set(["결제수단", "결제방식", "인증 사업자"]);
-    const details = card.metaItems.filter(item => !supportingLabels.has(item.label));
-    if (card.section === "active" && !card.isPersonalTrial) {
-      if (details[0]?.label !== "최근 결제일") {
-        details.unshift({ label: "최근 결제일", value: "-" });
-      }
-      if (details.length === 1) {
-        details.push({ label: "다음 결제 예정일", value: "-" });
-      }
-    }
-    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle={card.section}
+    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} serviceLabel={card.service.label} lifecycle={card.section}
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
-      badges={card.badges.map(badge => <Badge key={badge.key}>{badge.label}</Badge>)}
-      details={details}
+      badges={<>
+        {card.section === "active" ? <Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge> : null}
+        {card.accessLabel ? <Badge>{card.accessLabel}</Badge> : null}
+      </>}
+      details={card.metaItems}
       status={card.primaryMessage || undefined}
       billingHref={card.section === "active" ? undefined : menuBillingHref(card.publicPath, card.title)}
       billingLabel={card.section === "holding" ? "재구독·복구 안내" : card.section === "deleted" ? "결제내역" : "구독 정보"}
@@ -2469,10 +2370,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
-    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} publicPath={card.publicPath} lifecycle="active"
+    return <MenuSummaryCard key={card.key} cardKey={card.key} name={card.title} serviceLabel={card.service.label} lifecycle="active"
       thumbnail={<TemplateThumbnail template={card.template} design={card.design} />}
-      badges={<><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge><Badge>{card.statusLabel}</Badge></>}
-      details={[{ label: "템플릿", value: card.templateLabel }, { label: "최근 업데이트", value: formatDate(card.updatedAt) }]}
+      badges={<><Badge>{card.visibility ? MENU_CARD_VISIBILITY_LABELS[card.visibility] : "공개 상태 확인 필요"}</Badge><Badge>직원 참여</Badge><Badge tone="role">{card.roleLabel}</Badge></>}
+      details={[]}
       supportingDetails={[{ label: "사용 가능한 기능", value: card.permissionSummary }]}
       actions={<>
         {card.canEdit ? <Link href={`/mypage/menus/${card.siteId}/edit`} className="site-button site-button-primary"><EditIcon />메뉴 편집</Link>
@@ -2518,15 +2419,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </>} title={pageTitle}>
             {activeTab === "menus" ? (
               <section id="my-menus" className="site-stack-group scroll-mt-28">
-                <MenuCardList key={activeMenuTab}
+                <MenuCardList key={activeMenuTab} allowVisibilityFilter={activeMenuTab === "active"}
                   tabs={<NavigationTabs label="내 메뉴판 탭" purpose="state" size="lg" items={[
                     { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
                     { label: "만료·보관", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
                     { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
                   ]} />}
                   cards={[
-                    ...visibleMenuCards.map(card => ({ key: card.key, title: card.title, content: renderMenuCard(card) })),
-                    ...(activeMenuTab === "active" ? staffMenuCardViewModels.map(card => ({ key: card.key, title: card.title, content: renderStaffMenuCard(card) })) : []),
+                    ...visibleMenuCards.map(card => ({ key: card.key, title: card.title, serviceCategory: card.service.category, visibility: card.visibility, content: renderMenuCard(card) })),
+                    ...(activeMenuTab === "active" ? staffMenuCardViewModels.map(card => ({ key: card.key, title: card.title, serviceCategory: card.service.category, visibility: card.visibility, content: renderStaffMenuCard(card) })) : []),
                   ]}
                   notices={<>
                     {mypageNotice && messageCode !== "staff-invitation-accepted" ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">{mypageNotice}</p></ContentPanel> : null}

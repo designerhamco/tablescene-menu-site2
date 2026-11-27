@@ -28,15 +28,23 @@ test("inactive and unpaid states are not misclassified as active or a failed pay
   assert.equal(getSiteChipTone("constructor"), "neutral");
 });
 
-test("filled site chip tokens preserve at least AA contrast against white text", () => {
+test("filled site chip tokens preserve at least AA contrast against their displayed text", () => {
   const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
   const luminance = (hex: string) => {
     const rgb = hex.match(/../g)!.map(value => parseInt(value, 16) / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
     return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
   };
-  const colors = [...css.matchAll(/--ui-chip-[a-z]+:\s*#([0-9a-f]{6})/g)];
+  const colors = [...css.matchAll(/--ui-chip-([a-z]+):\s*#([0-9a-f]{6})/g)];
+  const siteText = css.match(/--ui-text:\s*#([0-9a-f]{6})/)?.[1];
+  assert.ok(siteText);
+  assert.match(css, /\.site-chip-create\s*\{[^}]*color:\s*var\(--ui-text\)/);
   assert.ok(colors.length >= 10);
-  for (const [, color] of colors) assert.ok(1.05 / (luminance(color) + .05) >= 4.5, color);
+  for (const [, tone, fill] of colors) {
+    const textLightness = luminance(tone === "create" ? siteText : "ffffff");
+    const fillLightness = luminance(fill);
+    const contrast = (Math.max(textLightness, fillLightness) + .05) / (Math.min(textLightness, fillLightness) + .05);
+    assert.ok(contrast >= 4.5, tone);
+  }
 });
 
 test("non-status chips use one borderless dark neutral treatment", () => {
