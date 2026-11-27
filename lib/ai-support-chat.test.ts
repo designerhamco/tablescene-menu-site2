@@ -10,6 +10,7 @@ import {
   normalizeAiSupportQuestion,
   requireAiSupportOverseasTransferConsent,
 } from "./ai-support-chat";
+import { buildAiSupportModelRequest, DEFAULT_SUPPORT_MODEL, readAiSupportModelAnswer } from "./server/ai-support-model";
 
 test("AI 상담 응답 비용 상한은 짧은 안내 답변 범위로 고정한다", () => {
   assert.equal(AI_SUPPORT_CHAT_MAX_OUTPUT_TOKENS, 300);
@@ -65,4 +66,37 @@ test("민감한 값을 포함하지 않은 일반 계정 질문은 허용한다"
   assert.equal(normalizeAiSupportQuestion("비밀번호를 어떻게 재설정하나요?"), "비밀번호를 어떻게 재설정하나요?");
   assert.equal(normalizeAiSupportQuestion("인증번호가 오지 않아요"), "인증번호가 오지 않아요");
   assert.equal(normalizeAiSupportQuestion("다이닝 월 5,900원 요금제를 알려주세요"), "다이닝 월 5,900원 요금제를 알려주세요");
+});
+
+function modelReply(text: string, status = "completed") {
+  return {
+    status,
+    output: [{ type: "message", role: "assistant", content: [{ type: "output_text", text }] }],
+  };
+}
+
+test("AI 상담은 모델에 관련 여부와 답변을 함께 요청한다", () => {
+  const request = buildAiSupportModelRequest("대표 QR은 어디에서 받아요?", DEFAULT_SUPPORT_MODEL);
+  assert.equal(request.store, false);
+  assert.equal(request.text.format.strict, true);
+  assert.deepEqual(request.text.format.schema.properties.scope.enum, ["support", "off_topic", "needs_context"]);
+  assert.equal(request.input.at(-1)?.content[0].text, "대표 QR은 어디에서 받아요?");
+});
+
+test("범위 밖 답변과 모호한 답변은 모델 문구 대신 고정 안내를 사용한다", () => {
+  const generatedText = "오사카 여행 코스를 추천할게요.";
+  const gate = (scope: string) => readAiSupportModelAnswer(modelReply(JSON.stringify({ scope, answer: generatedText })));
+  assert.match(gate("off_topic"), /이 상담에서는 아티메뉴 이용을 안내해요/);
+  assert.match(gate("needs_context"), /사용 중인 기능이나 화면/);
+  for (const scope of ["off_topic", "needs_context"]) assert.ok(!gate(scope).includes(generatedText));
+});
+
+test("관련 답변만 표시하고 범위를 확인할 수 없는 출력은 표시하지 않는다", () => {
+  const support = JSON.stringify({ scope: "support", answer: "**내 메뉴판**에서 대표 QR을 다운로드하세요." });
+  assert.equal(readAiSupportModelAnswer(modelReply(support)), "내 메뉴판에서 대표 QR을 다운로드하세요.");
+  assert.equal(readAiSupportModelAnswer(modelReply(support, "incomplete")), "");
+  assert.equal(readAiSupportModelAnswer(modelReply("오사카 여행 코스는 다음과 같아요.")), "");
+  assert.equal(readAiSupportModelAnswer(modelReply('{"scope":"unknown","answer":"숨겨야 하는 응답"}')), "");
+  assert.equal(readAiSupportModelAnswer(modelReply('{"scope":"support","answer":2}')), "");
+  assert.equal(readAiSupportModelAnswer({ output_text: support }), "");
 });
