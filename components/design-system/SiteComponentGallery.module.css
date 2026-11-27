@@ -44,12 +44,6 @@
 
 .page :is(section[id],h2[id]) { scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
 
-.shapedExample { display: grid; min-width: 0; align-content: start; gap: 1.25rem; }
-.shapedContent { display: grid; gap: 1.25rem; }
-.shapedRow { display: flex; align-items: flex-start; gap: 1rem; }
-.shapedRow > div { min-width: 0; }
-.shapedIcon { display: grid; width: 2.75rem; height: 2.75rem; flex: none; place-items: center; border-radius: 50%; background: var(--ui-surface); }
-
 .swatch[data-white] { border: 1px solid var(--ui-border); }
 
 .indicatorGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--site-space-group); }

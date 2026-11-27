@@ -216,7 +216,8 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.match(read("app/components/layout/Navbar.tsx"), /<NotificationPanel compact/);
   assert.match(read("components/mypage/NotificationHistorySection.tsx"), /<NotificationPanel items=/);
   assert.match(read("app/components/ui/navigation-tabs.tsx"), /data-purpose=\{purpose\}/);
-  assert.match(read("app/mypage/page.tsx"), /label="내 메뉴판 탭" purpose="state"/);
+  assert.match(read("app/mypage/page.tsx"), /label="메뉴판 이용 상태 필터" purpose="state"/);
+  assert.match(read("app/mypage/page.tsx"), /purpose="page" label="구독\/결제 내역 탭"/);
   for (const route of ["sign-in", "sign-up", "forgot-password", "reset-password", "find-account", "auth/recovery"]) {
     assert.match(read(`app/${route}/page.tsx`), /<h1 className="type-page-title"/);
   }
@@ -374,13 +375,12 @@ test("category capsules and room rectangles use separate shared roles without ch
   assert.match(css, /\.site-button\.site-button-icon\.site-button-rounded \{ border-radius: var\(--ui-radius-control-rounded\); \}/);
   assert.match(tabCss, /\.site-room-tabs > \.site-room-tab \{[^}]*border-radius:var\(--ui-radius-control-rounded\)/);
   assert.match(tabCss, /\.site-room-tabs > \.site-room-tab\[data-state="active"\] \{[^}]*background:var\(--ui-surface\);[^}]*color:var\(--ui-text\);[^}]*box-shadow:inset/);
-  for (const path of ["components/mypage/floor-plan/FloorPlanEditor.tsx", "components/mypage/OperationsHistoryViews.tsx"]) {
-    assert.match(read(path), /appearance="rooms"/);
-    assert.doesNotMatch(read(path), /appearance="pills"/);
-  }
-  assert.match(read("components/mypage/floor-plan/FloorPlanEditor.tsx"), /shape="rounded" size="icon" onClick=\{addRoom\}/);
+  assert.match(read("components/mypage/OperationsHistoryViews.tsx"), /appearance="rooms"/);
+  const floorPlanEditor = read("components/mypage/floor-plan/FloorPlanEditor.tsx");
+  assert.match(floorPlanEditor, /appearance=\{roomManagement \? "document" : "rooms"\}/);
+  assert.match(floorPlanEditor, /actionPlacement="start".*shape="rounded" size="icon" onClick=\{addRoom\}/);
   assert.match(read("components/apply/TemplateGallery.tsx"), /<CatalogFilterSelect key="industry" label="업종"/);
-  assert.match(read("styles/site-spacing.css"), /\.site-room-tabs\[data-overflow-right="true"\]/);
+  assert.match(read("styles/site-spacing.css"), /:is\(\.site-room-tabs, \.site-document-tabs\)\[data-overflow-right="true"\]/);
 });
 
 

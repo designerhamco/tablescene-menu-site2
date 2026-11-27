@@ -176,7 +176,7 @@
 .site-content-heading-row[data-layout="toolbar"] > .site-field-stack { flex:none; }
 .site-inline-field { display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); white-space:nowrap; }
 .site-inline-field > .site-field { flex:1; width:100%; min-width:0; }
-.site-room-tabs[data-overflow-right="true"] { mask-image:linear-gradient(to right,#000 0,#000 calc(100% - var(--site-table-overflow-fade-width)),transparent 100%); }
+:is(.site-room-tabs, .site-document-tabs)[data-overflow-right="true"] { mask-image:linear-gradient(to right,#000 0,#000 calc(100% - var(--site-table-overflow-fade-width)),transparent 100%); }
 
 /* The kitchen and order detail share the same checkered cooking flag. */
 .site-order-cooking-flag {
